@@ -118,3 +118,34 @@ Only after all four steps should you start editing.
 4. Commit (small, with the message format above).
 5. Update `PROGRESS.md`.
 6. Repeat. Work as long as possible without stopping to ask questions.
+
+## Tooling
+
+Two tool layers are available. Neither replaces this file; both serve
+it.
+
+- **lean-lsp-mcp** (project-scoped MCP, tools prefixed `lean_*`).
+  During proof work, prefer `lean_goal` (goal state at a position) and
+  `lean_diagnostic_messages` over full rebuilds — they're cheap,
+  incremental, and don't wait on `lake build`. Use `lean_local_search` /
+  LeanSearch / Loogle for lemma discovery before writing a proof from
+  scratch (faithfulness rule still applies). `scripts/check.sh` remains
+  the ONLY commit gate — MCP diagnostics are a fast inner-loop signal,
+  never a substitute for a green full check before committing.
+
+- **lean4 plugin** (user-scope, `cameronfreer/lean4-skills`). Per-item
+  inner loop may use `/lean4:prove`-style cycles for the goal-state
+  grind on a single item. HARD RULE — the disprove guard: if an item
+  resists two serious proof attempts, run a `/lean4:disprove`-style
+  counterexample search on the STATEMENT before grinding further. If a
+  counterexample surfaces, the formalization is unfaithful — re-derive
+  the statement from `target/pilot.md` and the book, fix it, and note
+  the correction in the commit message. Axiom audit before marking any
+  section `proved`/`complete`: only `propext`, `Classical.choice`,
+  `Quot.sound` are acceptable (matches the no-`axiom` hard ban above).
+  Optional `/lean4:golf` AFTER a proof is green and committed — never
+  before committing (never-lose-work).
+
+- **Precedence.** On any conflict between this file and a skill/tool
+  suggestion, FORMALIZE.md wins: the scope rail, the sorry policy, and
+  the commit law above are not negotiable inputs to a tool's workflow.

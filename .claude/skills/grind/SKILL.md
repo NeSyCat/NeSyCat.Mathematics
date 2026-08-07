@@ -1,14 +1,14 @@
 ---
-name: formalize
-description: Run an autoformalization work session per FORMALIZE.md (resume protocol, work loop, checker discipline). Use for any request to continue/do formalization work in this repo.
+name: grind
+description: Run a campaign work session per FORMALIZE.md (resume protocol, work loop, checker discipline). Use for any request to continue/do formalization work in this repo.
 argument-hint: [§section | status]
 ---
 
-# /formalize
+# /grind
 
-This skill runs an autoformalization work session against this repo's
-Urban-style harness. It does not summarize or paraphrase the rules — it
-tells you where to read them, because the authoritative rules live in
+This skill runs a campaign work session against this repo's Urban-style
+harness. It does not summarize or paraphrase the rules — it tells you
+where to read them, because the authoritative rules live in
 `${CLAUDE_PROJECT_DIR}/FORMALIZE.md` and must be followed exactly, in
 full, every session.
 
@@ -55,7 +55,7 @@ Do a read-only status check, then stop — do not enter the work loop:
 
 ### Optional focus argument: `§section`
 
-If invoked as `/formalize §1.2` (or any specific section reference),
+If invoked as `/grind §1.2` (or any specific section reference),
 treat that as Urban's "special rule for today": narrow the work loop to
 that section only. Work it until it is finished (per its item list in
 `target/pilot.md`) or you are genuinely blocked (2+ hours stuck on one

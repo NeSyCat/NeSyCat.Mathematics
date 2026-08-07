@@ -21,10 +21,12 @@ Builds require the elan toolchain on `PATH`:
 This repo wires FORMALIZE.md's rules into the Claude Code harness
 mechanically, not just as documentation:
 
-- `/formalize [§section | status]` — the skill that runs a work session.
-  Bare `/formalize` executes the resume protocol then the work loop;
-  `/formalize status` is a read-only progress check; a section argument
-  like `/formalize §1.2` narrows the work loop to that section only.
+- `/grind [§section | status]` — the skill that runs a campaign work
+  session. Bare `/grind` executes the resume protocol then the work
+  loop; `/grind status` is a read-only progress check; a section
+  argument like `/grind §1.2` narrows the work loop to that section
+  only. (Renamed from `/formalize` — the name collided with the
+  `lean4` plugin's `lean4:formalize` command.)
 - Grind mode — unattended looping via `scripts/grind-mode.sh N` (arm for
   N iterations, 1-50), `scripts/grind-mode.sh off` (disarm),
   `scripts/grind-mode.sh` (status). Backed by the `Stop` hook
