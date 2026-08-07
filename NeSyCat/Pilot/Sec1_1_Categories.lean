@@ -54,10 +54,22 @@ category `Type u` of types and functions (`Mathlib.CategoryTheory.Types`),
 so this specializes `IsIsomorphism` to that category. -/
 theorem isIsomorphism_iff_bijective {A B : Type u} (f : A ⟶ B) :
     IsIsomorphism f ↔ Function.Bijective f := by
-  sorry -- TODO: prove both directions: forward direction extracts injectivity
-        -- and surjectivity from the two categorical inverse equations
-        -- (via `ConcreteCategory.congr_hom`); backward direction builds the
-        -- inverse morphism from `Equiv.ofBijective` (via `TypeCat.ofHom`) and
-        -- checks the two triangle identities (via `ConcreteCategory.hom_ext`).
+  constructor
+  · rintro ⟨g, hfg, hgf⟩
+    have hleft : Function.LeftInverse g f := fun x => ConcreteCategory.congr_hom hfg x
+    have hright : Function.RightInverse g f := fun y => ConcreteCategory.congr_hom hgf y
+    exact ⟨hleft.injective, hright.surjective⟩
+  · rintro ⟨hinj, hsurj⟩
+    -- `g` is a right inverse of `f` by construction (`surjInv_eq`); injectivity of
+    -- `f` upgrades it to a two-sided inverse.
+    set g : B → A := Function.surjInv hsurj with hg_def
+    have hfg : ∀ y, f (g y) = y := Function.surjInv_eq hsurj
+    have hgf : ∀ x, g (f x) = x := fun x => hinj (hfg (f x))
+    refine ⟨TypeCat.ofHom g, ConcreteCategory.hom_ext _ _ fun x => ?_,
+      ConcreteCategory.hom_ext _ _ fun y => ?_⟩
+    · simp only [types_comp_apply, types_id_apply, TypeCat.ofHom_apply]
+      exact hgf x
+    · simp only [types_comp_apply, types_id_apply, TypeCat.ofHom_apply]
+      exact hfg y
 
 end NeSyCat.Pilot
