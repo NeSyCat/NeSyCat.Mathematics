@@ -7,3 +7,9 @@
 .claude/grind-mode
 .claude/settings.local.json
 __pycache__/
+
+# leanblueprint build outputs (sources live in blueprint/src/)
+blueprint/print/
+blueprint/web/
+blueprint/lean_decls
+blueprint/src/web.paux
