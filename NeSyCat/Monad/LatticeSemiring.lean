@@ -30,7 +30,13 @@ monotone in every argument with respect to `≤`. Only left-monotonicity is
 taken as a field; right-monotonicity (`LatticeSemiring.add_le_add_right`,
 `LatticeSemiring.mul_le_mul_right`) is derived from it via commutativity, so
 the class still faithfully captures "monotone in each argument" without
-redundant fields. -/
+redundant fields. "Left" here is Mathlib's naming sense, not an argument
+position: `add_le_add_left`/`mul_le_mul_left` are so named because the fixed
+element `c` is added/multiplied *on the left* of the varying term — the
+field docstrings' "monotone in its right argument" describe the very same
+fields from the complementary, argument-position point of view (the varying
+term `a`/`b` sits on the *right* of `c + ·`/`c * ·`); the two descriptions
+name one fact two ways, not two different facts. -/
 class LatticeSemiring (S : Type*) extends CommSemiring S, Lattice S where
   /-- `+` is monotone in its right argument. -/
   add_le_add_left : ∀ {a b : S}, a ≤ b → ∀ c : S, c + a ≤ c + b
@@ -95,7 +101,7 @@ instance : CommSemiring BoolW where
   mul_comm := by decide
   nsmul := nsmulRec
 
-/-- The Boolean instance of `NeSyCat.LatticeSemiring`: `⊕ = or` is exactly
+/-- Blueprint `def:lattice-semiring` (Boolean instance): `⊕ = or` is exactly
 the lattice join and `⊗ = and` is exactly the lattice meet, so monotonicity
 reduces to `sup_le_sup_left`/`inf_le_inf_left`. -/
 instance instLatticeSemiring : LatticeSemiring BoolW where
@@ -115,7 +121,7 @@ of this instance. -/
 
 open scoped NNReal
 
-/-- The mass instance of `NeSyCat.LatticeSemiring`, on `ℝ≥0` (`⊕ = +`,
+/-- Blueprint `def:lattice-semiring` (mass instance): on `ℝ≥0` (`⊕ = +`,
 `⊗ = ·`). `NNReal`'s own `CommSemiring`/`Lattice`/order instances supply
 everything except the two monotonicity fields, which are Mathlib's
 `add_le_add_right`/`mul_le_mul_right` for `ℝ≥0`. -/
