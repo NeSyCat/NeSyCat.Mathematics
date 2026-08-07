@@ -1,18 +1,22 @@
 # CLAUDE.md
 
-This repository is an Urban-style autoformalization harness for Lean 4
-+ Mathlib, now targeting the NeSy26 paper appendix: LaTeX-first, via a
-pinned source snapshot and a leanblueprint scaffold.
+This repository hosts `NeSyCat.Semantics`, a standing Urban-style
+Lean 4 + Mathlib library of NeSyCat semantics (not a per-paper
+formalization project): LaTeX-first, via a leanblueprint scaffold and
+pinned source snapshots.
 
 If you are doing formalization work here: read `FORMALIZE.md` first,
 treat it as your authoritative work instructions, follow it exactly,
 and work as long as possible without stopping to ask questions.
 
-- `target/nesy26-paper.tex` — the pinned informal target document (a
-  verbatim snapshot of the NeSy26 paper).
 - `blueprint/` — the leanblueprint scaffold: `blueprint/src/content.tex`
-  itemizes the target (per-item `\lean`/`\leanok` status), plus a
-  dependency graph and web/pdf build.
+  is the library's canonical reference document, organized by
+  mathematical structure (per-item `\lean`/`\leanok` status, provenance
+  citations to source papers), plus a dependency graph and web/pdf
+  build.
+- `target/` — pinned source snapshots that blueprint items cite as
+  provenance; currently `target/nesy26-paper.tex` (a verbatim snapshot
+  of the NeSy26 paper).
 - `scripts/blueprint.sh` — builds the blueprint and checks its `\lean{}`
   declarations; prints `BLUEPRINT: GREEN` on success.
 - `target/pilot.md` (Leinster, *Basic Category Theory*, Chapter 1) —

@@ -43,9 +43,10 @@ Before dispatching work on any of:
 
 **enter plan mode** and produce a plan covering:
 
-- the informal statement(s) reviewed against both
-  `target/nesy26-paper.tex` (itemized in `blueprint/src/content.tex`)
-  and the source paper;
+- the informal statement(s) reviewed against both the blueprint item
+  in `blueprint/src/content.tex` (the canonical library document) and
+  its cited source snapshot under `target/` (currently
+  `target/nesy26-paper.tex`);
 - encoding choices — Mathlib background to lean on, namespace,
   statement shape, composition-order conventions;
 - item order and dependency structure within the batch;
@@ -91,7 +92,9 @@ names mid-campaign.
   campaign doctrine sits on top of.
 - `${CLAUDE_PROJECT_DIR}/PROGRESS.md` — per-section status ledger;
   drives plan-first triggers (a) and item selection.
-- `${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex` — the informal target
-  document; the source of truth for encoding review.
-- `${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` — the itemized
-  target (labels, `\lean`/`\leanok` status).
+- `${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` — the canonical
+  library document (labels, `\lean`/`\leanok` status, provenance
+  citations).
+- `${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex` — the pinned source
+  snapshot cited as provenance; the source of truth for encoding
+  review alongside the blueprint item.

@@ -1,8 +1,9 @@
 # PROGRESS.md — Campaign Progress Ledger
 
-Tracks the formalization status of each section/cluster of the active
-target document (see `CLAUDE.md` for the current target). Updated at
-the end of every work unit per `FORMALIZE.md`.
+Tracks the formalization status of each cluster of the
+`NeSyCat.Semantics` library (canonical document `blueprint/src/content.tex`,
+provenance in `target/` — see `CLAUDE.md`). Updated at the end of every
+work unit per `FORMALIZE.md`.
 
 ## Status legend
 
@@ -10,7 +11,7 @@ the end of every work unit per `FORMALIZE.md`.
 |------------------------|---------------------------------------------------------------------|
 | `not-started`          | No file/content exists for this section yet.                       |
 | `stubs`                | File exists; item names/statements sketched, mostly `sorry`.       |
-| `stated`               | All in-scope items from the active target document are stated (typechecking statements), proofs not yet attempted. |
+| `stated`               | All in-scope items from the canonical library document are stated (typechecking statements), proofs not yet attempted. |
 | `partial`              | Some items proved, some still `sorry`.                             |
 | `proved`               | All in-scope Definitions/Lemmas/Theorems for the section are proved (exercises may remain). |
 | `complete(+exercises)` | Section fully proved including its exercises.                      |
@@ -30,10 +31,10 @@ part of the active campaign.
 | §1.3    | Natural transformations    | `NeSyCat/Pilot/Sec1_3_NatTrans.lean`          | not-started |
 | §1.3 ex | Natural transformations — exercises | `NeSyCat/Pilot/Sec1_3_NatTrans.lean`  | not-started |
 
-## NeSy26 Semantics campaign
+## NeSyCat.Semantics library
 
-Active campaign, target `target/nesy26-paper.tex` (itemized in
-`blueprint/src/content.tex`), Lean home `NeSyCat/Semantics/`.
+Active library work, canonical document `blueprint/src/content.tex`
+(provenance: `target/nesy26-paper.tex`), Lean home `NeSyCat/Semantics/`.
 
 | Cluster                                                                    | Status      |
 |-----------------------------------------------------------------------------|-------------|

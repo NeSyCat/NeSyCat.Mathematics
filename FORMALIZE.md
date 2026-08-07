@@ -72,24 +72,32 @@ HARD BANS (no exceptions):
 ## Faithfulness
 
 - Every formal item gets a doc comment of the form:
-  `/-- NeSy26 <tex-label> (<name>): <informal statement>. -/`, where
+  `/-- Blueprint <tex-label> (<name>): <informal statement>. -/`, where
   `<tex-label>` is the blueprint `\label` key for that item in
   `blueprint/src/content.tex`. The legacy Leinster form,
   `/-- Leinster <number> (<name>): <informal statement>. -/`, remains
   valid but only for the archived pilot files under `NeSyCat/Pilot/`.
+- Faithfulness has two legs: (1) Lean statement ↔ blueprint statement —
+  exact; (2) blueprint item ↔ its cited source (e.g. "[NeSy26, App. A]"
+  against the pinned snapshot under `target/`) — divergences must be
+  declared in the item's own text. Items may be stated at natural
+  generality beyond a single cited source's concrete case; a paper's
+  case then appears as an instance/corollary, and any such divergence
+  is declared, not silent.
 - Before adding ANY definition or theorem:
   1. `grep` `NeSyCat/Semantics/` (or `NeSyCat/Pilot/` for legacy work)
      for duplicates of the same item.
   2. Search Mathlib for existing versions (`exact?`, `apply?`, `rw?`,
      or https://leansearch.net).
 - Mathlib may be used freely as BACKGROUND machinery (e.g. `Category`,
-  `Functor`, `NatTrans` from `Mathlib.CategoryTheory`). But a target
-  item from the active target document (`target/nesy26-paper.tex`,
-  itemized in `blueprint/src/content.tex`) must be STATED in the
-  `NeSyCat.Semantics` namespace and given a REAL proof (pilot legacy:
-  `NeSyCat.Pilot`). A bare one-line `exact <Mathlib lemma>` citation of
-  the identical statement defeats the campaign's purpose — construct
-  the proof, even if it uses Mathlib lemmas as steps.
+  `Functor`, `NatTrans` from `Mathlib.CategoryTheory`). But a library
+  item from the canonical library document `blueprint/src/content.tex`
+  (provenance: pinned source snapshots under `target/`, currently
+  `target/nesy26-paper.tex`) must be STATED in the `NeSyCat.Semantics`
+  namespace and given a REAL proof (pilot legacy: `NeSyCat.Pilot`). A
+  bare one-line `exact <Mathlib lemma>` citation of the identical
+  statement defeats the campaign's purpose — construct the proof, even
+  if it uses Mathlib lemmas as steps.
 
 ## Work strategy
 
@@ -152,8 +160,8 @@ it.
   resists two serious proof attempts, run a `/lean4:disprove`-style
   counterexample search on the STATEMENT before grinding further. If a
   counterexample surfaces, the formalization is unfaithful — re-derive
-  the statement from `target/nesy26-paper.tex` and its blueprint item,
-  fix it, and note the correction in the commit message. Axiom audit
+  from the blueprint item and its cited source, fix it, and note the
+  correction in the commit message. Axiom audit
   before marking any section `proved`/`complete`: only `propext`,
   `Classical.choice`,
   `Quot.sound` are acceptable (matches the no-`axiom` hard ban above).

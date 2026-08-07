@@ -19,10 +19,11 @@ explicitly read them yourself:
   never-lose-work, checker discipline, sorry policy, faithfulness,
   work strategy, progress ledger, resume protocol, work loop).
 - `${CLAUDE_PROJECT_DIR}/PROGRESS.md` — per-section status ledger.
-- `${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex` — the informal target
-  document (the pinned NeSy26 paper snapshot).
-- `${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` — the itemized
-  target: item list, `\label` keys, and anything marked `SKIP:`.
+- `${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` — the canonical
+  library document: item list, `\label` keys, provenance citations,
+  and anything marked `SKIP:`.
+- `${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex` — the pinned source
+  snapshot cited as provenance by blueprint items.
 
 ## If the argument is `status`
 

@@ -6,14 +6,15 @@ description: Boot the NeSyCat.Mathematics formalization stack: verify every comp
 # /nesycat-math
 
 Boot entry point for this repo. Runs a full preflight, renders a
-status dashboard and campaign snapshot, then hands off to a mission
+status dashboard and library snapshot, then hands off to a mission
 choice. Read `${CLAUDE_PROJECT_DIR}/FORMALIZE.md`,
 `${CLAUDE_PROJECT_DIR}/PROGRESS.md`,
-`${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex`, and
-`${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` as part of this boot —
-they are not auto-discovered. This skill hands off to `campaign`
-(multi-item orchestration) and `grind` (a single hands-on work
-session).
+`${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` (the primary,
+canonical library document), and
+`${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex` (its pinned source
+snapshot) as part of this boot — they are not auto-discovered. This
+skill hands off to `campaign` (multi-item orchestration) and `grind`
+(a single hands-on work session).
 
 ## PHASE 1 — PREFLIGHT
 
@@ -59,7 +60,7 @@ composes: the foreman plans and routes → `/campaign` doctrine →
 individual proofs → lean-lsp senses goal states → `lean-checker`
 verifies.
 
-Then render the **CAMPAIGN SNAPSHOT**: per-item status read from
+Then render the **LIBRARY SNAPSHOT**: per-item status read from
 `blueprint/src/content.tex`'s `\lean`/`\leanok` marks (plus
 `PROGRESS.md`), and the next 2–3 candidate items not yet formalized.
 
