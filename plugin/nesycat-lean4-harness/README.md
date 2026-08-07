@@ -16,6 +16,13 @@ it.
 
 - `skills/grind/` — the `/grind` skill: resume protocol, work loop,
   checker discipline, status mode, optional `§section` focus.
+- `skills/campaign/` — the `/campaign` skill: plan-first orchestrator
+  doctrine for multi-item campaigns, composed on top of the
+  `fable-foreman` contract (haiku scouts, sonnet grinders, opus/fable
+  escalation, blind verification).
+- `skills/boot/` — the `/boot` skill: preflight the whole stack,
+  render a status dashboard and campaign snapshot, then ask what to
+  prove next. The recommended way to start a session in a host repo.
 - `agents/lean-prover.md` — a delegated formalization grinder.
 - `agents/lean-checker.md` — a read-only blind verifier that never
   edits.
@@ -60,6 +67,34 @@ install this plugin — the `PreToolUse`/`PostToolUse`/`SessionStart`/
 `Stop` hooks would run twice, doubling every guard check and grind-mode
 re-prompt. This plugin is packaged for OTHER repositories that want the
 same harness; it is not installed or activated in this repository.
+
+## The stack
+
+Four layers compose to run a formalization campaign, each doing one
+job:
+
+- **This plugin** (`nesycat-lean4-harness`) — campaign law and boot:
+  `/grind` (single work session), `/campaign` (orchestration
+  doctrine), `/boot` (preflight + dashboard + mission menu), the
+  scope-rail and sorry-policy hooks, and the `lean-prover` /
+  `lean-checker` agents.
+- **`fable-foreman`** (Claude Code plugin) — the orchestration
+  contract `/campaign` composes with: job-site probing, ticket
+  writing, blind verification, escalation precedence. Required for
+  full `/campaign` behavior; `/campaign` degrades gracefully to an
+  inline equivalent if it isn't installed.
+- **[`cameronfreer/lean4-skills`](https://github.com/cameronfreer/lean4-skills)**
+  — inner-loop craft: `/lean4:prove`, `/lean4:disprove`,
+  `/lean4:golf`, `/lean4:checkpoint`, one item at a time.
+- **[`oOo0oOo/lean-lsp-mcp`](https://github.com/oOo0oOo/lean-lsp-mcp)**
+  — LSP senses: `lean_goal`, `lean_diagnostic_messages`,
+  `lean_local_search`, and friends for fast incremental feedback
+  without a full rebuild.
+
+Host repos are recommended to add a thin, project-named alias skill
+for `/boot` (e.g. this harness's own source repository wires
+`/nesycat-math` as a one-line alias) so contributors get a memorable,
+on-brand entry point.
 
 ## Credits
 

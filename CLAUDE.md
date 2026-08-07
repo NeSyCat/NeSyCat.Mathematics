@@ -21,6 +21,12 @@ Builds require the elan toolchain on `PATH`:
 This repo wires FORMALIZE.md's rules into the Claude Code harness
 mechanically, not just as documentation:
 
+- `/nesycat-math` — the standard way to start a session here: verifies
+  every component of the stack, shows a status dashboard and campaign
+  snapshot, then asks what to prove next.
+- `/campaign` — plan-first foreman orchestration for multi-item
+  formalization campaigns (routed dispatch, blind verification);
+  composes with the `fable-foreman` skill when it's available.
 - `/grind [§section | status]` — the skill that runs a campaign work
   session. Bare `/grind` executes the resume protocol then the work
   loop; `/grind status` is a read-only progress check; a section
