@@ -1,0 +1,4 @@
+/.lake
+
+# Orchestration state for the foreman/worker harness — never committed.
+/.foreman/

@@ -1,0 +1,125 @@
+\begin{thebibliography}{10}
+
+\bibitem{DBLP:conf/mkm/BrownKSU25}
+Chad~E. Brown, Cezary Kaliszyk, Martin Suda, and Josef Urban.
+\newblock Hammering higher order set theory.
+\newblock In Valeria de~Paiva and Peter Koepke, editors, {\em Intelligent
+  Computer Mathematics - 18th International Conference, {CICM} 2025, Brasilia,
+  Brazil, October 6-10, 2025, Proceedings}, volume 16136 of {\em Lecture Notes
+  in Computer Science}, pages 3--20. Springer, 2025.
+\newblock \href {https://doi.org/10.1007/978-3-032-07021-0\_1}
+  {\path{doi:10.1007/978-3-032-07021-0\_1}}.
+
+\bibitem{cariolaro1999ramsey}
+David Cariolaro.
+\newblock {\em On the Ramsey number R (3, 6)}.
+\newblock Department of Mathematical Sciences, Aalborg University, 1999.
+
+\bibitem{DBLP:journals/ijar/GauthierOU23}
+Thibault Gauthier, Miroslav Ols{\'{a}}k, and Josef Urban.
+\newblock Alien coding.
+\newblock {\em Int. J. Approx. Reason.}, 162:109009, 2023.
+\newblock URL: \url{https://doi.org/10.1016/j.ijar.2023.109009}, \href
+  {https://doi.org/10.1016/J.IJAR.2023.109009}
+  {\path{doi:10.1016/J.IJAR.2023.109009}}.
+
+\bibitem{DBLP:conf/cade/GauthierU25}
+Thibault Gauthier and Josef Urban.
+\newblock Learning conjecturing from scratch.
+\newblock In Clark~W. Barrett and Uwe Waldmann, editors, {\em Automated
+  Deduction - {CADE} 30 - 30th International Conference on Automated Deduction,
+  Stuttgart, Germany, July 28-31, 2025, Proceedings}, volume 15943 of {\em
+  Lecture Notes in Computer Science}, pages 423--445. Springer, 2025.
+\newblock \href {https://doi.org/10.1007/978-3-031-99984-0\_23}
+  {\path{doi:10.1007/978-3-031-99984-0\_23}}.
+
+\bibitem{DBLP:conf/itp/JakubuvCGKOP00U23}
+Jan Jakubuv, Karel Chvalovsk{\'{y}}, Zarathustra~Amadeus Goertzel, Cezary
+  Kaliszyk, Mirek Ols{\'{a}}k, Bartosz Piotrowski, Stephan Schulz, Martin Suda,
+  and Josef Urban.
+\newblock Mizar 60 for mizar 50.
+\newblock In Adam Naumowicz and Ren{\'{e}} Thiemann, editors, {\em 14th
+  International Conference on Interactive Theorem Proving, {ITP} 2023,
+  Bia{\l}ystok, Poland, July 31 - August 4, 2023}, volume 268 of {\em LIPIcs},
+  pages 19:1--19:22. Schloss Dagstuhl - Leibniz-Zentrum f{\"{u}}r Informatik,
+  2023.
+\newblock URL: \url{https://doi.org/10.4230/LIPIcs.ITP.2023.19}, \href
+  {https://doi.org/10.4230/LIPICS.ITP.2023.19}
+  {\path{doi:10.4230/LIPICS.ITP.2023.19}}.
+
+\bibitem{DBLP:conf/itp/KaliszykUV15}
+Cezary Kaliszyk, Josef Urban, and Jir{\'{\i}} Vyskocil.
+\newblock Learning to parse on aligned corpora (rough diamond).
+\newblock In Christian Urban and Xingyuan Zhang, editors, {\em Interactive
+  Theorem Proving - 6th International Conference, {ITP} 2015, Nanjing, China,
+  August 24-27, 2015, Proceedings}, volume 9236 of {\em Lecture Notes in
+  Computer Science}, pages 227--233. Springer, 2015.
+\newblock \href {https://doi.org/10.1007/978-3-319-22102-1\_15}
+  {\path{doi:10.1007/978-3-319-22102-1\_15}}.
+
+\bibitem{DBLP:conf/mkm/KaliszykUVG14}
+Cezary Kaliszyk, Josef Urban, Jir{\'{\i}} Vyskocil, and Herman Geuvers.
+\newblock Developing corpus-based translation methods between informal and
+  formal mathematics: Project description.
+\newblock In Stephen~M. Watt, James~H. Davenport, Alan~P. Sexton, Petr Sojka,
+  and Josef Urban, editors, {\em Intelligent Computer Mathematics -
+  International Conference, {CICM} 2014, Coimbra, Portugal, July 7-11, 2014.
+  Proceedings}, volume 8543 of {\em Lecture Notes in Computer Science}, pages
+  435--439. Springer, 2014.
+\newblock \href {https://doi.org/10.1007/978-3-319-08434-3\_34}
+  {\path{doi:10.1007/978-3-319-08434-3\_34}}.
+
+\bibitem{DBLP:journals/jsc/PiepenbrockUKOHJ25}
+Jelle Piepenbrock, Josef Urban, Konstantin Korovin, Miroslav Ols{\'{a}}k, Tom
+  Heskes, and Mikol{\'{a}}s Janota.
+\newblock Invariant neural architecture for learning term synthesis in
+  instantiation proving.
+\newblock {\em J. Symb. Comput.}, 128:102375, 2025.
+\newblock URL: \url{https://doi.org/10.1016/j.jsc.2024.102375}, \href
+  {https://doi.org/10.1016/J.JSC.2024.102375}
+  {\path{doi:10.1016/J.JSC.2024.102375}}.
+
+\bibitem{DBLP:conf/cade/Urban07}
+Josef Urban.
+\newblock Malarea: a metasystem for automated reasoning in large theories.
+\newblock In Geoff Sutcliffe, Josef Urban, and Stephan Schulz, editors, {\em
+  Proceedings of the {CADE-21} Workshop on Empirically Successful Automated
+  Reasoning in Large Theories, Bremen, Germany, 17th July 2007}, volume 257 of
+  {\em {CEUR} Workshop Proceedings}. CEUR-WS.org, 2007.
+\newblock URL: \url{https://ceur-ws.org/Vol-257/05\_Urban.pdf}.
+
+\bibitem{DBLP:conf/lpar/Urban08}
+Josef Urban.
+\newblock Automated reasoning for mizar: Artificial intelligence through
+  knowledge exchange.
+\newblock In Piotr Rudnicki, Geoff Sutcliffe, Boris Konev, Renate~A. Schmidt,
+  and Stephan Schulz, editors, {\em Proceedings of the {LPAR} 2008 Workshops,
+  Knowledge Exchange: Automated Provers and Proof Assistants, and the 7th
+  International Workshop on the Implementation of Logics, Doha, Qatar, November
+  22, 2008}, volume 418 of {\em {CEUR} Workshop Proceedings}. CEUR-WS.org,
+  2008.
+\newblock URL: \url{https://ceur-ws.org/Vol-418/paper1.pdf}.
+
+\bibitem{DBLP:conf/mkm/UrbanJ20}
+Josef Urban and Jan Jakubuv.
+\newblock First neural conjecturing datasets and experiments.
+\newblock In Christoph Benzm{\"{u}}ller and Bruce~R. Miller, editors, {\em
+  Intelligent Computer Mathematics - 13th International Conference, {CICM}
+  2020, Bertinoro, Italy, July 26-31, 2020, Proceedings}, volume 12236 of {\em
+  Lecture Notes in Computer Science}, pages 315--323. Springer, 2020.
+\newblock \href {https://doi.org/10.1007/978-3-030-53518-6\_24}
+  {\path{doi:10.1007/978-3-030-53518-6\_24}}.
+
+\bibitem{DBLP:conf/mkm/WangKU18}
+Qingxiang Wang, Cezary Kaliszyk, and Josef Urban.
+\newblock First experiments with neural translation of informal to formal
+  mathematics.
+\newblock In Florian Rabe, William~M. Farmer, Grant~O. Passmore, and Abdou
+  Youssef, editors, {\em Intelligent Computer Mathematics - 11th International
+  Conference, {CICM} 2018, Hagenberg, Austria, August 13-17, 2018,
+  Proceedings}, volume 11006 of {\em Lecture Notes in Computer Science}, pages
+  255--270. Springer, 2018.
+\newblock \href {https://doi.org/10.1007/978-3-319-96812-4\_22}
+  {\path{doi:10.1007/978-3-319-96812-4\_22}}.
+
+\end{thebibliography}
