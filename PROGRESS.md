@@ -19,8 +19,8 @@ Updated at the end of every work unit per `FORMALIZE.md`.
 
 | Section | Topic                     | Lean file                                    | Status      |
 |---------|----------------------------|-----------------------------------------------|-------------|
-| §1.1    | Categories                 | `NeSyCat/Pilot/Sec1_1_Categories.lean`        | not-started |
-| §1.1 ex | Categories — exercises     | `NeSyCat/Pilot/Sec1_1_Categories.lean`        | not-started |
+| §1.1    | Categories                 | `NeSyCat/Pilot/Sec1_1_Categories.lean`        | partial |
+| §1.1 ex | Categories — exercises     | `NeSyCat/Pilot/Sec1_1_Categories.lean`        | partial |
 | §1.2    | Functors                   | `NeSyCat/Pilot/Sec1_2_Functors.lean`          | not-started |
 | §1.2 ex | Functors — exercises       | `NeSyCat/Pilot/Sec1_2_Functors.lean`          | not-started |
 | §1.3    | Natural transformations    | `NeSyCat/Pilot/Sec1_3_NatTrans.lean`          | not-started |
