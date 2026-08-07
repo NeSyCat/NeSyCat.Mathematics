@@ -1,8 +1,8 @@
-# PROGRESS.md — Pilot Progress Ledger
+# PROGRESS.md — Campaign Progress Ledger
 
-Tracks the formalization status of each section of the pilot target
-(Leinster, *Basic Category Theory*, Chapter 1 — see `target/pilot.md`).
-Updated at the end of every work unit per `FORMALIZE.md`.
+Tracks the formalization status of each section/cluster of the active
+target document (see `CLAUDE.md` for the current target). Updated at
+the end of every work unit per `FORMALIZE.md`.
 
 ## Status legend
 
@@ -10,12 +10,16 @@ Updated at the end of every work unit per `FORMALIZE.md`.
 |------------------------|---------------------------------------------------------------------|
 | `not-started`          | No file/content exists for this section yet.                       |
 | `stubs`                | File exists; item names/statements sketched, mostly `sorry`.       |
-| `stated`               | All in-scope items from `target/pilot.md` are stated (typechecking statements), proofs not yet attempted. |
+| `stated`               | All in-scope items from the active target document are stated (typechecking statements), proofs not yet attempted. |
 | `partial`              | Some items proved, some still `sorry`.                             |
 | `proved`               | All in-scope Definitions/Lemmas/Theorems for the section are proved (exercises may remain). |
 | `complete(+exercises)` | Section fully proved including its exercises.                      |
 
-## Sections
+## §1.x Leinster pilot — ARCHIVED
+
+ARCHIVED — pilot complete at a22830f (descoped by design; 1.1.3-1.1.7 +
+1.1.13 proved). Kept in-tree untouched as a completed smoke test; not
+part of the active campaign.
 
 | Section | Topic                     | Lean file                                    | Status      |
 |---------|----------------------------|-----------------------------------------------|-------------|
@@ -26,12 +30,32 @@ Updated at the end of every work unit per `FORMALIZE.md`.
 | §1.3    | Natural transformations    | `NeSyCat/Pilot/Sec1_3_NatTrans.lean`          | not-started |
 | §1.3 ex | Natural transformations — exercises | `NeSyCat/Pilot/Sec1_3_NatTrans.lean`  | not-started |
 
+## NeSy26 Semantics campaign
+
+Active campaign, target `target/nesy26-paper.tex` (itemized in
+`blueprint/src/content.tex`), Lean home `NeSyCat/Semantics/`.
+
+| Cluster                                                                    | Status      |
+|-----------------------------------------------------------------------------|-------------|
+| Semiring-monad infrastructure (`M_S`, `D` as mass-one submonad)              | not-started |
+| Truth spaces `M(Bool)`                                                      | not-started |
+| Lifted connectives (mass+log, derived `p+q−pq`)                             | not-started |
+| Pointwise/linear-laws/copying-laws lemmas + three-layers theorem            | not-started |
+| Batch monad + transformer + pointwise evaluation                           | not-started |
+| dec/enc/Z suite + tilt lemma + mass preservation + pull-out theorem + normalizer corollaries | not-started |
+| Examples (failure numbers, MNIST commute)                                  | not-started |
+
+OPEN: chain version of the tilt bound.
+
+Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
+`blueprint/src/content.tex`, not in this table.
+
 ## Notes
 
 - `NeSyCat/Pilot/Smoke.lean` is scaffold-only (toolchain smoke test). It
-  is not a pilot item and does not appear in this table; it must not be
-  edited except by explicit maintenance instruction.
-- See `target/pilot.md` for the full itemized list (numbers, kinds, and
-  faithful statements) each Lean file is expected to cover, including
-  items marked `SKIP:` that are intentionally not being formalized.
+  is not a pilot item and does not appear in the archived table above;
+  it must not be edited except by explicit maintenance instruction.
+- See `target/pilot.md` for the archived pilot's full itemized list
+  (numbers, kinds, and faithful statements), including items marked
+  `SKIP:` that were intentionally not formalized.
 - See `FORMALIZE.md` for the resume protocol and work loop.

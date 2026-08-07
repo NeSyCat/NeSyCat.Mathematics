@@ -29,7 +29,9 @@ following:
 - `PROGRESS.md` at the repo root — the per-section status ledger.
 - A target document under `target/` — the informal source being
   formalized (item numbers, kinds, faithful statements, anything
-  marked `SKIP:`).
+  marked `SKIP:`). Target documents are LaTeX (`.tex`) source texts by
+  convention, optionally itemized via a leanblueprint `blueprint/` with
+  a `scripts/blueprint.sh`-style build+decl gate.
 - `scripts/check.sh` — the fast build/checker script. Exit 0 with no
   `error:` lines is success.
 - `scripts/sorry-report.sh` — the sorry/axiom-violation tracker.

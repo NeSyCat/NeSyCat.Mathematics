@@ -43,8 +43,9 @@ Before dispatching work on any of:
 
 **enter plan mode** and produce a plan covering:
 
-- the informal statement(s) reviewed against both `target/pilot.md`
-  and the source book (Leinster, *Basic Category Theory*);
+- the informal statement(s) reviewed against both
+  `target/nesy26-paper.tex` (itemized in `blueprint/src/content.tex`)
+  and the source paper;
 - encoding choices — Mathlib background to lean on, namespace,
   statement shape, composition-order conventions;
 - item order and dependency structure within the batch;
@@ -90,5 +91,7 @@ names mid-campaign.
   campaign doctrine sits on top of.
 - `${CLAUDE_PROJECT_DIR}/PROGRESS.md` — per-section status ledger;
   drives plan-first triggers (a) and item selection.
-- `${CLAUDE_PROJECT_DIR}/target/pilot.md` — the informal target
+- `${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex` — the informal target
   document; the source of truth for encoding review.
+- `${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` — the itemized
+  target (labels, `\lean`/`\leanok` status).

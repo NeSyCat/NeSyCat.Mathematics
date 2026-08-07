@@ -19,9 +19,10 @@ explicitly read them yourself:
   never-lose-work, checker discipline, sorry policy, faithfulness,
   work strategy, progress ledger, resume protocol, work loop).
 - `${CLAUDE_PROJECT_DIR}/PROGRESS.md` — per-section status ledger.
-- `${CLAUDE_PROJECT_DIR}/target/pilot.md` — the informal target document
-  (what to formalize, item numbers, kinds, faithful statements, and
-  anything marked `SKIP:`).
+- `${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex` — the informal target
+  document (the pinned NeSy26 paper snapshot).
+- `${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` — the itemized
+  target: item list, `\label` keys, and anything marked `SKIP:`.
 
 ## If the argument is `status`
 
@@ -49,17 +50,18 @@ Do a read-only status check, then stop — do not enter the work loop:
    if in use), update `PROGRESS.md`, repeat.
 3. Obey every rule in FORMALIZE.md while doing so: the scope rail, the
    never-lose-work rules, the sorry policy and its hard bans, and the
-   faithfulness requirements (dedupe against `NeSyCat/Pilot/`, search
-   Mathlib, state target items in the `NeSyCat.Pilot` namespace with a
-   real proof).
+   faithfulness requirements (dedupe against `NeSyCat/Semantics/`,
+   search Mathlib, state target items in the `NeSyCat.Semantics`
+   namespace with a real proof; legacy pilot work: `NeSyCat/Pilot/`).
 
 ### Optional focus argument: `§section`
 
 If invoked as `/grind §1.2` (or any specific section reference),
 treat that as Urban's "special rule for today": narrow the work loop to
 that section only. Work it until it is finished (per its item list in
-`target/pilot.md`) or you are genuinely blocked (2+ hours stuck on one
-item per the work-strategy rule) — do not wander into other sections.
+`blueprint/src/content.tex`) or you are genuinely blocked (2+ hours
+stuck on one item per the work-strategy rule) — do not wander into
+other sections.
 All other FORMALIZE.md rules still apply unchanged; the focus argument
 only changes item selection in step 2 of the work loop, nothing else.
 

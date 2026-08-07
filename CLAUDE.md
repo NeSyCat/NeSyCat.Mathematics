@@ -1,13 +1,22 @@
 # CLAUDE.md
 
 This repository is an Urban-style autoformalization harness for Lean 4
-+ Mathlib, targeting Leinster's *Basic Category Theory*, Chapter 1.
++ Mathlib, now targeting the NeSy26 paper appendix: LaTeX-first, via a
+pinned source snapshot and a leanblueprint scaffold.
 
 If you are doing formalization work here: read `FORMALIZE.md` first,
 treat it as your authoritative work instructions, follow it exactly,
 and work as long as possible without stopping to ask questions.
 
-- `target/pilot.md` — what to formalize (the informal target document).
+- `target/nesy26-paper.tex` — the pinned informal target document (a
+  verbatim snapshot of the NeSy26 paper).
+- `blueprint/` — the leanblueprint scaffold: `blueprint/src/content.tex`
+  itemizes the target (per-item `\lean`/`\leanok` status), plus a
+  dependency graph and web/pdf build.
+- `scripts/blueprint.sh` — builds the blueprint and checks its `\lean{}`
+  declarations; prints `BLUEPRINT: GREEN` on success.
+- `target/pilot.md` (Leinster, *Basic Category Theory*, Chapter 1) —
+  the original pilot target, now archived (completed smoke test).
 - `PROGRESS.md` — per-section status ledger.
 - `scripts/check.sh` — the fast checker; run after every meaningful edit.
 - `scripts/sorry-report.sh` — the sorry/axiom tracker; run before and

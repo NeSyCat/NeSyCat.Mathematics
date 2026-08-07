@@ -10,10 +10,12 @@ possible without stopping to ask questions.
 
 ## Scope rail (STRICT)
 
-- You may create/edit files only under `NeSyCat/Pilot/` and may edit
-  `PROGRESS.md`.
+- You may create/edit files only under `NeSyCat/Semantics/` (active
+  campaign) and `NeSyCat/Pilot/` (legacy, archived), and may edit
+  `PROGRESS.md` and `blueprint/src/**`.
 - `NeSyCat.lean` may ONLY be touched to add new
-  `import NeSyCat.Pilot.<NewFile>` lines when you create a new module.
+  `import NeSyCat.Semantics.<NewFile>` (or legacy
+  `import NeSyCat.Pilot.<NewFile>`) lines when you create a new module.
 - NEVER edit: `lakefile.toml`, `lean-toolchain`, `lake-manifest.json`,
   `scripts/`, `target/`, `references/`, `.github/`, `.foreman/`,
   `.gitignore`.
@@ -43,6 +45,9 @@ possible without stopping to ask questions.
   3. the sorry-count delta (before/after, from `scripts/sorry-report.sh`).
 - Include the `Co-Authored-By:` footer per session convention if one is
   in use.
+- When `blueprint/src/**` or any `\lean`/`\leanok` mark changes, run
+  `scripts/blueprint.sh` and confirm it prints `BLUEPRINT: GREEN`
+  before committing (`scripts/check.sh` remains the Lean commit gate).
 
 ## sorry policy
 
@@ -67,18 +72,24 @@ HARD BANS (no exceptions):
 ## Faithfulness
 
 - Every formal item gets a doc comment of the form:
-  `/-- Leinster <number> (<name>): <informal statement>. -/`
+  `/-- NeSy26 <tex-label> (<name>): <informal statement>. -/`, where
+  `<tex-label>` is the blueprint `\label` key for that item in
+  `blueprint/src/content.tex`. The legacy Leinster form,
+  `/-- Leinster <number> (<name>): <informal statement>. -/`, remains
+  valid but only for the archived pilot files under `NeSyCat/Pilot/`.
 - Before adding ANY definition or theorem:
-  1. `grep` `NeSyCat/Pilot/` for duplicates of the same item.
+  1. `grep` `NeSyCat/Semantics/` (or `NeSyCat/Pilot/` for legacy work)
+     for duplicates of the same item.
   2. Search Mathlib for existing versions (`exact?`, `apply?`, `rw?`,
      or https://leansearch.net).
 - Mathlib may be used freely as BACKGROUND machinery (e.g. `Category`,
   `Functor`, `NatTrans` from `Mathlib.CategoryTheory`). But a target
-  item from `target/pilot.md` must be STATED in the `NeSyCat.Pilot`
-  namespace and given a REAL proof. A bare one-line `exact <Mathlib
-  lemma>` citation of the identical statement defeats the pilot's
-  purpose — construct the proof, even if it uses Mathlib lemmas as
-  steps.
+  item from the active target document (`target/nesy26-paper.tex`,
+  itemized in `blueprint/src/content.tex`) must be STATED in the
+  `NeSyCat.Semantics` namespace and given a REAL proof (pilot legacy:
+  `NeSyCat.Pilot`). A bare one-line `exact <Mathlib lemma>` citation of
+  the identical statement defeats the campaign's purpose — construct
+  the proof, even if it uses Mathlib lemmas as steps.
 
 ## Work strategy
 
@@ -103,11 +114,13 @@ Before editing anything:
 
 1. Read `FORMALIZE.md` (this file) in full.
 2. Read `PROGRESS.md` to see current status per section.
-3. Run `scripts/sorry-report.sh` to see the current sorry/violation
+3. Read `blueprint/src/content.tex` for per-item status (`\lean`/
+   `\leanok` marks).
+4. Run `scripts/sorry-report.sh` to see the current sorry/violation
    count.
-4. Run `git log --oneline -20` to see recent history.
+5. Run `git log --oneline -20` to see recent history.
 
-Only after all four steps should you start editing.
+Only after all five steps should you start editing.
 
 ## Work loop
 
@@ -139,9 +152,10 @@ it.
   resists two serious proof attempts, run a `/lean4:disprove`-style
   counterexample search on the STATEMENT before grinding further. If a
   counterexample surfaces, the formalization is unfaithful — re-derive
-  the statement from `target/pilot.md` and the book, fix it, and note
-  the correction in the commit message. Axiom audit before marking any
-  section `proved`/`complete`: only `propext`, `Classical.choice`,
+  the statement from `target/nesy26-paper.tex` and its blueprint item,
+  fix it, and note the correction in the commit message. Axiom audit
+  before marking any section `proved`/`complete`: only `propext`,
+  `Classical.choice`,
   `Quot.sound` are acceptable (matches the no-`axiom` hard ban above).
   Optional `/lean4:golf` AFTER a proof is green and committed — never
   before committing (never-lose-work).

@@ -20,7 +20,9 @@ doing anything else, verify the host repo provides:
   repo root.
 - `PROGRESS.md` at the repo root — the per-section status ledger.
 - A target document under `target/` — the informal source being
-  formalized.
+  formalized. Target documents are LaTeX (`.tex`) source texts by
+  convention, optionally itemized via a leanblueprint `blueprint/` with
+  a `scripts/blueprint.sh`-style build+decl gate.
 - `scripts/check.sh` — the fast build/checker script.
 - `scripts/sorry-report.sh` — the sorry/axiom-violation tracker.
 

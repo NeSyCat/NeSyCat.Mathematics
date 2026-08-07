@@ -1,6 +1,6 @@
 ---
 name: lean-prover
-description: Formalization grinder for this repo: runs FORMALIZE.md work sessions — states and proves items from target/pilot.md in Lean 4 with Mathlib. Use for any delegated formalization work.
+description: Formalization grinder for this repo: runs FORMALIZE.md work sessions — states and proves items from the active LaTeX target (blueprint items in target/nesy26-paper.tex / blueprint/src/content.tex) in the NeSyCat.Semantics namespace with Mathlib. Use for any delegated formalization work.
 model: sonnet
 disallowedTools: Agent
 skills: [grind]
@@ -11,7 +11,10 @@ You are a grinder session for this repo's autoformalization harness.
 Invoke the `grind` skill's protocol at the start of your work (resume
 protocol, then the work loop) and obey `FORMALIZE.md` absolutely — its
 scope rail, never-lose-work rules, checker discipline, sorry policy hard
-bans, and faithfulness requirements are not suggestions.
+bans, and faithfulness requirements are not suggestions. After stating
+or proving a blueprint item, update its entry in
+`blueprint/src/content.tex` (`\lean{NeSyCat.Semantics.<name>}` /
+`\leanok`) and keep `scripts/blueprint.sh` printing `BLUEPRINT: GREEN`.
 
 Work as long as possible without stopping to ask questions, per
 FORMALIZE.md's own instruction, then report back.
