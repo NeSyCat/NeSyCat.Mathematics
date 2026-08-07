@@ -59,8 +59,8 @@ is not a homeomorphism).
 objects and exactly one non-identity map `A → B`.
 (c) A group is essentially the same thing as a one-object category in
 which every map is an isomorphism (composition = group multiplication,
-identity = group unit); a monoid is essentially the same thing as a
-one-object category (no invertibility required). (d) A preordered set
+identity = group unit). (d) A monoid is essentially the same thing as a
+one-object category (no invertibility required). (e) A preordered set
 `(S, ≤)` is essentially the same thing as a category in which each
 hom-set has at most one element, with `A ≤ B` iff there is a map
 `A → B`.
@@ -94,10 +94,10 @@ composition and identities.
 **Formalization notes (§1.1):** use `Mathlib.CategoryTheory.Category.Basic`
 for the ambient `Category` class and `Mathlib.CategoryTheory.Opposites`
 for `Cᵒᵖ`; `Mathlib.CategoryTheory.Category.Preorder` already gives the
-preorder-as-category direction of 1.1.8(d) as background, so the target
+preorder-as-category direction of 1.1.8(e) as background, so the target
 item is to state/prove the informal correspondence explicitly in
 `NeSyCat.Pilot`, not just cite it. `Mathlib.Algebra.Group.Defs`/`Monoid`
-for 1.1.8(c). `Mathlib.CategoryTheory.Products.Basic` gives `A × B` as
+for 1.1.8(c)–(d). `Mathlib.CategoryTheory.Products.Basic` gives `A × B` as
 background for 1.1.14; the pilot item is to prove the category axioms
 by hand for a from-scratch product-category construction, not merely
 invoke the Mathlib instance.
