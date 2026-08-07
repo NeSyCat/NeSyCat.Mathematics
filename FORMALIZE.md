@@ -137,7 +137,8 @@ Only after all five steps should you start editing.
 ## Work loop
 
 1. Pick the highest-priority unfinished item per `PROGRESS.md`.
-2. Implement it in the relevant `NeSyCat/Pilot/Sec1_*.lean` file.
+2. Implement it in the relevant `NeSyCat/` module (topic folders as
+   needed; the blueprint item's `\label` names the target).
 3. Run `scripts/check.sh` (module-scoped, then full project before
    committing).
 4. Commit (small, with the message format above).
