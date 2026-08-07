@@ -51,9 +51,9 @@ Do a read-only status check, then stop — do not enter the work loop:
    if in use), update `PROGRESS.md`, repeat.
 3. Obey every rule in FORMALIZE.md while doing so: the scope rail, the
    never-lose-work rules, the sorry policy and its hard bans, and the
-   faithfulness requirements (dedupe against `NeSyCat/Semantics/`,
-   search Mathlib, state target items in the `NeSyCat.Semantics`
-   namespace with a real proof; legacy pilot work: `NeSyCat/Pilot/`).
+   faithfulness requirements (dedupe against `NeSyCat/`, search
+   Mathlib, state target items in the plain `NeSyCat` namespace with a
+   real proof; legacy pilot work: `NeSyCat/Pilot/`).
 
 ### Optional focus argument: `§section`
 

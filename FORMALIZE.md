@@ -10,11 +10,11 @@ possible without stopping to ask questions.
 
 ## Scope rail (STRICT)
 
-- You may create/edit files only under `NeSyCat/Semantics/` (active
-  campaign) and `NeSyCat/Pilot/` (legacy, archived), and may edit
+- You may create/edit files only under `NeSyCat/` (the library; topic
+  folders as needed; `NeSyCat/Pilot/` is archived legacy) and may edit
   `PROGRESS.md` and `blueprint/src/**`.
 - `NeSyCat.lean` may ONLY be touched to add new
-  `import NeSyCat.Semantics.<NewFile>` (or legacy
+  `import NeSyCat.<NewFile>` (or legacy
   `import NeSyCat.Pilot.<NewFile>`) lines when you create a new module.
 - NEVER edit: `lakefile.toml`, `lean-toolchain`, `lake-manifest.json`,
   `scripts/`, `target/`, `references/`, `.github/`, `.foreman/`,
@@ -85,7 +85,7 @@ HARD BANS (no exceptions):
   case then appears as an instance/corollary, and any such divergence
   is declared, not silent.
 - Before adding ANY definition or theorem:
-  1. `grep` `NeSyCat/Semantics/` (or `NeSyCat/Pilot/` for legacy work)
+  1. `grep` `NeSyCat/` (excluding `Pilot/` for new work)
      for duplicates of the same item.
   2. Search Mathlib for existing versions (`exact?`, `apply?`, `rw?`,
      or https://leansearch.net).
@@ -93,7 +93,7 @@ HARD BANS (no exceptions):
   `Functor`, `NatTrans` from `Mathlib.CategoryTheory`). But a library
   item from the canonical library document `blueprint/src/content.tex`
   (provenance: pinned source snapshots under `target/`, currently
-  `target/nesy26-paper.tex`) must be STATED in the `NeSyCat.Semantics`
+  `target/nesy26-paper.tex`) must be STATED in the plain `NeSyCat`
   namespace and given a REAL proof (pilot legacy: `NeSyCat.Pilot`). A
   bare one-line `exact <Mathlib lemma>` citation of the identical
   statement defeats the campaign's purpose — construct the proof, even

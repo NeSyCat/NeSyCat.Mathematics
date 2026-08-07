@@ -1,6 +1,6 @@
 ---
 name: lean-prover
-description: Formalization grinder for this repo: runs FORMALIZE.md work sessions — states and proves library items from the canonical blueprint (blueprint/src/content.tex, provenance pinned under target/, currently target/nesy26-paper.tex) in the NeSyCat.Semantics namespace with Mathlib. Use for any delegated formalization work.
+description: Formalization grinder for this repo: runs FORMALIZE.md work sessions — states and proves library items from the canonical blueprint (blueprint/src/content.tex, provenance pinned under target/, currently target/nesy26-paper.tex) in the plain NeSyCat namespace with Mathlib. Use for any delegated formalization work.
 model: sonnet
 disallowedTools: Agent
 skills: [grind]
@@ -13,7 +13,7 @@ protocol, then the work loop) and obey `FORMALIZE.md` absolutely — its
 scope rail, never-lose-work rules, checker discipline, sorry policy hard
 bans, and faithfulness requirements are not suggestions. After stating
 or proving a blueprint item, update its entry in
-`blueprint/src/content.tex` (`\lean{NeSyCat.Semantics.<name>}` /
+`blueprint/src/content.tex` (`\lean{NeSyCat.<name>}` /
 `\leanok`) and keep `scripts/blueprint.sh` printing `BLUEPRINT: GREEN`.
 
 Work as long as possible without stopping to ask questions, per

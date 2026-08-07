@@ -1,9 +1,9 @@
 # CLAUDE.md
 
-This repository hosts `NeSyCat.Semantics`, a standing Urban-style
-Lean 4 + Mathlib library of NeSyCat semantics (not a per-paper
-formalization project): LaTeX-first, via a leanblueprint scaffold and
-pinned source snapshots.
+This repository hosts the NeSyCat library (flat under `NeSyCat/`,
+plain `NeSyCat` namespace), a standing Urban-style Lean 4 + Mathlib
+library of NeSyCat semantics (not a per-paper formalization project):
+LaTeX-first, via a leanblueprint scaffold and pinned source snapshots.
 
 If you are doing formalization work here: read `FORMALIZE.md` first,
 treat it as your authoritative work instructions, follow it exactly,

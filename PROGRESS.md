@@ -1,7 +1,7 @@
 # PROGRESS.md — Campaign Progress Ledger
 
 Tracks the formalization status of each cluster of the
-`NeSyCat.Semantics` library (canonical document `blueprint/src/content.tex`,
+NeSyCat library (canonical document `blueprint/src/content.tex`,
 provenance in `target/` — see `CLAUDE.md`). Updated at the end of every
 work unit per `FORMALIZE.md`.
 
@@ -31,10 +31,11 @@ part of the active campaign.
 | §1.3    | Natural transformations    | `NeSyCat/Pilot/Sec1_3_NatTrans.lean`          | not-started |
 | §1.3 ex | Natural transformations — exercises | `NeSyCat/Pilot/Sec1_3_NatTrans.lean`  | not-started |
 
-## NeSyCat.Semantics library
+## NeSyCat library
 
 Active library work, canonical document `blueprint/src/content.tex`
-(provenance: `target/nesy26-paper.tex`), Lean home `NeSyCat/Semantics/`.
+(provenance: `target/nesy26-paper.tex`), Lean home `NeSyCat/` (topic
+folders as content emerges).
 
 | Cluster                                                                    | Status      |
 |-----------------------------------------------------------------------------|-------------|
