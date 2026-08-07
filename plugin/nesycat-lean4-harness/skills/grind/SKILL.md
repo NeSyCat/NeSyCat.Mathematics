@@ -27,11 +27,12 @@ following:
   bans, faithfulness requirements, work strategy, progress ledger
   format, resume protocol, work loop.
 - `PROGRESS.md` at the repo root — the per-section status ledger.
-- A target document under `target/` — the informal source being
-  formalized (item numbers, kinds, faithful statements, anything
-  marked `SKIP:`). Target documents are LaTeX sources; a leanblueprint
-  `blueprint/` may serve as the canonical library document with source
-  snapshots pinned under `target/`, checked via a
+- The informal layer being formalized (item numbers, kinds, faithful
+  statements, anything marked `SKIP:`): either a target document under
+  `target/` (a pinned LaTeX source), or — preferred — a leanblueprint
+  `blueprint/` as the canonical library document, with sources cited
+  bibliographically and pinned by git ref only when an authoring or
+  verification pass needs the text, checked via a
   `scripts/blueprint.sh`-style build+decl gate.
 - `scripts/check.sh` — the fast build/checker script. Exit 0 with no
   `error:` lines is success.

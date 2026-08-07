@@ -17,7 +17,7 @@ possible without stopping to ask questions.
   `import NeSyCat.<NewFile>` (or legacy
   `import NeSyCat.Pilot.<NewFile>`) lines when you create a new module.
 - NEVER edit: `lakefile.toml`, `lean-toolchain`, `lake-manifest.json`,
-  `scripts/`, `target/`, `references/`, `.github/`, `.foreman/`,
+  `scripts/`, `references/`, `.github/`, `.foreman/`,
   `.gitignore`.
 - NEVER run `lake update`.
 
@@ -78,12 +78,15 @@ HARD BANS (no exceptions):
   `/-- Leinster <number> (<name>): <informal statement>. -/`, remains
   valid but only for the archived pilot files under `NeSyCat/Pilot/`.
 - Faithfulness has two legs: (1) Lean statement ↔ blueprint statement —
-  exact; (2) blueprint item ↔ its cited source (e.g. "[NeSy26, App. A]"
-  against the pinned snapshot under `target/`) — divergences must be
-  declared in the item's own text. Items may be stated at natural
-  generality beyond a single cited source's concrete case; a paper's
-  case then appears as an instance/corollary, and any such divergence
-  is declared, not silent.
+  exact, library items are stated per the blueprint (the canonical
+  informal document); (2) blueprint item ↔ its cited source — each
+  blueprint item cites its source bibliographically (e.g.
+  "[NeSy26, App. A]"); divergences are declared in-item; pinned texts
+  used for an authoring or verification pass live at recorded git refs
+  (ledger + blueprint preamble), not as standing copies. Items may be
+  stated at natural generality beyond a single cited source's concrete
+  case; a paper's case then appears as an instance/corollary, and any
+  such divergence is declared, not silent.
 - Before adding ANY definition or theorem:
   1. `grep` `NeSyCat/` (excluding `Pilot/` for new work)
      for duplicates of the same item.
@@ -92,9 +95,10 @@ HARD BANS (no exceptions):
 - Mathlib may be used freely as BACKGROUND machinery (e.g. `Category`,
   `Functor`, `NatTrans` from `Mathlib.CategoryTheory`). But a library
   item from the canonical library document `blueprint/src/content.tex`
-  (provenance: pinned source snapshots under `target/`, currently
-  `target/nesy26-paper.tex`) must be STATED in the plain `NeSyCat`
-  namespace and given a REAL proof (pilot legacy: `NeSyCat.Pilot`). A
+  (provenance: bibliographic citations, e.g. `[NeSy26, App. A]`, with
+  pinned texts recorded at their git refs) must be STATED in the plain
+  `NeSyCat` namespace and given a REAL proof (pilot legacy:
+  `NeSyCat.Pilot`). A
   bare one-line `exact <Mathlib lemma>` citation of the identical
   statement defeats the campaign's purpose — construct the proof, even
   if it uses Mathlib lemmas as steps.

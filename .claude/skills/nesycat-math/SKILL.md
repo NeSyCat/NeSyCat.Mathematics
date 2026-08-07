@@ -8,13 +8,12 @@ description: Boot the NeSyCat.Mathematics formalization stack: verify every comp
 Boot entry point for this repo. Runs a full preflight, renders a
 status dashboard and library snapshot, then hands off to a mission
 choice. Read `${CLAUDE_PROJECT_DIR}/FORMALIZE.md`,
-`${CLAUDE_PROJECT_DIR}/PROGRESS.md`,
-`${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` (the primary,
-canonical library document), and
-`${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex` (its pinned source
-snapshot) as part of this boot — they are not auto-discovered. This
-skill hands off to `campaign` (multi-item orchestration) and `grind`
-(a single hands-on work session).
+`${CLAUDE_PROJECT_DIR}/PROGRESS.md`, and
+`${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` (the canonical
+library document; sources are cited bibliographically therein) as part
+of this boot — they are not auto-discovered. This skill hands off to
+`campaign` (multi-item orchestration) and `grind` (a single hands-on
+work session).
 
 ## PHASE 1 — PREFLIGHT
 
@@ -27,14 +26,13 @@ others** — collect all results and report them together in Phase 2.
   `CHECK: GREEN`.
 - Sorry tracker: `${CLAUDE_PROJECT_DIR}/scripts/sorry-report.sh` —
   capture the `Summary` block (total sorry count, violation count).
-- Harness integrity: confirm `FORMALIZE.md`, `PROGRESS.md`,
-  `target/nesy26-paper.tex` exist; confirm every file under
-  `scripts/*.sh` and `.claude/hooks/*` is executable; validate
-  `python3 -m json.tool .claude/settings.json` and
+- Harness integrity: confirm `FORMALIZE.md`, `PROGRESS.md` exist;
+  confirm every file under `scripts/*.sh` and `.claude/hooks/*` is
+  executable; validate `python3 -m json.tool .claude/settings.json` and
   `python3 -m json.tool .mcp.json` both parse.
 - Blueprint: `~/.venvs/leanblueprint/bin/leanblueprint --version` works;
-  `dot -V` works; `target/nesy26-paper.tex` exists; `scripts/blueprint.sh`
-  is executable and prints `BLUEPRINT: GREEN`.
+  `dot -V` works; `scripts/blueprint.sh` is executable and prints
+  `BLUEPRINT: GREEN`.
 - Git: `git status --short`, `git log --oneline -5`, current branch —
   note any uncommitted changes as a warning, not a failure.
 - Grind mode: `scripts/grind-mode.sh` with no arguments — report

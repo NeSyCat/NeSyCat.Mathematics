@@ -3,7 +3,9 @@
 This repository hosts the NeSyCat library (flat under `NeSyCat/`,
 plain `NeSyCat` namespace), a standing Urban-style Lean 4 + Mathlib
 library of NeSyCat semantics (not a per-paper formalization project):
-LaTeX-first, via a leanblueprint scaffold and pinned source snapshots.
+LaTeX-first, via a leanblueprint scaffold, with sources cited
+bibliographically and pinned by git ref only when an authoring or
+verification pass needs the text.
 
 If you are doing formalization work here: read `FORMALIZE.md` first,
 treat it as your authoritative work instructions, follow it exactly,
@@ -14,13 +16,11 @@ and work as long as possible without stopping to ask questions.
   mathematical structure (per-item `\lean`/`\leanok` status, provenance
   citations to source papers), plus a dependency graph and web/pdf
   build.
-- `target/` — pinned source snapshots that blueprint items cite as
-  provenance; currently `target/nesy26-paper.tex` (a verbatim snapshot
-  of the NeSy26 paper).
 - `scripts/blueprint.sh` — builds the blueprint and checks its `\lean{}`
   declarations; prints `BLUEPRINT: GREEN` on success.
-- `target/pilot.md` (Leinster, *Basic Category Theory*, Chapter 1) —
-  the original pilot target, now archived (completed smoke test).
+- the Leinster pilot (archived; documents preserved in git history) —
+  the original pilot target, Leinster's *Basic Category Theory*,
+  Chapter 1 (completed smoke test).
 - `PROGRESS.md` — per-section status ledger.
 - `scripts/check.sh` — the fast checker; run after every meaningful edit.
 - `scripts/sorry-report.sh` — the sorry/axiom tracker; run before and

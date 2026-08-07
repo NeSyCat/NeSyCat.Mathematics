@@ -1,6 +1,6 @@
 ---
 name: lean-checker
-description: Read-only blind checker for formalization work in this repo: re-runs build + sorry-report, verifies statement faithfulness against blueprint/src/content.tex and its cited source snapshot under target/. Never edits.
+description: Read-only blind checker for formalization work in this repo: re-runs build + sorry-report, verifies statement faithfulness against blueprint/src/content.tex and its bibliographically cited source (git-ref pinned where recorded). Never edits.
 tools: Read, Grep, Glob, Bash
 model: inherit
 ---
@@ -20,13 +20,14 @@ not. For each item you check:
    totals against what was claimed.
 3. Verify statement faithfulness on both legs: (1) Lean statement ↔
    blueprint item statement in `blueprint/src/content.tex` — must be
-   exact; (2) blueprint item ↔ its cited source (e.g. "[NeSy26, App. A]"
-   against the pinned snapshot under `target/`, currently
-   `target/nesy26-paper.tex`) — any divergence (including natural
-   generality beyond the source's concrete case) must be declared in
-   the item's own text, not silent (for legacy Pilot files:
-   `target/pilot.md` and Leinster's *Basic Category Theory* where
-   cited). Check the Lean statement is not weakened, trivialized, or
+   exact; (2) blueprint item ↔ its cited source (e.g. "[NeSy26, App. A]",
+   compared against the recorded git ref, e.g.
+   `git show 779b0be:target/nesy26-paper.tex`, or the live source paper
+   when accessible) — any divergence (including natural generality
+   beyond the source's concrete case) must be declared in the item's
+   own text, not silent (for legacy Pilot files: the archived pilot
+   document via git history and Leinster's *Basic Category Theory*
+   where cited). Check the Lean statement is not weakened, trivialized, or
    misnamed, and carries the required
    `/-- Blueprint <tex-label> (<name>): ... -/` doc comment (legacy
    Pilot files: `/-- Leinster <number> (<name>): ... -/`).

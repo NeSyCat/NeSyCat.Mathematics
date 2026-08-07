@@ -1,6 +1,6 @@
 ---
 name: lean-prover
-description: Formalization grinder for this repo: runs FORMALIZE.md work sessions — states and proves library items from the canonical blueprint (blueprint/src/content.tex, provenance pinned under target/, currently target/nesy26-paper.tex) in the plain NeSyCat namespace with Mathlib. Use for any delegated formalization work.
+description: Formalization grinder for this repo: runs FORMALIZE.md work sessions — states and proves library items from the canonical blueprint (blueprint/src/content.tex, sources cited bibliographically, git-ref pinned where recorded) in the plain NeSyCat namespace with Mathlib. Use for any delegated formalization work.
 model: sonnet
 disallowedTools: Agent
 skills: [grind]

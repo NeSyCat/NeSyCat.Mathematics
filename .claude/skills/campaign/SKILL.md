@@ -45,8 +45,7 @@ Before dispatching work on any of:
 
 - the informal statement(s) reviewed against both the blueprint item
   in `blueprint/src/content.tex` (the canonical library document) and
-  its cited source snapshot under `target/` (currently
-  `target/nesy26-paper.tex`);
+  its bibliographically cited source (git-ref pinned where recorded);
 - encoding choices — Mathlib background to lean on, namespace,
   statement shape, composition-order conventions;
 - item order and dependency structure within the batch;
@@ -93,8 +92,6 @@ names mid-campaign.
 - `${CLAUDE_PROJECT_DIR}/PROGRESS.md` — per-section status ledger;
   drives plan-first triggers (a) and item selection.
 - `${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` — the canonical
-  library document (labels, `\lean`/`\leanok` status, provenance
-  citations).
-- `${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex` — the pinned source
-  snapshot cited as provenance; the source of truth for encoding
-  review alongside the blueprint item.
+  library document (labels, `\lean`/`\leanok` status, bibliographic
+  provenance citations, sources git-ref pinned where recorded) — the
+  source of truth for encoding review alongside the blueprint item.

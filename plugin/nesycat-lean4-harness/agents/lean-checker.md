@@ -18,10 +18,12 @@ checking anything, verify the host repo provides:
 
 - `FORMALIZE.md` (or equivalent) — the rules-of-work file.
 - `PROGRESS.md` — the per-section status ledger.
-- A target document under `target/`. Target documents are LaTeX
-  sources; a leanblueprint `blueprint/` may serve as the canonical
-  library document with source snapshots pinned under `target/`,
-  checked via a `scripts/blueprint.sh`-style build+decl gate.
+- The informal layer being formalized: either a target document under
+  `target/` (a pinned LaTeX source), or — preferred — a leanblueprint
+  `blueprint/` as the canonical library document, with sources cited
+  bibliographically and pinned by git ref only when an authoring or
+  verification pass needs the text, checked via a
+  `scripts/blueprint.sh`-style build+decl gate.
 - `scripts/check.sh` and `scripts/sorry-report.sh`.
 
 If any piece of the contract is missing, fail gracefully and

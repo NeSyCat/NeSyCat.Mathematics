@@ -39,10 +39,11 @@ NeSyCat-specific paths. A host repo that wants to use it must provide:
 - `FORMALIZE.md` (or equivalently-named rules-of-work file) at the
   repo root.
 - `PROGRESS.md` at the repo root — the per-section status ledger.
-- A target document under `target/` — the informal source being
-  formalized. Target documents are LaTeX sources; a leanblueprint
-  `blueprint/` may serve as the canonical library document with source
-  snapshots pinned under `target/`, checked via a
+- The informal layer being formalized: either a target document under
+  `target/` (a pinned LaTeX source), or — preferred — a leanblueprint
+  `blueprint/` as the canonical library document, with sources cited
+  bibliographically and pinned by git ref only when an authoring or
+  verification pass needs the text, checked via a
   `scripts/blueprint.sh`-style build+decl gate.
 - `scripts/check.sh` — the fast build/checker script (exit 0, no
   `error:` lines, on success).

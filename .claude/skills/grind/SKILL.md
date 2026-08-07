@@ -20,10 +20,9 @@ explicitly read them yourself:
   work strategy, progress ledger, resume protocol, work loop).
 - `${CLAUDE_PROJECT_DIR}/PROGRESS.md` — per-section status ledger.
 - `${CLAUDE_PROJECT_DIR}/blueprint/src/content.tex` — the canonical
-  library document: item list, `\label` keys, provenance citations,
-  and anything marked `SKIP:`.
-- `${CLAUDE_PROJECT_DIR}/target/nesy26-paper.tex` — the pinned source
-  snapshot cited as provenance by blueprint items.
+  library document: item list, `\label` keys, bibliographic provenance
+  citations (sources git-ref pinned where recorded), and anything
+  marked `SKIP:`.
 
 ## If the argument is `status`
 

@@ -6,9 +6,8 @@
 
 This blueprint is \textbf{version 0} of the NeSyCat library reference
 document: the itemized mathematical content of the NeSy26 paper
-(\texttt{target/nesy26-paper.tex}, a pinned, read-only snapshot),
-restated here as a standing library organized by mathematical
-structure rather than by paper section. The eventual Lean
+[NeSy26], restated here as a standing library organized by
+mathematical structure rather than by paper section. The eventual Lean
 formalization lives in the flat \texttt{NeSyCat.\textit{name}}
 namespace; \textbf{nothing in this document is formalized yet} --- no
 item below carries a \texttt{\textbackslash lean} or
@@ -41,6 +40,21 @@ The library has six chapters: semiring weight monads; truth spaces and
 lifted connectives; the three-layers trichotomy; syntax and monadic
 semantics; batching; and the bridges/normalization theory connecting
 the probability and tensor readings.
+
+\paragraph{Sources and provenance.} This blueprint is the canonical
+informal reference document of the NeSyCat library: it is not a
+restatement of some other standing target document, and library items
+are faithful to it directly. Bracketed tags such as
+\texttt{[NeSy26, App.~A]} cite the NeSy26 paper (``NeSyCat Torch'', a
+NeSy 2026 submission) as the mathematical source for the corresponding
+item. The text this version~0 was authored and verified against is
+preserved at git ref \texttt{779b0be} of this repository
+(sha256~\texttt{845babfad280736117b84f10c66f698654a09d75cc3b4772de035a151ad62462}
+of \texttt{target/nesy26-paper.tex} as it stood at that commit); source
+documents are not vendored into this repository as standing copies ---
+where a later authoring or verification pass needs a pinned text, it is
+pinned by git ref at that moment and the ref is recorded here and in
+the campaign ledger.
 
 % ============================================================
 \section{Semiring weight monads}
@@ -253,7 +267,13 @@ Definition~\ref{def:lifted-connective} is
 \]
 with units $\Ret(0) = (1,0)$ (the $\oplus$-identity, i.e.\ certain
 False) and $\Ret(1) = (0,1)$ (the $\otimes$-identity, i.e.\ certain
-True); the order family (Definition~\ref{def:order-family}) gives
+True). \emph{Declared correction relative to the source:} the source's
+summary table (revisions up to 2026-08-07) listed the two unit cells
+of this row transposed; the units above are forced by solving
+$e \oplus w = w$ and $e \otimes w = w$ against the explicit formulas,
+agree with the source's own log row and one-hot text, and the erratum
+has been corrected upstream in the source paper. The order family
+(Definition~\ref{def:order-family}) gives
 $w \wedge v = (\max(w_0,v_0), \min(w_1,v_1))$,
 $w \vee v = (\min(w_0,v_0), \max(w_1,v_1))$, with bounds
 $\bot=(\infty,0)$, $\top=(0,\infty)$.
