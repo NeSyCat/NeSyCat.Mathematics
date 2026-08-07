@@ -2,3 +2,7 @@
 
 # Orchestration state for the foreman/worker harness — never committed.
 /.foreman/
+
+# Transient/local Claude Code state — settings.json itself IS committed.
+.claude/grind-mode
+.claude/settings.local.json
