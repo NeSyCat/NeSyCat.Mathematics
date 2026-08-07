@@ -6,4 +6,4 @@
 # Transient/local Claude Code state — settings.json itself IS committed.
 .claude/grind-mode
 .claude/settings.local.json
-.claude/hooks/__pycache__/
+__pycache__/
