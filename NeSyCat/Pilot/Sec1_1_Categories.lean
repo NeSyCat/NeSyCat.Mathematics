@@ -58,7 +58,7 @@ identity morphism of the category of sets and functions (Mathlib's
 `Type u`, standing in for **Set**) acts, on elements, as the identity
 function. -/
 theorem set_id_apply {X : Type u} (x : X) : (𝟙 X : X ⟶ X) x = x :=
-  types_id_apply X x
+  rfl
 
 /-- Leinster 1.1.3 (Categories of mathematical structures — **Set**):
 composition of morphisms in the category of sets and functions acts, on
@@ -66,43 +66,43 @@ elements, as ordinary function composition (applied in the expected
 order: `(f ≫ g) x = g (f x)`). -/
 theorem set_comp_apply {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
     (f ≫ g) x = g (f x) :=
-  types_comp_apply f g x
+  rfl
 
 /-- Leinster 1.1.3 (Categories of mathematical structures — **Grp**): the
 identity morphism of the category of groups and group homomorphisms
 (Mathlib's `GrpCat`) acts, on elements, as the identity function. -/
-theorem grpCat_id_apply {G : GrpCat} (x : G) : (𝟙 G : G ⟶ G) x = x :=
-  GrpCat.id_apply G x
+theorem grpCat_id_apply {G : GrpCat} (x : G) : (𝟙 G : G ⟶ G) x = x := by
+  simp
 
 /-- Leinster 1.1.3 (Categories of mathematical structures — **Grp**):
 composition of morphisms in the category of groups and group
 homomorphisms acts, on elements, as ordinary function composition
 (applied in the expected order: `(f ≫ g) x = g (f x)`). -/
 theorem grpCat_comp_apply {G H K : GrpCat} (f : G ⟶ H) (g : H ⟶ K) (x : G) :
-    (f ≫ g) x = g (f x) :=
-  GrpCat.comp_apply f g x
+    (f ≫ g) x = g (f x) := by
+  simp
 
 /-- Leinster 1.1.3 (Categories of mathematical structures — **Ring**): the
 identity morphism of the category of rings and ring homomorphisms
 (Mathlib's `RingCat`) acts, on elements, as the identity function. -/
-theorem ringCat_id_apply {R : RingCat} (x : R) : (𝟙 R : R ⟶ R) x = x :=
-  RingCat.id_apply R x
+theorem ringCat_id_apply {R : RingCat} (x : R) : (𝟙 R : R ⟶ R) x = x := by
+  simp
 
 /-- Leinster 1.1.3 (Categories of mathematical structures — **Ring**):
 composition of morphisms in the category of rings and ring homomorphisms
 acts, on elements, as ordinary function composition (applied in the
 expected order: `(f ≫ g) x = g (f x)`). -/
 theorem ringCat_comp_apply {R S T : RingCat} (f : R ⟶ S) (g : S ⟶ T) (x : R) :
-    (f ≫ g) x = g (f x) :=
-  RingCat.comp_apply f g x
+    (f ≫ g) x = g (f x) := by
+  simp
 
 /-- Leinster 1.1.3 (Categories of mathematical structures — **Vect_k**): the
 identity morphism of the category of `k`-vector spaces and `k`-linear maps
 (Mathlib's `ModuleCat k` for a field `k`) acts, on elements, as the
 identity function. -/
 theorem moduleCat_id_apply {k : Type*} [Field k] {M : ModuleCat k} (x : M) :
-    (𝟙 M : M ⟶ M) x = x :=
-  ModuleCat.id_apply M x
+    (𝟙 M : M ⟶ M) x = x := by
+  simp
 
 /-- Leinster 1.1.3 (Categories of mathematical structures — **Vect_k**):
 composition of morphisms in the category of `k`-vector spaces and
@@ -110,14 +110,14 @@ composition of morphisms in the category of `k`-vector spaces and
 (applied in the expected order: `(f ≫ g) x = g (f x)`). -/
 theorem moduleCat_comp_apply {k : Type*} [Field k] {M N P : ModuleCat k}
     (f : M ⟶ N) (g : N ⟶ P) (x : M) :
-    (f ≫ g) x = g (f x) :=
-  ModuleCat.comp_apply f g x
+    (f ≫ g) x = g (f x) := by
+  simp
 
 /-- Leinster 1.1.3 (Categories of mathematical structures — **Top**): the
 identity morphism of the category of topological spaces and continuous
 maps (Mathlib's `TopCat`) acts, on elements, as the identity function. -/
 theorem topCat_id_apply {X : TopCat} (x : X) : (𝟙 X : X ⟶ X) x = x :=
-  TopCat.id_app X x
+  rfl
 
 /-- Leinster 1.1.3 (Categories of mathematical structures — **Top**):
 composition of morphisms in the category of topological spaces and
@@ -125,7 +125,7 @@ continuous maps acts, on elements, as ordinary function composition
 (applied in the expected order: `(f ≫ g) x = g (f x)`). -/
 theorem topCat_comp_apply {X Y Z : TopCat} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
     (f ≫ g) x = g (f x) :=
-  TopCat.comp_app f g x
+  rfl
 
 /-- Leinster 1.1.4 (Isomorphism): a map `f : A ⟶ B` in a category is an
 **isomorphism** if there exists `g : B ⟶ A` with `g ∘ f = 1_A` and
@@ -145,8 +145,10 @@ def IsIsomorphic (A B : C) : Prop :=
 existential rendering of Leinster's Definition 1.1.4, is interchangeable
 with Mathlib's unbundled `CategoryTheory.IsIso` class — both assert
 exactly the existence of a two-sided inverse `g` with `f ≫ g = 𝟙 A` and
-`g ≫ f = 𝟙 B`. Used to reuse Mathlib's homeomorphism criterion for
-`TopCat` in `isIsomorphism_iff_isHomeomorph_topCat` below. -/
+`g ≫ f = 𝟙 B`. Kept as general-purpose bridging infrastructure between
+`IsIsomorphism` and Mathlib's `IsIso`, even though the pilot's own iff
+lemmas below (e.g. `isIsomorphism_iff_isHomeomorph_topCat`) are proved
+directly, without routing through it. -/
 theorem isIsomorphism_iff_isIso {A B : C} (f : A ⟶ B) : IsIsomorphism f ↔ IsIso f :=
   ⟨fun h => ⟨h⟩, fun h => h.1⟩
 
@@ -262,12 +264,40 @@ theorem isIsomorphism_iff_bijective_ringCat {R S : RingCat} (f : R ⟶ S) :
 
 /-- Leinster 1.1.7 (Example — Isomorphisms in **Top**, part (i)): the
 isomorphisms in **Top** are exactly the homeomorphisms. Here **Top** is
-Mathlib's bundled category `TopCat`, and `IsIsomorphism f` is bridged to
-Mathlib's homeomorphism criterion `TopCat.isIso_iff_isHomeomorph` via
-`isIsomorphism_iff_isIso`. -/
+Mathlib's bundled category `TopCat`. Forward: from a two-sided inverse `g`
+of `f`, bijectivity of `f` is read off elementwise exactly as for
+**Set**/**Grp**/**Ring** above, and `f` is shown to be an open map by
+proving that the image under `f` of an open `U` equals the preimage of
+`U` under the continuous `g` (using the inverse identities), which is
+open by continuity of `g`. Backward: from `IsHomeomorph (⇑f)` we extract
+its continuous inverse (`IsHomeomorph.homeomorph`), package it as a
+`TopCat` morphism, and check the two composition identities elementwise,
+exactly as for **Grp**/**Ring** above. -/
 theorem isIsomorphism_iff_isHomeomorph_topCat {X Y : TopCat} (f : X ⟶ Y) :
     IsIsomorphism f ↔ IsHomeomorph (⇑f) := by
-  rw [isIsomorphism_iff_isIso, TopCat.isIso_iff_isHomeomorph]
+  constructor
+  · rintro ⟨g, hfg, hgf⟩
+    have hleft : Function.LeftInverse (⇑g) (⇑f) := fun x => ConcreteCategory.congr_hom hfg x
+    have hright : Function.RightInverse (⇑g) (⇑f) := fun y => ConcreteCategory.congr_hom hgf y
+    refine ⟨f.hom.continuous, ?_, hleft.injective, hright.surjective⟩
+    intro U hU
+    have himg : (⇑f) '' U = (⇑g) ⁻¹' U := by
+      apply Set.Subset.antisymm
+      · rintro y ⟨x, hxU, rfl⟩
+        change g (f x) ∈ U
+        rwa [hleft x]
+      · intro y hy
+        exact ⟨g y, hy, hright y⟩
+    rw [himg]
+    exact hU.preimage g.hom.continuous
+  · intro hf
+    let e := hf.homeomorph
+    refine ⟨TopCat.ofHom ⟨(⇑e.symm), e.symm.continuous⟩,
+      ConcreteCategory.ext_apply fun x => ?_, ConcreteCategory.ext_apply fun y => ?_⟩
+    · change e.symm (f x) = x
+      exact e.symm_apply_apply x
+    · change f (e.symm y) = y
+      exact e.apply_symm_apply y
 
 /-- Leinster 1.1.7 (Example — Isomorphisms in **Top**, part (ii)): "unlike
 **Grp**/**Ring**, a bijective continuous map need not be an isomorphism"
