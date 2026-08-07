@@ -19,7 +19,7 @@ Updated at the end of every work unit per `FORMALIZE.md`.
 
 | Section | Topic                     | Lean file                                    | Status      |
 |---------|----------------------------|-----------------------------------------------|-------------|
-| §1.1    | Categories                 | `NeSyCat/Pilot/Sec1_1_Categories.lean`        | partial (1.1.4, 1.1.5 done; 1.1.3/1.1.6-1.1.9/1.1.11 not yet started) |
+| §1.1    | Categories                 | `NeSyCat/Pilot/Sec1_1_Categories.lean`        | partial (1.1.3, 1.1.4, 1.1.5 done; 1.1.6-1.1.9/1.1.11 not yet started) |
 | §1.1 ex | Categories — exercises     | `NeSyCat/Pilot/Sec1_1_Categories.lean`        | partial (1.1.13 done; 1.1.14 not yet started; 1.1.12/1.1.15 SKIP per target/pilot.md) |
 | §1.2    | Functors                   | `NeSyCat/Pilot/Sec1_2_Functors.lean`          | not-started |
 | §1.2 ex | Functors — exercises       | `NeSyCat/Pilot/Sec1_2_Functors.lean`          | not-started |

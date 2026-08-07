@@ -1,5 +1,10 @@
 import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Types.Basic
+import Mathlib.Algebra.Category.Grp.Basic
+import Mathlib.Algebra.Category.Ring.Basic
+import Mathlib.Algebra.Category.ModuleCat.Basic
+import Mathlib.Topology.Category.TopCat.Basic
+import Mathlib.Topology.Order
 
 /-!
 # §1.1 Categories (Leinster, *Basic Category Theory*, pp. 10-16)
@@ -9,6 +14,13 @@ This file formalizes items from §1.1 of the pilot target, using Mathlib's
 the ambient background notion of category (Leinster's Definition 1.1.1).
 
 Covered:
+* Example 1.1.3 (categories of mathematical structures: **Set**, **Grp**,
+  **Ring**, **Vect_k**, **Top**, each with "the evident" composition and
+  identities). Formalized element-level, against Mathlib's bundled
+  categories `Type u` (for **Set**), `GrpCat` (for **Grp** — Leinster's
+  **Grp**; this vendored Mathlib names the bundled category `GrpCat`),
+  `RingCat` (for **Ring**), `ModuleCat k` (for **Vect_k**, `k` a field),
+  and `TopCat` (for **Top**).
 * Definition 1.1.4 (isomorphism; isomorphic objects).
 * Example 1.1.5 (isomorphisms in `Set` are exactly the bijections).
 * Exercise 1.1.13 (a map has at most one inverse).
@@ -19,6 +31,97 @@ namespace NeSyCat.Pilot
 open CategoryTheory
 
 variable {C : Type*} [Category C]
+
+/-!
+### Leinster 1.1.3 (Example — Categories of mathematical structures)
+
+"There are categories **Set** (sets and functions), **Grp** (groups and
+group homomorphisms), **Ring** (rings and ring homomorphisms), **Vect_k**
+(vector spaces over a field `k` and `k`-linear maps), and **Top**
+(topological spaces and continuous maps), in each case with the evident
+composition and identities."
+
+We do not rebuild these five categories from scratch (Mathlib already
+bundles them as categories); instead, for each one, we record
+element-level that the ambient categorical identity `𝟙 X` really is the
+identity function, and categorical composition `f ≫ g` really is ordinary
+function composition applied in the expected order — i.e. that the
+composition and identities really are "the evident" ones.
+-/
+
+/-- Leinster 1.1.3 (Categories of mathematical structures — **Set**): the
+identity morphism of the category of sets and functions (Mathlib's
+`Type u`, standing in for **Set**) acts, on elements, as the identity
+function. -/
+theorem set_id_apply {X : Type u} (x : X) : (𝟙 X : X ⟶ X) x = x :=
+  types_id_apply X x
+
+/-- Leinster 1.1.3 (Categories of mathematical structures — **Set**):
+composition of morphisms in the category of sets and functions acts, on
+elements, as ordinary function composition (applied in the expected
+order: `(f ≫ g) x = g (f x)`). -/
+theorem set_comp_apply {X Y Z : Type u} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+    (f ≫ g) x = g (f x) :=
+  types_comp_apply f g x
+
+/-- Leinster 1.1.3 (Categories of mathematical structures — **Grp**): the
+identity morphism of the category of groups and group homomorphisms
+(Mathlib's `GrpCat`) acts, on elements, as the identity function. -/
+theorem grpCat_id_apply {G : GrpCat} (x : G) : (𝟙 G : G ⟶ G) x = x :=
+  GrpCat.id_apply G x
+
+/-- Leinster 1.1.3 (Categories of mathematical structures — **Grp**):
+composition of morphisms in the category of groups and group
+homomorphisms acts, on elements, as ordinary function composition
+(applied in the expected order: `(f ≫ g) x = g (f x)`). -/
+theorem grpCat_comp_apply {G H K : GrpCat} (f : G ⟶ H) (g : H ⟶ K) (x : G) :
+    (f ≫ g) x = g (f x) :=
+  GrpCat.comp_apply f g x
+
+/-- Leinster 1.1.3 (Categories of mathematical structures — **Ring**): the
+identity morphism of the category of rings and ring homomorphisms
+(Mathlib's `RingCat`) acts, on elements, as the identity function. -/
+theorem ringCat_id_apply {R : RingCat} (x : R) : (𝟙 R : R ⟶ R) x = x :=
+  RingCat.id_apply R x
+
+/-- Leinster 1.1.3 (Categories of mathematical structures — **Ring**):
+composition of morphisms in the category of rings and ring homomorphisms
+acts, on elements, as ordinary function composition (applied in the
+expected order: `(f ≫ g) x = g (f x)`). -/
+theorem ringCat_comp_apply {R S T : RingCat} (f : R ⟶ S) (g : S ⟶ T) (x : R) :
+    (f ≫ g) x = g (f x) :=
+  RingCat.comp_apply f g x
+
+/-- Leinster 1.1.3 (Categories of mathematical structures — **Vect_k**): the
+identity morphism of the category of `k`-vector spaces and `k`-linear maps
+(Mathlib's `ModuleCat k` for a field `k`) acts, on elements, as the
+identity function. -/
+theorem moduleCat_id_apply {k : Type*} [Field k] {M : ModuleCat k} (x : M) :
+    (𝟙 M : M ⟶ M) x = x :=
+  ModuleCat.id_apply M x
+
+/-- Leinster 1.1.3 (Categories of mathematical structures — **Vect_k**):
+composition of morphisms in the category of `k`-vector spaces and
+`k`-linear maps acts, on elements, as ordinary function composition
+(applied in the expected order: `(f ≫ g) x = g (f x)`). -/
+theorem moduleCat_comp_apply {k : Type*} [Field k] {M N P : ModuleCat k}
+    (f : M ⟶ N) (g : N ⟶ P) (x : M) :
+    (f ≫ g) x = g (f x) :=
+  ModuleCat.comp_apply f g x
+
+/-- Leinster 1.1.3 (Categories of mathematical structures — **Top**): the
+identity morphism of the category of topological spaces and continuous
+maps (Mathlib's `TopCat`) acts, on elements, as the identity function. -/
+theorem topCat_id_apply {X : TopCat} (x : X) : (𝟙 X : X ⟶ X) x = x :=
+  TopCat.id_app X x
+
+/-- Leinster 1.1.3 (Categories of mathematical structures — **Top**):
+composition of morphisms in the category of topological spaces and
+continuous maps acts, on elements, as ordinary function composition
+(applied in the expected order: `(f ≫ g) x = g (f x)`). -/
+theorem topCat_comp_apply {X Y Z : TopCat} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
+    (f ≫ g) x = g (f x) :=
+  TopCat.comp_app f g x
 
 /-- Leinster 1.1.4 (Isomorphism): a map `f : A ⟶ B` in a category is an
 **isomorphism** if there exists `g : B ⟶ A` with `g ∘ f = 1_A` and
