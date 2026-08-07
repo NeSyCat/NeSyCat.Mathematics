@@ -43,13 +43,16 @@ def main():
         "FORMALIZE.md",
         "CLAUDE.md",
     }
+    # .foreman/ is deliberately NOT listed: it is foreman-only orchestration
+    # state whose sole writer is the orchestrator session (workers are barred
+    # by FORMALIZE.md's never-edit list and every ticket's MUST NOT), and
+    # prompting on routine ledger bookkeeping was pure noise (user decision
+    # 2026-08-07). target/ was removed with the directory itself.
     protected_prefixes = (
         "scripts/",
-        "target/",
         "references/",
         ".github/",
         ".claude/",
-        ".foreman/",
     )
 
     is_protected = rel_posix in protected_exact or any(
@@ -79,7 +82,7 @@ def main():
         emit(
             "allow",
             "NeSyCat.lean may only gain new import lines",
-            "Reminder (FORMALIZE.md scope rail): only new `import NeSyCat.Pilot.*` "
+            "Reminder (FORMALIZE.md scope rail): only new `import NeSyCat.*` "
             "lines may be added to NeSyCat.lean.",
         )
     # else: normal flow, emit nothing.
