@@ -48,6 +48,9 @@ possible without stopping to ask questions.
 - When `blueprint/src/**` or any `\lean`/`\leanok` mark changes, run
   `scripts/blueprint.sh` and confirm it prints `BLUEPRINT: GREEN`
   before committing (`scripts/check.sh` remains the Lean commit gate).
+- Every `.lean` file begins with the standard copyright header (copy it
+  from `NeSyCat/Monad/LatticeSemiring.lean`; Apache 2.0, see `LICENSE`);
+  keep the style/header linter silent.
 
 ## sorry policy
 
