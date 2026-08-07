@@ -39,7 +39,6 @@ def main():
         "lean-toolchain",
         "lake-manifest.json",
         ".gitignore",
-        "NeSyCat/Pilot/Smoke.lean",
         "FORMALIZE.md",
         "CLAUDE.md",
     }

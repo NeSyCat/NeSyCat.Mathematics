@@ -16,21 +16,6 @@ the end of every work unit per `FORMALIZE.md`.
 | `proved`               | All in-scope Definitions/Lemmas/Theorems for the section are proved (exercises may remain). |
 | `complete(+exercises)` | Section fully proved including its exercises.                      |
 
-## §1.x Leinster pilot — ARCHIVED
-
-ARCHIVED — pilot complete at a22830f (descoped by design; 1.1.3-1.1.7 +
-1.1.13 proved). Kept in-tree untouched as a completed smoke test; not
-part of the active campaign.
-
-| Section | Topic                     | Lean file                                    | Status      |
-|---------|----------------------------|-----------------------------------------------|-------------|
-| §1.1    | Categories                 | `NeSyCat/Pilot/Sec1_1_Categories.lean`        | partial (1.1.3, 1.1.4, 1.1.5, 1.1.6, 1.1.7 done; 1.1.8/1.1.9/1.1.11 not yet started) |
-| §1.1 ex | Categories — exercises     | `NeSyCat/Pilot/Sec1_1_Categories.lean`        | partial (1.1.13 done; 1.1.14 not yet started; 1.1.12/1.1.15 SKIP per pilot target document preserved in git history) |
-| §1.2    | Functors                   | `NeSyCat/Pilot/Sec1_2_Functors.lean`          | not-started |
-| §1.2 ex | Functors — exercises       | `NeSyCat/Pilot/Sec1_2_Functors.lean`          | not-started |
-| §1.3    | Natural transformations    | `NeSyCat/Pilot/Sec1_3_NatTrans.lean`          | not-started |
-| §1.3 ex | Natural transformations — exercises | `NeSyCat/Pilot/Sec1_3_NatTrans.lean`  | not-started |
-
 ## NeSyCat library
 
 Active library work, canonical document `blueprint/src/content.tex`
@@ -55,11 +40,4 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 
 ## Notes
 
-- `NeSyCat/Pilot/Smoke.lean` is scaffold-only (toolchain smoke test). It
-  is not a pilot item and does not appear in the archived table above;
-  it must not be edited except by explicit maintenance instruction.
-- See the pilot target document (preserved in git history, since
-  `a18f13c`) for the archived pilot's full itemized list (numbers,
-  kinds, and faithful statements), including items marked `SKIP:` that
-  were intentionally not formalized.
 - See `FORMALIZE.md` for the resume protocol and work loop.

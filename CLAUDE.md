@@ -18,9 +18,6 @@ and work as long as possible without stopping to ask questions.
   build.
 - `scripts/blueprint.sh` — builds the blueprint and checks its `\lean{}`
   declarations; prints `BLUEPRINT: GREEN` on success.
-- the Leinster pilot (archived; documents preserved in git history) —
-  the original pilot target, Leinster's *Basic Category Theory*,
-  Chapter 1 (completed smoke test).
 - `PROGRESS.md` — per-section status ledger.
 - `scripts/check.sh` — the fast checker; run after every meaningful edit.
 - `scripts/sorry-report.sh` — the sorry/axiom tracker; run before and

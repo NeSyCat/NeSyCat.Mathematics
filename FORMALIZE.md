@@ -11,11 +11,10 @@ possible without stopping to ask questions.
 ## Scope rail (STRICT)
 
 - You may create/edit files only under `NeSyCat/` (the library; topic
-  folders as needed; `NeSyCat/Pilot/` is archived legacy) and may edit
+  folders as needed) and may edit
   `PROGRESS.md` and `blueprint/src/**`.
 - `NeSyCat.lean` may ONLY be touched to add new
-  `import NeSyCat.<NewFile>` (or legacy
-  `import NeSyCat.Pilot.<NewFile>`) lines when you create a new module.
+  `import NeSyCat.<NewFile>` lines when you create a new module.
 - NEVER edit: `lakefile.toml`, `lean-toolchain`, `lake-manifest.json`,
   `scripts/`, `references/`, `.github/`, `.foreman/`,
   `.gitignore`.
@@ -27,7 +26,7 @@ possible without stopping to ask questions.
   or delete a compiling proof or definition.
 - If you restructure a file, salvage every compiling theorem and
   definition — move it, don't drop it.
-- Any commit that DECREASES the total line count of `NeSyCat/Pilot/`
+- Any commit that DECREASES the total line count of `NeSyCat/`
   must explicitly justify the decrease in its commit message. Cite
   Urban's rule 5: an agent once silently threw away 9k lines of working
   formalization. Do not repeat that mistake.
@@ -35,7 +34,7 @@ possible without stopping to ask questions.
 ## Checker discipline
 
 - After every meaningful edit, run `scripts/check.sh` (whole project)
-  or `scripts/check.sh NeSyCat.Pilot.<Module>` (one module, faster).
+  or `scripts/check.sh NeSyCat.Monad.<Module>` (one module, faster).
 - Success = exit code 0 and no `error:` lines in the output (the script
   prints `CHECK: GREEN` on success, `CHECK: RED (exit <code>)` on
   failure).
@@ -77,9 +76,7 @@ HARD BANS (no exceptions):
 - Every formal item gets a doc comment of the form:
   `/-- Blueprint <tex-label> (<name>): <informal statement>. -/`, where
   `<tex-label>` is the blueprint `\label` key for that item in
-  `blueprint/src/content.tex`. The legacy Leinster form,
-  `/-- Leinster <number> (<name>): <informal statement>. -/`, remains
-  valid but only for the archived pilot files under `NeSyCat/Pilot/`.
+  `blueprint/src/content.tex`.
 - Faithfulness has two legs: (1) Lean statement ↔ blueprint statement —
   exact, library items are stated per the blueprint (the canonical
   informal document); (2) blueprint item ↔ its cited source — each
@@ -91,8 +88,7 @@ HARD BANS (no exceptions):
   case; a paper's case then appears as an instance/corollary, and any
   such divergence is declared, not silent.
 - Before adding ANY definition or theorem:
-  1. `grep` `NeSyCat/` (excluding `Pilot/` for new work)
-     for duplicates of the same item.
+  1. `grep` `NeSyCat/` for duplicates of the same item.
   2. Search Mathlib for existing versions (`exact?`, `apply?`, `rw?`,
      or https://leansearch.net).
 - Mathlib may be used freely as BACKGROUND machinery (e.g. `Category`,
@@ -100,8 +96,7 @@ HARD BANS (no exceptions):
   item from the canonical library document `blueprint/src/content.tex`
   (provenance: bibliographic citations, e.g. `[NeSy26, App. A]`, with
   pinned texts recorded at their git refs) must be STATED in the plain
-  `NeSyCat` namespace and given a REAL proof (pilot legacy:
-  `NeSyCat.Pilot`). A
+  `NeSyCat` namespace and given a REAL proof. A
   bare one-line `exact <Mathlib lemma>` citation of the identical
   statement defeats the campaign's purpose — construct the proof, even
   if it uses Mathlib lemmas as steps.

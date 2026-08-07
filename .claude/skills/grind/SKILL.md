@@ -52,7 +52,7 @@ Do a read-only status check, then stop — do not enter the work loop:
    never-lose-work rules, the sorry policy and its hard bans, and the
    faithfulness requirements (dedupe against `NeSyCat/`, search
    Mathlib, state target items in the plain `NeSyCat` namespace with a
-   real proof; legacy pilot work: `NeSyCat/Pilot/`).
+   real proof).
 
 ### Optional focus argument: `§section`
 

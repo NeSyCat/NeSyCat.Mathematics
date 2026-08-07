@@ -81,7 +81,7 @@ def main():
         emit(
             "allow",
             "NeSyCat.lean may only gain new import lines",
-            "Reminder (FORMALIZE.md scope rail): only new `import NeSyCat.Pilot.*` "
+            "Reminder (FORMALIZE.md scope rail): only new `import NeSyCat.*` "
             "lines may be added to NeSyCat.lean.",
         )
     # else: normal flow, emit nothing.
