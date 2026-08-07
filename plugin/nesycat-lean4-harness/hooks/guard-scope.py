@@ -42,13 +42,16 @@ def main():
         "FORMALIZE.md",
         "CLAUDE.md",
     }
+    # .foreman/ is deliberately NOT listed: it is foreman-only orchestration
+    # state whose sole writer is the orchestrator session; workers are barred
+    # by the host repo's rules-of-work prose, and prompting on routine ledger
+    # bookkeeping is noise.
     protected_prefixes = (
         "scripts/",
         "target/",
         "references/",
         ".github/",
         ".claude/",
-        ".foreman/",
     )
 
     is_protected = rel_posix in protected_exact or any(
