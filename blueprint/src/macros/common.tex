@@ -16,3 +16,50 @@
 
 \theoremstyle{definition}
 \newtheorem{definition}[theorem]{Definition}
+
+\theoremstyle{plain}
+\newtheorem{example}[theorem]{Example}
+
+% ----------------------------------------------------------------------
+% Shorthands for the NeSyCat library content (blueprint/src/content.tex).
+% Kept deliberately at amsmath/amssymb level so plasTeX digests them.
+% ----------------------------------------------------------------------
+
+% Monadic programming notation.
+\newcommand{\bind}{\mathbin{\text{\texttt{>>=}}}}
+\newcommand{\Ret}{\mathrm{return}}
+\newcommand{\Do}{\mathbf{do}}
+\newcommand{\sem}[1]{[\![#1]\!]}
+
+% Semiring-monad family.
+\newcommand{\MS}[1]{\mathcal M_{#1}}
+\newcommand{\Idmon}{\mathrm{Id}}
+\newcommand{\Dmon}{\mathcal D}
+\newcommand{\Tmon}{\mathcal T}
+\newcommand{\LTmon}{\log\mathcal T}
+\newcommand{\Bmon}{\mathcal B}
+\newcommand{\Bidx}{\underline B}
+
+% Semiring carriers.
+\newcommand{\BoolS}{\mathbb B}
+\newcommand{\MassS}{\mathbb R_{\ge 0}}
+\newcommand{\LogS}{\mathbb R \cup \{-\infty\}}
+\newcommand{\ProbS}{[0,1]}
+
+% Bridge maps and normalization (Chapter 6).
+\newcommand{\dec}{\mathrm{dec}}
+\newcommand{\enc}{\mathrm{enc}}
+\newcommand{\nrm}{\mathrm{nrm}}
+\newcommand{\tilt}{\mathrm{tilt}}
+\newcommand{\lse}{\operatorname{lse}}
+\DeclareMathOperator{\supp}{supp}
+
+% Syntax and semantics (Chapter 4).
+\newcommand{\Dom}{\mathrm{Dom}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Fun}{\mathrm{Fun}}
+\newcommand{\Rel}{\mathrm{Rel}}
+\newcommand{\Conn}{\mathrm{Conn}}
+\newcommand{\Quan}{\mathrm{Quan}}
+\newcommand{\inn}{\mathrm{in}}
+\newcommand{\out}{\mathrm{out}}
