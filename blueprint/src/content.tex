@@ -2,17 +2,28 @@
 % It will be used both by the web and the print version.
 % It should *not* include the \begin{document}
 
+% `remark` is not one of macros/common.tex's theorem-like environments
+% (theorem/proposition/lemma/corollary/definition/example), so it is
+% declared here, content.tex-local, the first time this document needs
+% one (rem:semiring-monad-algebras below).
+\newtheorem{remark}[theorem]{Remark}
+
 \section{NeSyCat}
 
 This blueprint is \textbf{version 0} of the NeSyCat library reference
 document: the itemized mathematical content of the NeSy26 paper
 [NeSy26], restated here as a standing library organized by
-mathematical structure rather than by paper section. The eventual Lean
+mathematical structure rather than by paper section. The Lean
 formalization lives in the flat \texttt{NeSyCat.\textit{name}}
-namespace; \textbf{nothing in this document is formalized yet} --- no
-item below carries a \texttt{\textbackslash lean} or
-\texttt{\textbackslash leanok} mark, and none should be read as a
-claim that a Lean proof exists.
+namespace. Items accumulate \texttt{\textbackslash lean} and
+\texttt{\textbackslash leanok} marks as formalization proceeds; a
+\texttt{\textbackslash leanok} mark is only ever added once the named
+declaration(s) exist and are fully proved (no \texttt{sorry}), and
+\texttt{scripts/blueprint.sh}'s decl-check gate --- which
+\texttt{\#check}s every \texttt{\textbackslash lean}-cited name against
+the built library --- keeps the \texttt{\textbackslash lean} marks
+honest. An item's absence of either mark means exactly what it always
+meant: no Lean proof exists for it yet.
 
 Two editorial principles govern every item:
 \begin{itemize}
@@ -118,6 +129,8 @@ of distributivity directly. \qed
 
 \begin{definition}[Semiring monad $\MS{S}$]
 \label{def:semiring-monad}
+\lean{NeSyCat.MS, NeSyCat.ret, NeSyCat.bind}
+\leanok
 Let $S = (S,\oplus,\otimes,0,1)$ be a commutative semiring. The
 \textbf{semiring monad} $\MS{S}$ sends a set $X$ to the set
 $\MS{S}X$ of finitely supported functions $f \colon X \to S$ (a
@@ -134,11 +147,19 @@ supported). Equivalently, $\bind$ is matrix multiplication over $S$.
 [NeSy26, App.~A]
 \end{definition}
 
+% Declared blueprint split (C1-T2): the source clause "with algebras
+% the $S$-semimodules" is split out of the theorem statement below into
+% a new remark, \label{rem:semiring-monad-algebras}, immediately
+% following. The theorem itself is left as the monad-laws statement
+% proper (what C1-T2 states and proves in Lean); the algebras clause is
+% recorded as a stretch target, not proved by this or any prior ticket.
 \begin{theorem}[Semiring monad laws]
 \label{thm:semiring-monad-laws}
+\lean{NeSyCat.ret_bind, NeSyCat.bind_ret, NeSyCat.bind_assoc, NeSyCat.Tens}
+\leanok
 For every commutative semiring $S$, $(\MS{S}, \Ret, \bind)$ of
-Definition~\ref{def:semiring-monad} is a monad on $\mathrm{Set}$, with
-algebras the $S$-semimodules. The semiring laws of $S$ become exactly
+Definition~\ref{def:semiring-monad} is a monad on $\mathrm{Set}$. The
+semiring laws of $S$ become exactly
 the monad laws: commutativity and associativity of $\oplus$ give
 associativity and commutativity of independent binds
 (``addition marginalises''), associativity of $\otimes$ gives
@@ -157,6 +178,16 @@ $\oplus$. \qed
 \uses{def:semiring-monad}
 [NeSy26, App.~A]
 \end{theorem}
+
+\begin{remark}[Semiring monad algebras]
+\label{rem:semiring-monad-algebras}
+The algebras of $\MS{S}$ (Theorem~\ref{thm:semiring-monad-laws}) are the
+$S$-semimodules. \emph{Recorded as a stretch target of this library, not
+proved here}: no Lean formalization of the algebras of $\MS{S}$ is
+claimed by this or any prior ticket.
+\uses{thm:semiring-monad-laws}
+[NeSy26, App.~A]
+\end{remark}
 
 \begin{definition}[Distribution monad]
 \label{def:dist-monad}

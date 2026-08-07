@@ -40,7 +40,7 @@ folders as content emerges).
 
 | Cluster                                                                    | Status      |
 |-----------------------------------------------------------------------------|-------------|
-| Semiring-monad infrastructure (`M_S`, `D` as mass-one submonad)              | partial (def:lattice-semiring stated, Boolean+mass instances done, log instance pending C1-T3; lem:prob-not-semiring proved) |
+| Semiring-monad infrastructure (`M_S`, `D` as mass-one submonad)              | partial (def:lattice-semiring stated, Boolean+mass instances done, log instance pending C1-T3; lem:prob-not-semiring proved; def:semiring-monad + thm:semiring-monad-laws proved in `NeSyCat/Monad/SemiringMonad.lean` (`MS`, `ret`, `bind`, `ret_bind`/`bind_ret`/`bind_assoc`, `Tens`); rem:semiring-monad-algebras split out as a stretch target, not proved; def:dist-monad and lem:log-iso not yet started) |
 | Truth spaces `M(Bool)`                                                      | not-started |
 | Lifted connectives (mass+log, derived `p+q−pq`)                             | not-started |
 | Pointwise/linear-laws/copying-laws lemmas + three-layers theorem            | not-started |
