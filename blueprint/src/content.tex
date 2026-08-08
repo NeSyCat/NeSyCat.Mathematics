@@ -495,6 +495,391 @@ isomorphism), so it is a monad isomorphism $\MS{\MassS} \cong
 \end{proof}
 
 % ============================================================
+\section{Truth-value structures}
+\label{sec:truth-structures}
+
+The lifted connective family of a truth space (Definition~\ref{def:lifted-connective}, Chapter~\ref{sec:truth-spaces} onward) is \emph{not} a semiring (Lemma~\ref{lem:copying-fails}, Theorem~\ref{thm:three-layers}): it is a bounded lattice carrying two monoids. This section isolates that shape abstractly, under names from the library's own naming scheme (\textbf{BLat2Mon} and its refinements), develops the linearity and De~Morgan laws such a structure can carry, and locates each running row of [NeSy26, App.~A] --- Boolean, probability, mass, log --- inside the resulting hierarchy. The connective and constant conventions of Remark~\ref{rem:connective-conventions} and Remark~\ref{rem:four-constants} are assumed throughout, not re-explained.
+
+\begin{definition}[Two-monoid bounded lattice]
+\label{def:blat2mon}
+A \textbf{BLat2Mon} is a set carrying a bounded lattice
+$(\wedge,\vee,\bot,\top)$ together with two monoid structures
+$(\parr,\dzero)$ and $(\AndC,\done)$; unlike a lattice-semiring
+(Definition~\ref{def:lattice-semiring}), no distributivity of any kind
+is assumed between the three structures. A \textbf{BLat2CMon} is a
+BLat2Mon whose two monoids $(\parr,\dzero)$ and $(\AndC,\done)$ are
+both commutative.
+\uses{def:lattice-semiring}
+Distilled from [NeSy26, App.~A] (the lifted-connective family);
+vocabulary from linear logic [Girard 1987].
+\end{definition}
+
+\begin{definition}[Linear two-monoid lattice]
+\label{def:lin-blat2mon}
+A \textbf{LinBLat2Mon} is a BLat2Mon (Definition~\ref{def:blat2mon}) in
+which $\AndC$ preserves finite joins in each argument and $\parr$
+preserves finite meets in each argument:
+\begin{itemize}
+\item binary: $p \AndC (q \vee r) = (p \AndC q) \vee (p \AndC r)$ and
+  $(q \vee r) \AndC p = (q \AndC p) \vee (r \AndC p)$; dually
+  $p \parr (q \wedge r) = (p \parr q) \wedge (p \parr r)$ and
+  $(q \wedge r) \parr p = (q \parr p) \wedge (r \parr p)$;
+\item nullary: $p \AndC \bot = \bot = \bot \AndC p$ (annihilation) and
+  $p \parr \top = \top = \top \parr p$ (absorption).
+\end{itemize}
+A \textbf{LinBLat2CMon} is a commutative one (a BLat2CMon satisfying
+these laws), in which case the one-sided version of each law suffices.
+\uses{def:blat2mon}
+These are exactly the four linear distributions of linear logic
+($\otimes$ over $\oplus$, $\parr$ over $\&$, together with their
+units), transported along the dictionary of
+Remark~\ref{rem:ll-dictionary}; [Girard 1987].
+\end{definition}
+
+\begin{lemma}[Linearity gives monotonicity]
+\label{lem:lin-monotone}
+In a LinBLat2Mon (Definition~\ref{def:lin-blat2mon}), $\AndC$ and
+$\parr$ are monotone in each argument.
+\uses{def:lin-blat2mon}
+\end{lemma}
+
+\begin{proof}
+If $p \le q$ then $q = p \vee q$, so
+$q \AndC r = (p \vee q) \AndC r = (p \AndC r) \vee (q \AndC r) \ge
+p \AndC r$; the other argument, and $\parr$ (via $p = p \wedge q$ and
+meet-preservation), are dual.
+\end{proof}
+
+\begin{lemma}[Lax dual preservations]
+\label{lem:lin-lax-duals}
+In a LinBLat2Mon, the dual preservations hold laxly:
+$p \AndC (q \wedge r) \le (p \AndC q) \wedge (p \AndC r)$ and
+$(p \parr q) \vee (p \parr r) \le p \parr (q \vee r)$, and likewise in
+the other argument.
+\uses{lem:lin-monotone}
+\end{lemma}
+
+\begin{proof}
+$q \wedge r \le q$ and $q \wedge r \le r$, so monotonicity
+(Lemma~\ref{lem:lin-monotone}) gives $p \AndC (q \wedge r) \le p \AndC q$
+and $\le p \AndC r$, hence $\le$ their meet; dually for $\parr$.
+\end{proof}
+
+\begin{definition}[De Morgan structure]
+\label{def:dm-structure}
+A \textbf{DM structure} on a BLat2Mon (Definition~\ref{def:blat2mon})
+is a map $\neg$ satisfying (i) $\neg\neg p = p$; (ii)
+$p \le q \Rightarrow \neg q \le \neg p$; (iii)
+$\neg(p \AndC q) = \neg q \parr \neg p$ (in the commutative case, (iii)
+reads $\neg p \parr \neg q$).
+\uses{def:blat2mon}
+Linear negation [Girard 1987], axiomatized minimally; the
+presentations are compared in Proposition~\ref{prop:dm-presentations}.
+\end{definition}
+
+\begin{lemma}[Negation is an order anti-automorphism]
+\label{lem:dm-lattice-laws}
+For a DM structure (Definition~\ref{def:dm-structure}),
+$\neg(p \wedge q) = \neg p \vee \neg q$,
+$\neg(p \vee q) = \neg p \wedge \neg q$, $\neg\bot = \top$,
+$\neg\top = \bot$.
+\uses{def:dm-structure}
+\end{lemma}
+
+\begin{proof}
+By (i) and (ii), $\neg$ is an order-reversing bijection, and an
+order-reversing bijection carries meets to joins, joins to meets, and
+each bound to the other.
+\end{proof}
+
+\begin{lemma}[The dual De Morgan law]
+\label{lem:dm-dual-law}
+For a DM structure, $\neg(p \parr q) = \neg q \AndC \neg p$.
+\uses{def:dm-structure}
+\end{lemma}
+
+\begin{proof}
+Applying (iii) at $\neg q, \neg p$ and using (i):
+$\neg(\neg q \AndC \neg p) = \neg\neg p \parr \neg\neg q = p \parr q$;
+applying $\neg$ to both sides and using (i) again gives the claim.
+\end{proof}
+
+\begin{lemma}[Negation swaps the monoid units]
+\label{lem:dm-unit-swap}
+For a DM structure, $\neg\done = \dzero$ and $\neg\dzero = \done$.
+\uses{def:dm-structure}
+\end{lemma}
+
+\begin{proof}
+For every $p$, by (iii) and (i):
+$\neg\done \parr p = \neg\done \parr \neg\neg p = \neg(\neg p \AndC \done)
+= \neg\neg p = p$, and symmetrically
+$p \parr \neg\done = \neg(\done \AndC \neg p) = p$; so $\neg\done$ is a
+two-sided $\parr$-unit, and monoid units are unique, giving
+$\neg\done = \dzero$. Applying (i): $\neg\dzero = \neg\neg\done =
+\done$.
+\end{proof}
+
+\begin{proposition}[Presentations of De Morgan structure]
+\label{prop:dm-presentations}
+On a BLat2Mon, let $\neg$ satisfy (i) $\neg\neg p = p$ and (iii)
+$\neg(p \AndC q) = \neg q \parr \neg p$. Then the following are
+equivalent, and each yields the full De~Morgan calculus of
+Lemmas~\ref{lem:dm-lattice-laws}, \ref{lem:dm-dual-law} and
+\ref{lem:dm-unit-swap}:
+\begin{enumerate}
+\item[(a)] $\neg$ is antitone;
+\item[(b)] $\neg(p \wedge q) = \neg p \vee \neg q$ for all $p, q$;
+\item[(c)] the full list: both lattice De~Morgan pairs, both monoid
+  De~Morgan laws, bound swap, unit swap, and antitonicity.
+\end{enumerate}
+\uses{lem:dm-lattice-laws, lem:dm-dual-law, lem:dm-unit-swap}
+\end{proposition}
+
+\begin{proof}
+(a)$\Rightarrow$(c) is Lemmas~\ref{lem:dm-lattice-laws},
+\ref{lem:dm-dual-law} and \ref{lem:dm-unit-swap}. (c)$\Rightarrow$(b)
+is immediate. (b)$\Rightarrow$(a): if $p \le q$ then $p = p \wedge q$,
+so $\neg p = \neg(p \wedge q) = \neg p \vee \neg q \ge \neg q$.
+\end{proof}
+
+\begin{lemma}[Negation maps invertibles to invertibles]
+\label{lem:dm-maps-units}
+For a DM structure, if $p$ is $\AndC$-invertible then $\neg p$ is
+$\parr$-invertible.
+\uses{def:dm-structure, lem:dm-unit-swap}
+\end{lemma}
+
+\begin{proof}
+Let $p \AndC q = \done = q \AndC p$. Applying $\neg$ and (iii):
+$\neg q \parr \neg p = \neg\done = \dzero$ and, by
+Lemma~\ref{lem:dm-unit-swap}, $\neg p \parr \neg q = \dzero$, so
+$\neg q$ is a two-sided $\parr$-inverse of $\neg p$.
+\end{proof}
+
+\begin{definition}[Unit-bound mixins]
+\label{def:unit-bounds}
+For a BLat2Mon (Definition~\ref{def:blat2mon}): \textbf{ZeroBot}
+demands $\dzero = \bot$; \textbf{OneTop} demands $\done = \top$;
+\textbf{UnitBounds} demands both, collapsing the four constants of
+Remark~\ref{rem:four-constants} to two.
+\uses{def:blat2mon}
+\end{definition}
+
+\begin{lemma}[Unit bounds via mixed absorption]
+\label{lem:dualabsorb-decomposition}
+In a LinBLat2Mon (Definition~\ref{def:lin-blat2mon}):
+\begin{enumerate}
+\item[(i)] $\done = \top$ iff $p \AndC q \le p \wedge q$ for all
+  $p,q$ iff the mixed absorption $p \vee (p \AndC q) = p$ holds;
+\item[(ii)] $\dzero = \bot$ iff $p \vee q \le p \parr q$ for all $p,q$
+  iff the mixed absorption $p \wedge (p \parr q) = p$ holds.
+\end{enumerate}
+\uses{lem:lin-monotone, def:unit-bounds}
+\end{lemma}
+
+\begin{proof}
+(i) If $\done = \top$: monotonicity gives
+$p \AndC q \le p \AndC \top = p \AndC \done = p$ and likewise
+$p \AndC q \le \top \AndC q = q$, hence $\le p \wedge q$. Conversely,
+taking $p = \done$: $q = \done \AndC q \le \done \wedge q \le \done$
+for all $q$, so $\top \le \done$. The absorption form is the standard
+rewriting of $p \AndC q \le p$. (ii) is dual: if $\dzero = \bot$ then
+$p = p \parr \dzero = p \parr \bot \le p \parr q$ and symmetrically,
+hence $p \vee q \le p \parr q$; conversely $q = \dzero$ gives
+$p \vee \dzero \le p$, so $\dzero \le p$ for all $p$.
+\end{proof}
+
+\begin{lemma}[The four-connective chain (MIX)]
+\label{lem:mix}
+In a LinBLat2Mon with UnitBounds (Definition~\ref{def:unit-bounds}),
+the four binary connectives form a chain:
+$p \AndC q \le p \wedge q \le p \vee q \le p \parr q$. In particular
+MIX holds: $p \AndC q \le p \parr q$.
+\uses{lem:dualabsorb-decomposition}
+The MIX rule [Girard 1987]; here it factors through the lattice.
+\end{lemma}
+
+\begin{proof}
+The outer inequalities are Lemma~\ref{lem:dualabsorb-decomposition}(i)
+and (ii); the middle one is the lattice.
+\end{proof}
+
+\begin{theorem}[Chains are linear]
+\label{thm:chain-lin}
+Let $L$ be a lattice, not necessarily bounded, carrying two monoid
+structures $(\parr,\dzero)$ and $(\AndC,\done)$ (a Lat2Mon), whose
+order is a chain (total order), and suppose $\AndC$ and $\parr$ are
+monotone in each argument. Then: (i) the four binary linear laws of
+Definition~\ref{def:lin-blat2mon} hold; (ii) if $L$ is bounded and
+UnitBounds (Definition~\ref{def:unit-bounds}) holds, the nullary laws
+hold too, so the structure is a LinBLat2Mon.
+\uses{def:lin-blat2mon, def:unit-bounds}
+\end{theorem}
+
+\begin{proof}
+(i) On a chain, $q \vee r \in \{q, r\}$; say $q \le r$, so
+$q \vee r = r$. Then $p \AndC (q \vee r) = p \AndC r$, while
+monotonicity gives $p \AndC q \le p \AndC r$, so
+$(p \AndC q) \vee (p \AndC r) = p \AndC r$ as well; the other argument
+and the $\parr/\wedge$ laws are dual. (ii) Annihilation from OneTop:
+$p \AndC \bot \le \top \AndC \bot = \done \AndC \bot = \bot$;
+absorption from ZeroBot: $\top = \dzero \parr \top \le p \parr \top$.
+\end{proof}
+
+\begin{lemma}[The Boolean row]
+\label{lem:bool-truth-structure}
+$\BoolS$ with its lattice $(\wedge,\vee,0,1)$, monoids
+$(\parr,\dzero) = (\vee,0)$ and $(\AndC,\done) = (\wedge,1)$, and
+$\neg$ is a LinBLat2CMon (Definition~\ref{def:lin-blat2mon}) with DM
+structure (Definition~\ref{def:dm-structure}) and UnitBounds
+(Definition~\ref{def:unit-bounds}); the connective pairs collapse,
+$\AndC = \wedge$ and $\parr = \vee$ --- the idempotent case.
+\uses{def:lin-blat2mon, def:dm-structure, def:unit-bounds,
+thm:chain-lin}
+[NeSy26, App.~A]
+\end{lemma}
+
+\begin{proof}
+A finite check (or: classical Boolean algebra); linearity via
+Theorem~\ref{thm:chain-lin} on the two-element chain.
+\end{proof}
+
+\begin{lemma}[The probability row]
+\label{lem:unit-interval-truth-structure}
+$\ProbS = [0,1]$ with lattice $(\min,\max,0,1)$, monoids
+$(\parr,\dzero) = (p+q-pq,\ 0)$ and $(\AndC,\done) = (pq,\ 1)$, and
+$\neg p = 1-p$ is a LinBLat2CMon with DM structure and UnitBounds.
+This is precisely the structure the non-semiring row of
+Lemma~\ref{lem:prob-not-semiring} does carry.
+\uses{def:lin-blat2mon, def:dm-structure, def:unit-bounds,
+thm:chain-lin, lem:prob-not-semiring}
+[NeSy26, App.~A]
+\end{lemma}
+
+\begin{proof}
+Closure: $p+q-pq = 1-(1-p)(1-q) \in [0,1]$. Monoid laws: $\AndC$ is
+real multiplication; $\parr$ is its conjugate under the involution
+$x \mapsto 1-x$, hence associative, commutative, with unit
+$1-1=0$. Both are monotone (partial derivatives $\ge 0$ on the square,
+or directly: $q \le r$ gives $pq \le pr$ and
+$p+q-pq = q(1-p)+p \le r(1-p)+p$), so Theorem~\ref{thm:chain-lin}
+applies: Lin holds. DM: $1-x$ is involutive and antitone, and
+$\neg(p \AndC q) = 1-pq = (1-p)+(1-q)-(1-p)(1-q) = \neg p \parr \neg q$.
+UnitBounds: $\dzero = 0 = \bot$, $\done = 1 = \top$.
+\end{proof}
+
+\begin{theorem}[No De Morgan structure on the mass row]
+\label{thm:no-dm-mass}
+On $\MassS = \mathbb{R}_{\ge 0}$ with its usual order there is no
+involutive antitone map; hence no two-monoid structure over the mass
+row carries a DM structure.
+\uses{def:dm-structure}
+\end{theorem}
+
+\begin{proof}
+Suppose $\neg$ is involutive and antitone. For every $p$,
+$\neg p \ge 0$, so applying $\neg$: $p = \neg\neg p \le \neg 0$. Thus
+$\neg 0$ is a top element, but $\MassS$ has none
+($\neg 0 + 1 > \neg 0$).
+\end{proof}
+
+\begin{theorem}[No De Morgan structure on the log row]
+\label{thm:no-dm-log}
+The same holds for $\LogS = \mathbb{R} \cup \{-\infty\}$: bottom
+$-\infty$, no top, hence no involutive antitone map.
+\uses{thm:no-dm-mass, lem:log-iso}
+\end{theorem}
+
+\begin{proof}
+As in Theorem~\ref{thm:no-dm-mass}, $\neg(-\infty)$ would be a top
+element.
+\end{proof}
+
+\begin{remark}[Outlook: completions]
+\label{rem:dm-completions-outlook}
+On the completed carriers $[0,\infty]$ and $[-\infty,\infty]$ the order
+obstruction of Theorems~\ref{thm:no-dm-mass} and \ref{thm:no-dm-log}
+vanishes, since the order becomes self-dual; whether the completed
+rows carry DM structures is taken up together with the completion
+instances in a later chapter.
+\uses{thm:no-dm-mass, thm:no-dm-log}
+\end{remark}
+
+\begin{theorem}[The mass square is not linear]
+\label{thm:square-not-lin}
+On $\MassS^2$ with the order family (slot $0$ reversed,
+Definition~\ref{def:order-family}) and the lifted operations of
+Lemma~\ref{lem:lifted-mass}, the slot swap
+$\neg(w_0,w_1) = (w_1,w_0)$ is a DM structure
+(Definition~\ref{def:dm-structure}) and both monoids are commutative,
+but $\AndC$ is not monotone; hence, by Lemma~\ref{lem:lin-monotone},
+the linear laws fail --- the square rows are BLat2CMon-with-DM
+territory, not Lin.
+\uses{def:order-family, lem:lifted-mass, def:dm-structure,
+lem:lin-monotone}
+\end{theorem}
+
+\begin{proof}
+DM: the swap is involutive; it is antitone for the slot-0-reversed
+order; and $\neg(w \AndC v) = (w_1v_1,\ w_0v_0 + w_0v_1 + w_1v_0) =
+\neg w \parr \neg v$ by the formulas of Lemma~\ref{lem:lifted-mass}.
+Non-monotonicity: take $p = (1,0)$, $r = (5,0)$, $q = (0,10)$. Then
+$r \le q$ (slot 1: $0 \le 10$; slot 0 reversed: $5 \ge 0$), but
+$p \AndC r = (5, 0)$ and $p \AndC q = (10, 0)$, and
+$(5,0) \le (10,0)$ fails in the reversed slot ($5 \ge 10$ is false).
+The mechanism is the cross term $w_0v_1$ in slot 0 of $\AndC$: raising
+the FOR-weight $v_1$ raises the AGAINST-slot of the output. (By
+contrast $\parr$ IS monotone: its slot 0 is the pure product
+$w_0 v_0$.) The counterexample persists unchanged in the bounded
+completion $[0,\infty]^2$, so no bounded extension of this order
+family is Lin either.
+\end{proof}
+
+\begin{remark}[The linear-logic dictionary]
+\label{rem:ll-dictionary}
+Our $\vee$ is linear logic's additive disjunction $\oplus$; our
+$\wedge$ is linear logic's additive conjunction (linear logic writes
+it $\&$); our $\AndC$ is linear logic's \emph{multiplicative}
+conjunction $\otimes$; our $\parr$ is linear logic's $\parr$. Units:
+$\dzero$ is linear logic's $\bot$ (the $\parr$-unit), $\done$ is
+linear logic's $1$ (the $\otimes$-unit), our $\bot$ is linear logic's
+$0$, our $\top$ is linear logic's $\top$. This library's $\AndC$ is
+deliberately a MULTIPLICATIVE connective despite linear logic using
+the same ampersand glyph for its additive one: the library keeps
+[NeSy26]'s notation throughout, per
+Remark~\ref{rem:connective-conventions}. Definition~\ref{def:lin-blat2mon}
+is exactly linear logic's four linear distributions;
+Lemma~\ref{lem:mix} is the MIX rule; linear implication and
+$*$-autonomy sit at the S/R-implication boundary, deferred to the
+residuation chapter. [Girard 1987]
+\uses{def:lin-blat2mon, lem:mix}
+\end{remark}
+
+\begin{remark}[Dioid pairings]
+\label{rem:dioid-viterbi}
+The mixed pairs are semirings where the pure pair is not:
+$(\vee, \AndC)$ is an idempotent semiring (dioid) --- on $[0,1]$ the
+Viterbi semiring --- and $(\wedge, \parr)$ is its dual; the pair
+$(\parr, \AndC)$ fails distributivity in general (linear logic's
+refusal to distribute $\otimes$ over $\parr$: only the four laws of
+Definition~\ref{def:lin-blat2mon} survive), of which
+Lemma~\ref{lem:prob-not-semiring} is the concrete probability-row
+instance.
+\uses{def:lin-blat2mon, lem:prob-not-semiring}
+\end{remark}
+
+\begin{remark}[Exponentials]
+\label{rem:exponentials-log-iso}
+Linear logic's exponentials $!/?$ are mirrored here by the exp/log
+bridge between the mass and log rows; Lemma~\ref{lem:log-iso} is the
+first ingredient, and the matter is taken up together with the
+completion instances.
+\uses{lem:log-iso}
+\end{remark}
+
+
+% ============================================================
 \section{Truth spaces and lifted connectives}
 \label{sec:truth-spaces}
 
@@ -727,14 +1112,14 @@ products); all structure is inherited componentwise.
 
 \begin{lemma}[Linear laws lift]
 \label{lem:linear-lift}
-The lifted family $(\MS{S}\BoolS, \parr, \Ret(0))$ and
-$(\MS{S}\BoolS, \AndC, \Ret(1))$ of
+For a commutative semiring $S$, the lifted family
+$(\MS{S}\BoolS, \parr, \Ret(0))$ and $(\MS{S}\BoolS, \AndC, \Ret(1))$ of
 Definition~\ref{def:lifted-connective} are commutative monoids, and
 $\neg$ is a De~Morgan involution between them: $\neg\neg w = w$,
 $\neg \Ret(0) = \Ret(1)$, and
 $\neg(w \parr v) = \neg w \AndC \neg v$,
 $\neg(w \AndC v) = \neg v \parr \neg w$.
-\uses{def:lifted-connective, lem:pointwise}
+\uses{def:lifted-connective, lem:pointwise, thm:semiring-monad-commutative}
 [NeSy26, App.~A]
 \end{lemma}
 
@@ -745,8 +1130,12 @@ the unit laws of $\parr,\AndC$ each involve every variable exactly
 once per side of the defining equation, hence expand, via
 Definition~\ref{def:lifted-connective}'s bind chain, to associativity,
 commutativity and the unit laws of $S$ itself
-(Definition~\ref{def:semiring-monad}); the De~Morgan identities are a
-direct check on the explicit formulas of Lemma~\ref{lem:lifted-mass}.
+(Definition~\ref{def:semiring-monad}); commutativity of $\parr,\AndC$
+specifically needs the two independent binds building the lifted
+connective from its two arguments to agree in either order, i.e.\
+$\dstL = \dstR$ (Theorem~\ref{thm:semiring-monad-commutative}), which
+is exactly where commutativity of $S$ enters; the De~Morgan identities
+are a direct check on the explicit formulas of Lemma~\ref{lem:lifted-mass}.
 \end{proof}
 
 \begin{remark}[Instances, not a schema]
