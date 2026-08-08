@@ -88,6 +88,14 @@
 \newcommand{\done}{\dot 1}                      % Lean: scoped notation "1̇"
 \newcommand{\impc}[1]{\mathbin{\to_{#1}}}       % Lean: scoped notation:25 a " →[" c "] " b
 \newcommand{\negc}[1]{\neg_{#1}}                % Lean: scoped prefix:75 "¬[" c "] "
+% NeSyCat Theory v2 (M2): the grammatical layer's diagrammatic
+% composition, feed-forward composite, and actegory action. None of
+% these are formalized yet (no Lean file exists), so the twin comments
+% record only the planned shape, following the same convention as the
+% rest of this registry.
+\newcommand{\seq}{\mathbin{;}}                  % Lean: scoped notation (planned) --- diagrammatic (left-to-right) composition, mirrors mathlib's `≫`
+\newcommand{\seqop}{\mathbin{\gtrdot}}          % Lean: scoped infixl (planned) " ⋗ " --- feed-forward composite (Definition~def:feed-forward)
+\newcommand{\actop}{\mathbin{\bullet}}          % Lean: scoped infixr (planned) " • " --- actegory action (Definition~def:categorical-interpretation)
 % ===== END SYMBOL REGISTRY =====
 
 % Monadic programming notation.

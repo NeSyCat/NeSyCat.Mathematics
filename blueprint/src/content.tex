@@ -336,7 +336,7 @@ Definition~\ref{def:lifted-connective} (built by binding several
 arguments and pushing forward along a Boolean operation, order
 immaterial only once the binds commute) and the order-irrelevance of
 independent binds in the $\Do$-notation semantics of
-Definition~\ref{def:semantics} both rely on.
+Definition~\ref{def:kleisli-interpretation} both rely on.
 \uses{def:semiring-monad, thm:semiring-monad-laws}
 [NeSy26, App.~A; Coumans--Jacobs, Lem.~23]
 \end{theorem}
@@ -654,124 +654,468 @@ construction of Definition~\ref{def:order-family}. \qed
 \section{Syntax and monadic semantics}
 \label{sec:syntax-semantics}
 
+This chapter replaces its previous itemization --- the NeSy26 paper's
+Tarski/Kleisli/Nesy trichotomy, its do-notation-primitive term grammar,
+and its $(D \to M\Omega) \to M\Omega$ quantifier semantics, all now
+\textbf{superseded} and retained only in this repository's git history
+--- with the current NeSyCat theory, authored directly against the
+working text of \emph{NeSyCat Theory: Semantics in Kleisli Categories
+for Neuro-Symbolic AI in HaskTorch} (\textbf{NeSyCat Theory v2}), lines
+1--396 of \texttt{new.tex} in the \texttt{NeSyCat.Logics} repository
+(sha256 prefix \texttt{e212698c94d35a48} of that working text, itself
+layered over \texttt{NeSyCat.Logics} git ref \texttt{1ade210}); no
+notation from the superseded §3+ of the NeSy26 paper is reused below.
+The theory is a stack of four signature/interpretation layers ---
+categorical, logical, domain, grammatical --- the last of which fixes a
+context-free term/formula grammar with an explicit substitution rule
+and interprets it in the Kleisli category of a strong monad.
+
+\paragraph{Categorical layer.}
+
+\begin{definition}[Categorical signature]
+\label{def:categorical-signature}
+A \textbf{categorical signature} $\Sigma_\alpha$ consists of a
+\textbf{category symbol} $\mathbf C$, an \textbf{actor symbol}
+$\mathbf A$, and a \textbf{monad symbol} $\bigcirc$. The identity monad
+symbol $\mathrm{Id}$ is left implicit, but can always be added
+explicitly to a set of monad symbols
+$\mathrm{Mon} := \{\mathrm{Id}, \bigcirc\}$.
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\begin{definition}[CD category]
+\label{def:cd-category}
+A \textbf{CD (copy--discard) category}
+$(\mathcal C, \otimes_{\mathcal C}, \mathrm I_{\mathcal C}, \mathsf{copy}, \mathsf{del})$
+is a symmetric monoidal category equipped with a commutative comonoid
+$\mathsf{copy}_X \colon X \to X \otimes_{\mathcal C} X$,
+$\mathsf{del}_X \colon X \to \mathrm I_{\mathcal C}$ on every object
+$X$, natural in $X$ and compatible with $\otimes_{\mathcal C}$.
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\begin{definition}[Categorical interpretation]
+\label{def:categorical-interpretation}
+A \textbf{categorical interpretation} $\mathcal I_\alpha$ of a
+categorical signature $\Sigma_\alpha$ (Definition~\ref{def:categorical-signature})
+is given by a CD category
+$(\mathcal C, \otimes_{\mathcal C}, \mathrm I_{\mathcal C}, \mathsf{copy}, \mathsf{del}) := \mathcal I(\mathbf C)$
+(Definition~\ref{def:cd-category}) for the category symbol $\mathbf C$,
+a monoidal category
+$(\mathcal A, \otimes_{\mathcal A}, \mathrm I_{\mathcal A}) := \mathcal I(\mathbf A)$
+for the actor symbol $\mathbf A$, acting on $\mathcal C$ as an
+\textbf{actegory} with action
+$\actop \colon \mathcal A \times \mathcal C \to \mathcal C$, and a
+monad $\mathcal M := \mathcal I(\bigcirc)$ on $\mathcal C$ for the
+monad symbol $\bigcirc$. The identity monad symbol $\mathrm{Id}$ is
+always interpreted by the identity functor on $\mathcal C$.
+\uses{def:categorical-signature, def:cd-category}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\begin{remark}[Running categorical interpretations]
+\label{rem:categorical-instances}
+Three categorical interpretations recur as running examples of
+Definition~\ref{def:categorical-interpretation}:
+\begin{itemize}
+\item \textbf{Set/Tens/Identity}: the set-theoretic category
+  $\mathcal C := \mathbf{Set}$ for $\mathbf C$, the monoidal category
+  $\mathcal A := \mathbf{Tens}$ for $\mathbf A$, and the identity monad
+  $\mathcal M := \mathrm{Identity}$ for $\bigcirc$.
+\item \textbf{Set/Tens/Dist}: the measure-theoretic category
+  $\mathcal C := \mathbf{Set}$ for $\mathbf C$, $\mathcal A :=
+  \mathbf{Tens}$ for $\mathbf A$, and the distribution monad
+  $\mathcal M := \mathrm{Dist}$ for $\bigcirc$.
+\item \textbf{Tens/Tens/LogVec}: the geometric category
+  $\mathcal C := \mathbf{Tens}$ for $\mathbf C$, $\mathcal A :=
+  \mathbf{Tens}$ for $\mathbf A$, and the monad
+  $\mathcal M := \mathrm{LogVec}$ for $\bigcirc$.
+\end{itemize}
+\uses{def:categorical-interpretation}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{remark}
+
+\paragraph{Logical layer.}
+
+\begin{definition}[Logical signature]
+\label{def:logical-signature}
+A \textbf{logical signature} $\Sigma_\beta$ consists of a \textbf{truth
+symbol} $\tau$, a set of \textbf{connective symbols} $\mathrm{Conn}$
+each with an arity $n \in \mathbb N_0$ and a monad symbol
+$M \in \mathrm{Mon}$, and a set of \textbf{(finite) quantifier symbols}
+$\Quan$ each with a monad symbol $M \in \mathrm{Mon}$. A connective
+symbol $*$ with arity $n$ and monad symbol $M$ is written
+$* \colon M\tau^n \to M\tau$, a comparison symbol $\prec$ with arity
+$n$ and monad symbol $M$ is written
+$\prec \colon M\tau^n \to M\mathrm{Bool}$, and a quantifier symbol $Q$
+with monad symbol $M$ is written $Q \colon M\tau$.
+\uses{def:categorical-signature}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\begin{definition}[Logical interpretation]
+\label{def:logical-interpretation}
+A \textbf{logical interpretation} $\mathcal I_\beta$ of a logical
+signature $\Sigma_\beta$ (Definition~\ref{def:logical-signature}) in a
+CD category $(\mathcal C, \otimes, \mathrm I, \mathsf{copy}, \mathsf{del})$
+(Definition~\ref{def:cd-category}) is given by an object
+$\Omega := \mathcal I(\tau)$, a morphism
+$\mathcal I(*) \colon (\mathcal I(M)\Omega)^{\otimes n} \to \mathcal I(M)\Omega$
+for each connective symbol $* \colon M\tau^n \to M\tau$ of arity $n$,
+and a family of morphisms $\{\mathcal I(Q)_n\}_{n \in \mathbb N_0}$,
+\[
+  \mathcal I(Q)_n \colon (\mathcal I(M)\Omega)^{\otimes n} \to \mathcal I(M)\Omega,
+\]
+for each quantifier symbol $Q$ with monad symbol interpreted as
+$\mathcal I(M)$.
+\uses{def:logical-signature, def:categorical-interpretation}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\paragraph{Domain layer.}
+
 \begin{definition}[Domain signature]
 \label{def:domain-signature}
-A \textbf{domain signature} $\Sigma$ consists of \textbf{domain
-symbols} $\Dom$, \textbf{variable symbols} $\Var$ (each typed over a
-domain symbol, $x : S$), and \textbf{function symbols} $\Fun$ and
-\textbf{relation symbols} $\Rel$, each partitioned into a Tarski, a
-Kleisli and a Nesy part, $\Fun = \Fun^{\mathrm{Tar}} \sqcup
-\Fun^{\mathrm{Kl}} \sqcup \Fun^{\mathrm{Nesy}}$ and likewise for $\Rel$,
-with a fixed monad symbol $\bigcirc$:
-\begin{center}
-\begin{tabular}{lll}
-\hline
-kind & function symbol & relation symbol \\
-\hline
-Tarski & $f : S_1,\ldots,S_n \to T$ & $R : S_1,\ldots,S_n \to \tau$ \\
-Kleisli & $f : S_1,\ldots,S_n \to \bigcirc T$ & $R : S_1,\ldots,S_n \to \bigcirc\tau$ \\
-Nesy & $f : \bigcirc S_1,\ldots,\bigcirc S_n \to \bigcirc T$ & $R : \bigcirc S_1,\ldots,\bigcirc S_n \to \bigcirc\tau$ \\
-\hline
-\end{tabular}
-\end{center}
-where $\tau$ is the type of truth values. Function and relation
-symbols may not take arguments of type $\tau$ or $\bigcirc\tau$ (this
-keeps the grammar close to first-order logic).
-[NeSy26, \S 3]
+A \textbf{domain signature} $\Sigma_\gamma$ is given by:
+\begin{itemize}
+\item a set of \textbf{domain symbols} $\Dom$ and a set of
+  \textbf{(parameter) space symbols} $\mathrm{Spc}$;
+\item a set of \textbf{function symbols} $\Fun$ with functions
+  $\mathrm{dom}, \mathrm{cod} \colon \Fun \to \mathcal L(\mathrm{Mon}
+  \times \Dom)$, mapping each function symbol to a list of pairs of
+  monad and domain symbols --- one marker per argument, so a function
+  may consume and produce a mix of plain and monadic arguments --- for
+  its domain and codomain respectively, and a function
+  $\mathrm{par} \colon \Fun \to \mathcal L(\mathrm{Spc})$, mapping each
+  function symbol to its list of parameter spaces;
+\item a set of \textbf{relation symbols} $\Rel$ with a function
+  $\mathrm{ari} \colon \Rel \to \mathcal L(\mathrm{Mon} \times \Dom)$,
+  mapping each relation symbol to its list of pairs of monad and
+  domain symbols, and a function
+  $\mathrm{par} \colon \Rel \to \mathcal L(\mathrm{Spc})$, mapping each
+  relation symbol to its list of parameter spaces;
+\item a set of \textbf{variable symbols} $\Var$ with a function
+  $\mathrm{ovr} \colon \Var \to \Dom$, mapping each variable symbol to
+  its domain symbol, and a set of \textbf{parameter symbols}
+  $\mathrm{Par}$ with a function
+  $\mathrm{ovr} \colon \mathrm{Par} \to \mathrm{Spc}$, mapping each
+  parameter symbol to its parameter space.
+\end{itemize}
+\uses{def:categorical-signature}
+[NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
+
+\begin{remark}[Writing convention for typed symbols]
+\label{rem:domain-signature-notation}
+For a function symbol $f \in \Fun$ with domain
+$(M_1,S_1),\ldots,(M_n,S_n)$, codomain
+$(N_1,T_1),\ldots,(N_m,T_m)$, and parameter spaces
+$\Theta_1,\ldots,\Theta_k$, this library follows the source's
+writing-layer convention and displays $f$ as
+\[
+  f_{\Theta_1,\ldots,\Theta_k} \colon M_1 S_1, \ldots, M_n S_n \to N_1 T_1, \ldots, N_m T_m,
+\]
+subscripting the parameters, and likewise
+$R_{\Theta_1,\ldots,\Theta_k} \colon M_1 S_1, \ldots, M_n S_n \to \tau$
+for a relation symbol $R \in \Rel$. In both cases the identity monad
+symbol $\mathrm{Id}$ is omitted from the display. A variable symbol
+$x \in \Var$ over domain symbol $S$ is displayed $x \colon S$, and a
+parameter symbol $\theta \in \mathrm{Par}$ over parameter space
+$\Theta$ is displayed $\theta \colon \Theta$. This is purely a
+writing-layer convention, governed by the writing-layer discipline of
+this library --- it is \emph{not} an abbreviation in the
+Blueprint-to-Lean-correspondence sense, and it introduces no
+\texttt{\textbackslash lean}-markable content of its own.
+\uses{def:domain-signature}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{remark}
 
 \begin{definition}[Domain interpretation]
 \label{def:domain-interpretation}
-A \textbf{domain interpretation} $\mathcal I$ for a domain signature
-$\Sigma$ (Definition~\ref{def:domain-signature}) fixes a monad
-$\mathcal M := \mathcal I(\bigcirc)$ (an instance of
-Definition~\ref{def:semiring-monad}, or $\Idmon$), assigns a set
-$\mathcal I(S)$ to each domain symbol $S$, writes
-$\mathcal I(S_1,\ldots,S_n) := \mathcal I(S_1)\times\cdots\times
-\mathcal I(S_n)$, and assigns to each symbol a map as in
+A \textbf{domain interpretation} $\mathcal I_\gamma$ of a domain
+signature $\Sigma_\gamma$ (Definition~\ref{def:domain-signature}) into
+the CD category $\mathcal C$ with its actegory $(\mathcal A, \actop)$
+(Definition~\ref{def:categorical-interpretation}) sets
+$\mathcal I(M_1 S_1,\ldots,M_n S_n) := \mathcal I(M_1 S_1)
+\otimes_{\mathcal C} \cdots \otimes_{\mathcal C} \mathcal I(M_n S_n)$
+with $\mathcal I(MS) := \mathcal I_\alpha(M)\mathcal I(S)$, and
+$\mathcal I(\Theta_1,\ldots,\Theta_k) := \mathcal I(\Theta_1)
+\otimes_{\mathcal A} \cdots \otimes_{\mathcal A} \mathcal I(\Theta_k)$,
+and assigns:
+\begin{itemize}
+\item an object $\mathcal I(S) \in \mathrm{Ob}_{\mathcal C}$ for each
+  domain symbol $S \in \Dom$, and an object
+  $\mathcal I(\Theta) \in \mathrm{Ob}_{\mathcal A}$ for each space
+  symbol $\Theta \in \mathrm{Spc}$;
+\item for each function symbol
+  $f_{\Theta_1,\ldots,\Theta_k} \colon M_1 S_1,\ldots,M_n S_n \to N_1
+  T_1,\ldots,N_m T_m$ (Remark~\ref{rem:domain-signature-notation}) a
+  morphism
+  \[
+    \mathcal I(f) \colon \mathcal I(\Theta_1,\ldots,\Theta_k) \actop
+    \mathcal I(M_1 S_1,\ldots,M_n S_n) \to \mathcal I(N_1 T_1,\ldots,N_m T_m)
+  \]
+  in $\mathcal C$;
+\item for each relation symbol
+  $R_{\Theta_1,\ldots,\Theta_k} \colon M_1 S_1,\ldots,M_n S_n \to \tau$
+  a morphism
+  \[
+    \mathcal I(R) \colon \mathcal I(\Theta_1,\ldots,\Theta_k) \actop
+    \mathcal I(M_1 S_1,\ldots,M_n S_n) \to \Omega
+  \]
+  in $\mathcal C$, with $\Omega$ as in
+  Definition~\ref{def:logical-interpretation};
+\item $\mathcal I(x) := \mathrm{id}_{\mathcal I(S)}$ for each variable
+  symbol $x \colon S$, and $\mathcal I(\theta) := \mathrm{id}_{\mathcal
+  I(\Theta)}$ for each parameter symbol $\theta \colon \Theta$.
+\end{itemize}
+\uses{def:domain-signature, def:categorical-interpretation, def:logical-interpretation}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\paragraph{Grammatical layer.}
+
+\begin{definition}[Context]
+\label{def:context}
+A \textbf{context} $\vec x$ is a finite list $[x_1,\ldots,x_n]$ of
+\emph{distinct} variable symbols from $\Var$
+(Definition~\ref{def:domain-signature}), including the empty context
+$[\,]$. This is the Elephant-style presentation of contexts
+(Johnstone); contexts are equivalently linearly ordered subsets of
+$\Var$, so the usual set operations (union, intersection, difference)
+apply to them.
+\uses{def:domain-signature}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\begin{definition}[Grammatical signature]
+\label{def:grammatical-signature}
+A \textbf{grammatical signature} $\Sigma_\delta$ is given by a set of
+\textbf{terms} $\Xi$ with functions
+$\inn, \out \colon \Xi \to \mathcal L(\Var)$, mapping each term to a
+context (Definition~\ref{def:context}) of free variables (its input)
+and a context of typed outputs (its output), a set of
+\textbf{formulas} $\Phi$ with a function
+$\mathrm{on} \colon \Phi \to \mathcal L(\Var)$, mapping each formula to
+the context of its free variables, and the subset of \textbf{variable
+terms} $\Xi_{\mathrm{var}} \subseteq \Xi$: each variable term
+$\xi \in \Xi_{\mathrm{var}}$ is a variable symbol $x \in \Var$, with
+$\inn(\xi) = \out(\xi)$. For $\phi \in \Phi$ write
+$[\phi] := \mathrm{on}(\phi)$ for its canonical context. Terms and
+formulas are generated over a domain signature $\Sigma_\gamma$
+(Definition~\ref{def:domain-signature}) and a logical signature
+$\Sigma_\beta$ (Definition~\ref{def:logical-signature}) by the
+following context-free grammar:
 \begin{center}
-\begin{tabular}{ll}
+\begin{tabular}{llll}
 \hline
-signature & interpretation \\
+\textbf{Rule} & \textbf{Symbols} & \textbf{Description} & \textbf{Metatype} \\
 \hline
-$f : S_1,\ldots,S_n \to T$ & $\mathcal I(f) \colon \mathcal I(S_1,\ldots,S_n) \to \mathcal I(T)$ \\
-$f : S_1,\ldots,S_n \to \bigcirc T$ & $\mathcal I(f) \colon \mathcal I(S_1,\ldots,S_n) \to \mathcal M\,\mathcal I(T)$ \\
-$f : \bigcirc S_1,\ldots,\bigcirc S_n \to \bigcirc T$ & $\mathcal I(f) \colon \mathcal M\,\mathcal I(S_1) \times \cdots \times \mathcal M\,\mathcal I(S_n) \to \mathcal M\,\mathcal I(T)$ \\
+$\xi ::= x$ & $x \in \Var$ & variable term & $\xi$ \\
+$\xi ::= f(\vec\xi)$ & $f \in \Fun$ & functional term & $\vec\xi \to \xi$ \\
+$\phi ::= R(\vec\xi)$ & $R \in \Rel$ & atomic formula & $\vec\xi \to \phi$ \\
+$\phi ::= *(\vec\phi)$ & $* \in \Conn$ & compound formula & $\vec\phi \to \phi$ \\
+$\phi ::= Q\vec x(\phi)$ & $Q \in \Quan$ & quantified formula & $\phi \to \phi$ \\
+$\phi ::= \phi[x := \xi]$ & $x \in [\phi]$ & substituted formula & $\xi,\phi \to \phi$ \\
 \hline
 \end{tabular}
 \end{center}
-and relations likewise with $\mathcal I(T)$ replaced by $\Omega :=
-\mathcal I(\tau) = \BoolS$: a Tarski symbol is a plain map, a Kleisli
-symbol a map into $\mathcal M\,\mathcal I(T)$, and a Nesy symbol
-consumes and produces monadic carriers.
-\uses{def:domain-signature, def:semiring-monad}
-[NeSy26, \S 3]
+the last rule --- \textbf{substitution} $\phi[x := \xi]$, for $x$ a
+free variable of $\phi$ and $\xi$ any term --- generates formulas
+explicitly, rather than only being a meta-level operation on already
+generated formulas.
+\uses{def:domain-signature, def:logical-signature, def:context}
+[NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
 
-\begin{definition}[Term grammar]
-\label{def:term-grammar}
-Fix a domain signature $\Sigma$ (Definition~\ref{def:domain-signature}).
-With $x \in \Var$, $c,f \in \Fun \cup \Rel \cup \Conn$ (connective
-symbols $\Conn$, the ordinary Boolean operations of
-Definition~\ref{def:lifted-connective}), and $Q \in \Quan$ (quantifier
-symbols), terms $t$ are generated by
-\[
-  t \;::=\; x \;\mid\; c \;\mid\; f(t_1,\ldots,t_n)
-  \;\mid\; \Ret\ t \;\mid\; \Do\{\, x_1 \leftarrow t_1;\, \ldots;\,
-  x_n \leftarrow t_n;\ t \,\} \;\mid\; Qx(t),
-\]
-with each term $t$ carrying free variables $\inn(t)$ and a result type
-$\out(t)$; formulas are terms with $\out(t) = \tau$. Term formation is
-type-correct: a Tarski term has type $S$ or $\tau$; a monadic term has
-type $\bigcirc S$ or $\bigcirc\tau$ and such terms alone may be bound
-with $\leftarrow$; the term $t$ inside $\Ret\ t$ must itself be
-$\bigcirc$-free (Tarskian); a quantified term $Qx(t)$ has
-$t, Qx(t) : \bigcirc\tau$.
-\uses{def:domain-signature}
-[NeSy26, \S 3]
+\begin{definition}[Wire adapters and bind set]
+\label{def:wire-adapters}
+Consider composable typed symbols (Remark~\ref{rem:domain-signature-notation})
+$f \colon M^f_1 S_1,\ldots,M^f_n S_n \to N^f_1 T_1,\ldots,N^f_m T_m$
+and
+$g \colon M^g_1 T_1,\ldots,M^g_m T_m \to N^g_1 U_1,\ldots,N^g_k U_k$,
+whose marked interfaces on the shared domain symbols $T_1,\ldots,T_m$
+need not agree: the output marker $N^f_j$ of $f$ and the input marker
+$M^g_j$ of $g$ on $T_j$ are independent. For each wire
+$j \in \{1,\ldots,m\}$ the \textbf{adapter} $\alpha_j$ is given by:
+\begin{center}
+\begin{tabular}{cclc}
+\hline
+$N^f_j$ & $M^g_j$ & \textbf{Adapter} & \textbf{Nature} \\
+\hline
+$\mathrm{Id}$ & $\mathrm{Id}$ &
+  $\alpha_j := \mathrm{id}_{\mathcal I(T_j)}$ & pure \\
+$\mathrm{Id}$ & $\bigcirc$ &
+  $\alpha_j := \eta_{\mathcal I(T_j)}$ & pure (Dirac passed as data) \\
+$\bigcirc$ & $\bigcirc$ &
+  $\alpha_j := \mathrm{id}_{\mathcal M\mathcal I(T_j)}$ & pure (computation passed as data) \\
+$\bigcirc$ & $\mathrm{Id}$ &
+  $\alpha_j := \mathrm{id}_{\mathcal M\mathcal I(T_j)}$, $j \in J$ & effectful (bound) \\
+\hline
+\end{tabular}
+\end{center}
+On the first three rows $\alpha_j$ lands exactly in the expected input
+object $C_j := \mathcal I(M^g_j T_j)$; on the last row no such morphism
+exists ($g$ expects a value while $f$ delivers a computation
+$\mathcal M\mathcal I(T_j)$). These wires form the \textbf{bind set}
+$J \subseteq \{1,\ldots,m\}$.
+\uses{def:domain-signature, def:categorical-interpretation, def:domain-interpretation}
+[NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
 
-\begin{definition}[Semantics]
-\label{def:semantics}
-Fix a domain interpretation $\mathcal I$
-(Definition~\ref{def:domain-interpretation}) with monad $\mathcal M$.
-Terms and formulas of Definition~\ref{def:term-grammar} denote maps
-$\sem{t} \colon \mathcal I(\inn(t)) \to \mathcal I(\out(t))$, defined by
-induction on the grammar, with $\vec t := (t_1,\ldots,t_n)$ and $\nu$ a
-valuation of the free variables:
+\begin{definition}[Feed-forward composite]
+\label{def:feed-forward}
+With notation as in Definition~\ref{def:wire-adapters}, let
+$J = \{j_1 < \cdots < j_r\}$ be the bind set,
+$\vec\alpha := \alpha_1 \otimes \cdots \otimes \alpha_m$, and
+$(b_1,\ldots,b_m) := \vec\alpha\bigl(\mathcal I(f)(x)\bigr)$ the
+adapted wires. The \textbf{feed-forward composite}
+$\mathcal I(f) \seqop \mathcal I(g) \colon \mathcal I(\mathrm{dom}(f))
+\to \mathcal M\,\mathcal I(\mathrm{cod}(g))$ binds the effectful wires
+in list order,
 \[
-  \sem{x}(\nu) = \nu(x), \qquad
-  \sem{f(\vec t)}(\nu) = \mathcal I(f)\bigl(\sem{t_1}(\nu),\ldots,\sem{t_n}(\nu)\bigr),
-  \qquad
-  \sem{c}(\nu) = \mathcal I(c),
+  \bigl(\mathcal I(f) \seqop \mathcal I(g)\bigr)(x) :=
+  \Do\{\, c_{j_1} \leftarrow b_{j_1};\ \ldots;\ c_{j_r} \leftarrow b_{j_r};\
+  \Ret\ \mathcal I(g)(c_1,\ldots,c_m) \,\},
 \]
+where $c_j := b_j$ for $j \notin J$. Equivalently, point-free,
 \[
-  \sem{\Ret\ t}(\nu) = \Ret\bigl(\sem{t}(\nu)\bigr),
+  \mathcal I(f) \seqop \mathcal I(g) := \mathcal I(f) \seq \vec\alpha
+  \seq \eta \seq \bind\,\sigma^{(j_1)} \seq \cdots \seq
+  \bind\,\sigma^{(j_r)} \seq \bind\,\bigl(\mathcal I(g) \seq \eta\bigr),
 \]
-\[
-  \sem{\Do\{x_1 \leftarrow t_1;\ldots;x_n \leftarrow t_n; t\}}(\nu)
-  = \sem{t_1}(\nu) \bind \lambda a_1.\, \cdots\, \sem{t_n}(\nu) \bind
-    \lambda a_n.\, \sem{t}(\nu, x_1{\mapsto}a_1,\ldots,x_n{\mapsto}a_n),
-\]
-\[
-  \sem{Qx(t)}(\nu) = \mathcal I(Q)_{\mathcal I(S)}
-    \bigl(\lambda a.\, \sem{t}(\nu, x{\mapsto}a)\bigr) \qquad (x : S).
-\]
-A Tarski symbol's result re-enters the monad through $\Ret$; a Kleisli
-symbol's value is already monadic and stands as the final $\Do$-clause
-without $\Ret$; a Nesy symbol and a quantifier consume monadic values
-directly, with no additional binds.
-
-Since $\MS{S}$ is a commutative monad whenever $S$ is a commutative
-semiring (Theorem~\ref{thm:semiring-monad-commutative}: the monad's
-own commutativity, in the technical monad-theoretic sense, is exactly
-$S$'s own commutativity), the order of independent binds in the
-$\Do$-clause above is immaterial: permuting the $x_i \leftarrow t_i$
-lines whose values are not used in one another's construction does not
-change $\sem{\cdot}$.
-\uses{def:term-grammar, def:domain-interpretation, thm:semiring-monad-commutative}
-[NeSy26, \S 3]
+where
+$\sigma^{(j)} \colon X_1 \otimes \cdots \otimes \mathcal M X_j \otimes
+\cdots \otimes X_m \to \mathcal M(X_1 \otimes \cdots \otimes X_m)$ is
+$\mathcal M$'s strength at the $j$-th factor and
+$\bind\,k := \mathcal M k \seq \mu$ abbreviates binding a continuation
+$k$ against $\mathcal M$'s multiplication $\mu$.
+\uses{def:wire-adapters}
+[NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
+
+\begin{definition}[Kleisli interpretation]
+\label{def:kleisli-interpretation}
+Fix a categorical interpretation with CD category $\mathcal C$ and
+strong monad $\mathcal M$ (Definition~\ref{def:categorical-interpretation}),
+a domain interpretation (Definition~\ref{def:domain-interpretation}),
+and a logical interpretation (Definition~\ref{def:logical-interpretation}).
+The \textbf{Kleisli interpretation} $\sem{\cdot}$ of the grammatical
+signature $\Sigma_\delta$ (Definition~\ref{def:grammatical-signature})
+assigns
+\[
+  \sem\xi \colon \mathcal I(\inn(\xi)) \to \mathcal M\,\mathcal I(\out(\xi))
+  \quad (\xi \in \Xi), \qquad
+  \sem\phi \colon \mathcal I([\phi]) \to \mathcal M\,\Omega \quad (\phi \in \Phi),
+\]
+by induction on the grammar of Definition~\ref{def:grammatical-signature}:
+\begin{center}
+\begin{tabular}{lll}
+\hline
+\textbf{Syntax} & \textbf{Semantics} & \textbf{Type} \\
+\hline
+$\sem x$ & $\eta_{\mathcal I([x])}$ & $\mathcal I([x]) \to \mathcal M\mathcal I([x])$ \\
+$\sem{f(\vec\xi)}$ & $\sem{\vec\xi} \seqop \mathcal I(f)$ & $\mathcal I(\inn(\vec\xi)) \to \mathcal M\,\mathcal I(\mathrm{cod}(f))$ \\
+$\sem{R(\vec\xi)}$ & $\sem{\vec\xi} \seqop \mathcal I(R)$ & $\mathcal I(\inn(\vec\xi)) \to \mathcal M\Omega$ \\
+$\sem{*(\vec\phi)}$ & $\sem{\vec\phi} \seqop \mathcal I(*)$ & $\mathcal I([\vec\phi]) \to \mathcal M\Omega$ \\
+$\sem{Qx(\phi)}$ & $\bigotimes_i \sem\phi_{[x\mapsto\mathcal I([x])_i]} \seq \mathcal I(Q)_{|\mathcal I([x])|}$ & $\mathcal I([\phi]\setminus[x]) \to \mathcal M\Omega$ \\
+$\sem{\phi[x:=\xi]}$ & $\sem\phi_{[x\mapsto\sem\xi]}$ & $\mathcal I([\phi]_{[x]\mapsto\inn(\xi)}) \to \mathcal M\Omega$ \\
+\hline
+\end{tabular}
+\end{center}
+(the Type column above records only the overall domain and codomain of
+each clause; Definition~\ref{def:feed-forward}'s own type already spells
+out the intermediate step through $\mathcal I(\mathrm{dom}(f))$, resp.\
+$\Omega^{\otimes\mathrm{ari}(*)}$, that a fully expanded column would
+repeat). The semantics of a \emph{list} of formulas is the tensor of
+the components over their shared context,
+\[
+  \sem{\vec\phi} := \mathsf{copy} \seq (\sem{\phi_1} \otimes \cdots
+  \otimes \sem{\phi_n}), \qquad
+  \mathsf{copy} \colon \mathcal I([\vec\phi]) \to \mathcal I([\phi_1])
+  \otimes \cdots \otimes \mathcal I([\phi_n]),
+\]
+where $\mathsf{copy}$ routes each shared variable to every component
+using it, built from $\mathsf{copy}$ and the symmetry of the CD
+category $\mathcal C$ (Definition~\ref{def:cd-category}), and is the
+identity on disjoint contexts. For a (finite-sorted) quantified formula
+$Qx(\phi)$, enumerate the states of $\mathcal I([x])$ as
+$\mathcal I([x])_i \colon \mathrm I \to \mathcal I([x])$,
+$i = 1,\ldots,|\mathcal I([x])|$; if $x$ occupies position $p$ in the
+canonical context
+$[\phi] = [y_1,\ldots,y_{p-1},x,y_{p+1},\ldots,y_m]$, the
+\emph{insertion} of the $i$-th state at position $p$ is
+\[
+  \mathcal I([x])_i^{(p)} := \mathrm{id}_{\mathcal I([y_1,\ldots,y_{p-1}])}
+  \otimes \mathcal I([x])_i \otimes \mathrm{id}_{\mathcal
+  I([y_{p+1},\ldots,y_m])} \colon \mathcal I([\phi]\setminus[x]) \to
+  \mathcal I([\phi]),
+\]
+via the unitor identifying an empty context part with the tensor unit
+$\mathrm I$, so every position $p$ is covered; then
+$\sem\phi_{[x \mapsto \mathcal I([x])_i]} := \mathcal I([x])_i^{(p)}
+\seq \sem\phi$ and
+\[
+  \sem{Qx(\phi)} = \bigotimes_i \sem\phi_{[x \mapsto \mathcal
+  I([x])_i]} \seq \mathcal I(Q)_{|\mathcal I([x])|} \colon \mathcal
+  I([\phi]\setminus[x]) \to (\mathcal M\Omega)^{\otimes|\mathcal
+  I([x])|} \to \mathcal M\Omega.
+\]
+The substituted formula $\phi[x:=\xi]$ uses the same insertion notation
+for the \emph{term}'s denotation: with
+$\sem\xi^{(p)} := \mathrm{id}_{\mathcal I([y_1,\ldots,y_{p-1}])} \otimes
+\sem\xi \otimes \mathrm{id}_{\mathcal I([y_{p+1},\ldots,y_m])}$, define
+$\sem\phi_{[x \mapsto \sem\xi]} := \sem\xi^{(p)} \seqop \sem\phi$, so
+that
+\[
+  \sem{\phi[x:=\xi]} = \sem\phi_{[x \mapsto \sem\xi]} \colon \mathcal
+  I([\phi]_{[x]\mapsto\inn(\xi)}) \to \mathcal M\Omega,
+\]
+where $[\phi]_{[x]\mapsto\inn(\xi)}$ is $[\phi]$ with $x$ replaced by
+$\inn(\xi)$ via list concatenation,
+$[y_1,\ldots,y_{p-1}] + \inn(\xi) + [y_{p+1},\ldots,y_m]$: the
+substituted formula binds \emph{one} computation and copies its
+\emph{value} into every occurrence of $x$, in contrast with repeating
+the term itself (Example~\ref{ex:dice-scoping}).
+\uses{def:grammatical-signature, def:feed-forward, def:domain-interpretation, def:logical-interpretation, def:cd-category}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\begin{example}[Dice or die]
+\label{ex:dice-scoping}
+Let $\mathsf{dice} \colon [\,] \to \bigcirc\mathrm{Nat}$,
+$6 \colon [\,] \to \mathrm{Nat}$, ${=} \colon \mathrm{Nat}^2 \to \tau$,
+$\mathsf{even} \colon \mathrm{Nat} \to \tau$, and
+$\AndC \colon \tau^2 \to \tau$ (van Krieken et al.'s scoping example),
+and contrast
+\[
+  \bigl(x = 6 \AndC \mathsf{even}(x)\bigr)[x := \mathsf{dice}]
+  \qquad\text{versus}\qquad
+  (\mathsf{dice} = 6) \AndC \mathsf{even}(\mathsf{dice}).
+\]
+On the left, one throw is bound to $x$ and its \emph{value} is copied
+into both subformulas; on the right, each occurrence of $\mathsf{dice}$
+is its own throw. Unfolding Definition~\ref{def:kleisli-interpretation}
+on the left, using Definition~\ref{def:feed-forward} for
+$\seqop$ and $\bind$,
+\[
+  \sem{\bigl(x=6\AndC\mathsf{even}(x)\bigr)[x:=\mathsf{dice}]}
+  = \sem{\mathsf{dice}} \seqop \sem{x=6\AndC\mathsf{even}(x)}
+  = \Do\{\, x \leftarrow \mathcal I(\mathsf{dice});\ \Ret\ x=6 \AndC \mathsf{even}(x) \,\},
+\]
+whereas on the right, expanding the compound formula's list-semantics
+before the atomic formulas,
+\[
+  \sem{(\mathsf{dice}=6)\AndC\mathsf{even}(\mathsf{dice})}
+  = \Do\{\, n_1 \leftarrow \mathcal I(\mathsf{dice});\ n_2 \leftarrow
+  \mathcal I(\mathsf{dice});\ \Ret\ n_1=6\AndC\mathsf{even}(n_2) \,\}.
+\]
+For a fair die these give probability $\tfrac16$ versus
+$\tfrac16\cdot\tfrac12=\tfrac1{12}$: the substituted formula copies the
+\emph{value}, the repeated term copies the \emph{computation}.
+\uses{def:kleisli-interpretation, def:feed-forward}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{example}
 
 % ============================================================
 \section{Batching}
@@ -837,14 +1181,15 @@ used in the batched reading is \emph{batch-natural}, i.e.\ defined
 pointwise across the batch --- $\mathcal I^{\Bmon\mathcal M}(f) =
 \mathrm{lift}_{\mathcal M} \circ \mathcal I^{\mathcal M}(f)$ applied
 index by index, for every symbol $f$ --- $\mathrm{ev}_i$ commutes with
-the interpretation of $\Do$-notation programs: for a batch
-$s \colon \Bidx \to \mathcal I(S)$,
+the Kleisli interpretation of feed-forward composites (grammar
+interpretation, Definition~\ref{def:kleisli-interpretation}): for a
+batch $s \colon \Bidx \to \mathcal I(S)$,
 \[
   \sem{\varphi}^{\Bmon\mathcal M}(s)(i) \;=\; \sem{\varphi}^{\mathcal M}(s_i)
   \qquad (i \in \Bidx).
 \]
 Without this hypothesis, only the pure $\Ret/\bind$ skeleton of a
-$\Do$-fragment is guaranteed to commute (that part follows from
+feed-forward fragment is guaranteed to commute (that part follows from
 $\mathrm{ev}_i$ being a monad morphism alone); a symbol interpretation
 chosen independently per batch index rather than pointwise would break
 the displayed equation.
@@ -854,9 +1199,9 @@ $\mathrm{ev}_i(\Ret_{\Bmon\mathcal M}(a)) = \mathrm{const}(a)(i) = a =
 m(i) \bind_{?}\!\ldots$ unfolds, under the batch-naturality hypothesis
 on every symbol occurring in $f$, to $\mathrm{ev}_i(m) \bind
 \mathrm{ev}_i \circ f$; induction on the grammar of
-Definition~\ref{def:term-grammar} then transports this through every
-clause of Definition~\ref{def:semantics}. \qed
-\uses{prop:batch-transformer, def:semantics}
+Definition~\ref{def:grammatical-signature} then transports this through
+every clause of Definition~\ref{def:kleisli-interpretation}. \qed
+\uses{prop:batch-transformer, def:kleisli-interpretation}
 [NeSy26, App.~A]
 \end{proposition}
 
@@ -1055,7 +1400,7 @@ Lemma~\ref{lem:tilt} holds precisely when $Z\circ k_i$ is constant,
 i.e.\ $k_i$ is mass preserving; the converse direction (some $k_i$ not
 mass preserving forces a genuine discrepancy) is witnessed by
 Example~\ref{ex:tilt-failure}. \qed
-\uses{lem:pure-maps, lem:tensor, lem:units, lem:strengths, lem:tilt, def:mass-preserving}
+\uses{lem:pure-maps, lem:tensor, lem:units, lem:strengths, lem:tilt, def:mass-preserving, def:feed-forward}
 [NeSy26, App.~B draft/T3]
 \end{theorem}
 
