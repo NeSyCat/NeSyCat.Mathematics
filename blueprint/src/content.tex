@@ -73,29 +73,50 @@ the campaign ledger.
 
 \begin{definition}[Lattice-semiring]
 \label{def:lattice-semiring}
-\lean{NeSyCat.LatticeSemiring, NeSyCat.BoolW.instLatticeSemiring, NeSyCat.instLatticeSemiringNNReal}
-A \textbf{lattice-semiring} is a commutative semiring
-$(S, \oplus, \otimes, 0, 1)$ equipped with a lattice order $\le$ on
-the carrier $S$: a meet $\wedge$ and join $\vee$ exist for every pair
-of elements, bounds $\bot, \top$ exist where indicated, and $\oplus$,
-$\otimes$ are monotone in each argument with respect to $\le$.
+\lean{NeSyCat.LatSRng, NeSyCat.LatCSRng, NeSyCat.BLatSRng, NeSyCat.BLatCSRng, NeSyCat.BoolW.instBLatCSRng, NeSyCat.instLatCSRngNNReal}
+A \textbf{lattice-semiring} ($\mathrm{LatSRng}$) is a semiring
+$(S, \oplus, \otimes, 0, 1)$ --- not assumed commutative --- equipped
+with a lattice order $\le$ on the carrier $S$: a meet $\wedge$ and join
+$\vee$ exist for every pair of elements, and $\oplus$, $\otimes$ are
+each monotone in \emph{both} arguments with respect to $\le$. A
+\textbf{commutative lattice-semiring} ($\mathrm{LatCSRng}$) is a
+lattice-semiring whose $\otimes$ is commutative; a \textbf{bounded
+lattice-semiring} ($\mathrm{BLatSRng}$, resp.\ its commutative
+refinement $\mathrm{BLatCSRng}$) additionally carries an in-carrier
+$\bot$ and $\top$. Plain (possibly noncommutative, unbounded) semirings
+need no separate name of their own here --- they are just semirings.
 
-The library's running instances (all lattice-semirings in this sense)
-are:
+The library's three running instances are all commutative
+($\mathrm{LatCSRng}$); only the Boolean one is bounded
+($\mathrm{BLatCSRng}$), since mass and log have no in-carrier $\top$
+without adjoining $\infty$ externally:
 \begin{itemize}
-\item \emph{Boolean}: carrier $\BoolS = \{0,1\}$, $\bot{=}0$,
+\item \emph{Boolean} (bounded): carrier $\BoolS = \{0,1\}$, $\bot{=}0$,
   $\top{=}1$, $\vee{=}\mathtt{or}$, $\wedge{=}\mathtt{and}$, $0{=}0$,
   $1{=}1$, $\oplus{=}\mathtt{or}$, $\otimes{=}\mathtt{and}$;
-\item \emph{mass}: carrier $\MassS$, $\bot{=}0$, $\top{=}\infty$,
+\item \emph{mass} (unbounded above): carrier $\MassS$, $\bot{=}0$,
+  $\top{=}\infty$ only after adjoining $\infty$ externally,
   $\vee{=}\max$, $\wedge{=}\min$, $0{=}0$, $1{=}1$, $\oplus{=}{+}$,
   $\otimes{=}\cdot$;
-\item \emph{log}: carrier $\LogS$, $\bot{=}{-\infty}$,
-  $\top{=}\infty$, $\vee{=}\max$, $\wedge{=}\min$, $0{=}{-\infty}$,
+\item \emph{log} (unbounded): carrier $\LogS$, $\bot{=}{-\infty}$,
+  $\top{=}\infty$ only after adjoining $\infty$ externally,
+  $\vee{=}\max$, $\wedge{=}\min$, $0{=}{-\infty}$,
   $1{=}0$, $\oplus{=}\lse$, $\otimes{=}{+}$.
 \end{itemize}
 \emph{Not} an instance: the probability row $(\ProbS, p{+}q{-}pq,
 \cdot)$ carried by $\max,\min$ as its lattice --- see
 Lemma~\ref{lem:prob-not-semiring}.
+
+On the general (possibly noncommutative) case: $\oplus$'s two
+directions of monotonicity are never independent data --- a semiring's
+addition is unconditionally commutative, so right-monotonicity always
+follows from left-monotonicity --- but $\otimes$'s two directions
+genuinely are, absent commutativity of $\otimes$; they collapse to one
+only in the commutative refinement $\mathrm{LatCSRng}$. This library
+states the lattice-semiring notion at this natural level of generality,
+splitting it the way Mathlib splits \texttt{Semiring}/\texttt{CommSemiring};
+[NeSy26, App.~A] states the commutative case throughout, matching the
+library's three running instances.
 [NeSy26, App.~A]
 \end{definition}
 
@@ -129,11 +150,11 @@ of distributivity directly. \qed
 
 \begin{definition}[Semiring monad $\MS{S}$]
 \label{def:semiring-monad}
-\lean{NeSyCat.MS, NeSyCat.ret, NeSyCat.bind}
+\lean{NeSyCat.MS, NeSyCat.ret, NeSyCat.bind, NeSyCat.bind_apply}
 \leanok
-Let $S = (S,\oplus,\otimes,0,1)$ be a commutative semiring. The
-\textbf{semiring monad} $\MS{S}$ sends a set $X$ to the set
-$\MS{S}X$ of finitely supported functions $f \colon X \to S$ (a
+Let $S = (S,\oplus,\otimes,0,1)$ be a semiring (not assumed
+commutative). The \textbf{semiring monad} $\MS{S}$ sends a set $X$ to
+the set $\MS{S}X$ of finitely supported functions $f \colon X \to S$ (a
 finitely-supported $S$-weighted formal combination of elements of
 $X$), with
 \[
@@ -143,7 +164,9 @@ $X$), with
   (f \bind k)(y) := \bigoplus_{x \in X} f(x) \otimes k(x)(y)
 \]
 for $k \colon X \to \MS{S}Y$ (a finite sum, since $f$ is finitely
-supported). Equivalently, $\bind$ is matrix multiplication over $S$.
+supported, in this left-to-right order $f(x)\otimes k(x)(y)$ throughout
+--- no step needs $\otimes$ to commute). Equivalently, $\bind$ is
+matrix multiplication over $S$.
 [NeSy26, App.~A]
 \end{definition}
 
@@ -157,7 +180,7 @@ supported). Equivalently, $\bind$ is matrix multiplication over $S$.
 \label{thm:semiring-monad-laws}
 \lean{NeSyCat.ret_bind, NeSyCat.bind_ret, NeSyCat.bind_assoc, NeSyCat.Tens}
 \leanok
-For every commutative semiring $S$, $(\MS{S}, \Ret, \bind)$ of
+For every semiring $S$, $(\MS{S}, \Ret, \bind)$ of
 Definition~\ref{def:semiring-monad} is a monad on $\mathrm{Set}$. The
 semiring laws of $S$ become exactly
 the monad laws: commutativity and associativity of $\oplus$ give
@@ -165,8 +188,12 @@ associativity and commutativity of independent binds
 (``addition marginalises''), associativity of $\otimes$ gives
 associativity of chained binds (``multiplication chains''), and
 distributivity of $\otimes$ over $\oplus$ gives associativity of
-$\bind$ itself. In particular this instantiates to $\Tmon := \MS{\MassS}$
-(the tensor monad) and $\LTmon := \MS{\LogS}$ (the log-tensor monad).
+$\bind$ itself --- none of this needs $\otimes$ to commute. In
+particular this instantiates to $\Tmon := \MS{\MassS}$ (the tensor
+monad); the further instantiation to $\LTmon := \MS{\LogS}$ (the
+log-tensor monad) becomes available once $\LogS$ itself carries a
+semiring structure, transported along the log isomorphism of
+Lemma~\ref{lem:log-iso}.
 \emph{Proof.} Unfolding $\bind$ from Definition~\ref{def:semiring-monad}, the
 left and right unit laws are the two distributivity-free identities
 $\delta_x \bind k = k(x)$ and $f \bind \Ret = f$ (each uses only a unit
@@ -174,9 +201,50 @@ law of $S$), and associativity of $\bind$ expands, on both sides, to a
 double sum over $S$ that is rearranged into the other order by
 associativity and commutativity of $\oplus$ together with
 associativity of $\otimes$ and distributivity of $\otimes$ over
-$\oplus$. \qed
+$\oplus$ --- commutativity of $\otimes$ is never invoked. \qed
 \uses{def:semiring-monad}
 [NeSy26, App.~A]
+\end{theorem}
+
+\begin{theorem}[Semiring monad commutativity]
+\label{thm:semiring-monad-commutative}
+\lean{NeSyCat.dstL, NeSyCat.dstR, NeSyCat.dstL_apply, NeSyCat.dstR_apply, NeSyCat.dst_comm_iff, NeSyCat.dst_comm}
+\leanok
+For a semiring $S$, define the two double-strength (interchange) maps
+$\dstL, \dstR \colon \MS{S}X \times \MS{S}Y \to \MS{S}(X\times Y)$,
+binding the two arguments in either order,
+\[
+  \dstL(f,g) := f \bind \lambda x.\, g \bind \lambda y.\, \Ret(x,y),
+  \qquad
+  \dstR(f,g) := g \bind \lambda y.\, f \bind \lambda x.\, \Ret(x,y),
+\]
+which unfold pointwise to $\dstL(f,g)(x,y) = f(x)\otimes g(y)$ and
+$\dstR(f,g)(x,y) = g(y)\otimes f(x)$. Then $\MS{S}$
+(Theorem~\ref{thm:semiring-monad-laws}) is a \emph{commutative} monad
+--- $\dstL(f,g) = \dstR(f,g)$ for every $X,Y,f,g$ --- \emph{if and only
+if} $S$ itself is commutative.
+\emph{Proof.} Forward: $\otimes$ commuting makes the two pointwise
+formulas $f(x)\otimes g(y)$ and $g(y)\otimes f(x)$ agree directly.
+Converse: testing $\dstL=\dstR$ at $X=Y=\{*\}$ (a one-point set) against
+the two point masses $\delta_a,\delta_b$ ($a,b\in S$) evaluates both
+sides at $(*,*)$ to $a\otimes b$, resp.\ $b\otimes a$, recovering
+$a\otimes b = b\otimes a$ for arbitrary $a,b$ --- so no weaker
+hypothesis than full commutativity of $\otimes$ suffices; even the
+single instance of $\dstL=\dstR$ at this one-point set already forces
+it. \qed
+This is exactly where $\otimes$-commutativity is first needed in this
+chapter: not for the monad laws of Theorem~\ref{thm:semiring-monad-laws}
+(which hold for a general, possibly noncommutative semiring), but for
+the monad's own commutativity in the technical, monad-theoretic sense
+above. Downstream, it is this monad-level commutativity --- not the
+bare monad laws --- that the lifted connectives of
+Definition~\ref{def:lifted-connective} (built by binding several
+arguments and pushing forward along a Boolean operation, order
+immaterial only once the binds commute) and the order-irrelevance of
+independent binds in the $\Do$-notation semantics of
+Definition~\ref{def:semantics} both rely on.
+\uses{def:semiring-monad, thm:semiring-monad-laws}
+[NeSy26, App.~A; Coumans--Jacobs, Lem.~23]
 \end{theorem}
 
 \begin{remark}[Semiring monad algebras]

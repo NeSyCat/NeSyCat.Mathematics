@@ -23,10 +23,18 @@ not. For each item you check:
    exact; (2) blueprint item ↔ its cited source (e.g. "[NeSy26, App. A]",
    compared against the recorded git ref, e.g.
    `git show 779b0be:target/nesy26-paper.tex`, or the live source paper
-   when accessible) — any divergence (including natural generality
-   beyond the source's concrete case) must be declared in the item's
-   own text, not silent. Check the Lean statement is not weakened,
-   trivialized, or misnamed, and carries the required
+   when accessible) — the blueprint is the canonical, authoritative
+   document, and the citation is a provenance credit, not a conformity
+   requirement, so check its ACCURACY: does the cited source really
+   contain what is credited to it. Natural generality beyond the
+   source's concrete case is expected, not a divergence to flag — the
+   source's case should appear as an instance/corollary, stated in the
+   library's own voice (no "divergence declared" framing needed). Flag
+   it only if library work generalizes or corrects a claim a live paper
+   still states more narrowly or differently and that paper has not
+   been aligned — aligning the paper's text is part of closing the item
+   (paper edits are user-approved). Check the Lean statement is not
+   weakened, trivialized, or misnamed, and carries the required
    `/-- Blueprint <tex-label> (<name>): ... -/` doc comment.
 4. Check for hard-ban violations (`axiom`, `native_decide`, `sorry`
    without an adjacent `-- TODO:`) directly in the file, independent of

@@ -43,9 +43,12 @@ Before dispatching work on any of:
 
 **enter plan mode** and produce a plan covering:
 
-- the informal statement(s) reviewed against both the blueprint item
-  in `blueprint/src/content.tex` (the canonical library document) and
-  its bibliographically cited source (git-ref pinned where recorded);
+- the informal statement(s) reviewed against the blueprint item in
+  `blueprint/src/content.tex` — the canonical, authoritative library
+  document — with its bibliographically cited source (git-ref pinned
+  where recorded) treated as provenance: the source is checked for
+  citation ACCURACY (does it really contain what is credited to it),
+  not as a conformity target the blueprint item must match;
 - encoding choices — Mathlib background to lean on, namespace,
   statement shape, composition-order conventions;
 - item order and dependency structure within the batch;

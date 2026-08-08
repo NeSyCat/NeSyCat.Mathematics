@@ -79,14 +79,23 @@ HARD BANS (no exceptions):
   `blueprint/src/content.tex`.
 - Faithfulness has two legs: (1) Lean statement ↔ blueprint statement —
   exact, library items are stated per the blueprint (the canonical
-  informal document); (2) blueprint item ↔ its cited source — each
-  blueprint item cites its source bibliographically (e.g.
-  "[NeSy26, App. A]"); divergences are declared in-item; pinned texts
-  used for an authoring or verification pass live at recorded git refs
-  (ledger + blueprint preamble), not as standing copies. Items may be
-  stated at natural generality beyond a single cited source's concrete
-  case; a paper's case then appears as an instance/corollary, and any
-  such divergence is declared, not silent.
+  informal document); (2) blueprint item ↔ its cited source — the
+  blueprint is the canonical, authoritative document in its own right,
+  not a restatement graded against some other standing target.
+  Bibliographic citations (e.g. "[NeSy26, App. A]") are provenance
+  credits, not a conformity requirement, so the check on a citation is
+  ACCURACY: does the cited source really contain what is credited to it
+  — not whether the blueprint's own statement matches the source's
+  concrete case. Items are freely stated at their natural mathematical
+  generality; a cited source's narrower case then appears as an
+  instance/corollary, noted in-item in the library's own voice (no
+  "divergence declared relative to the source" framing). When library
+  work generalizes or corrects a claim that a live paper (e.g. NeSy26
+  itself) still states more narrowly or differently, aligning that
+  paper's text is part of closing the item, not optional follow-up —
+  such paper edits are user-approved, never made unilaterally. Pinned
+  texts used for an authoring or verification pass live at recorded git
+  refs (ledger + blueprint preamble), not as standing copies.
 - Before adding ANY definition or theorem:
   1. `grep` `NeSyCat/` for duplicates of the same item.
   2. Search Mathlib for existing versions (`exact?`, `apply?`, `rw?`,
