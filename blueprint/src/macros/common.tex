@@ -66,62 +66,61 @@
 
 % ===== SHARED-MACRO IMPORT (single source of truth: NeSyCat.Logics/macros.sty) =====
 % User decree: symbols shared with the NeSyCat papers (\seq, \seqop,
-% \bind, \sem, and the domain-signature vocabulary
+% \bind, \sem, \parr, and the domain-signature vocabulary
 % \Rel/\Var/\Fun/\Conn/\inn/\out) are defined ONCE, centrally, in
 % NeSyCat.Logics/macros.sty, and imported here rather than re-invented
-% locally. The two engines that process this file tolerate the import
-% differently (verified directly while drafting this ticket):
-%   - real xelatex (pdf build, print.tex): `\usepackage{<path>/macros}`
-%     (path without the .sty extension) loads the file cleanly through
-%     the normal LaTeX package machinery.
-%   - plasTeX (web build, web.tex): the very same `\usepackage` call
-%     crashes hard --- `ModuleNotFoundError: No module named
-%     'leanblueprint.Packages.'` --- because plasTeX intercepts
-%     \usepackage to look for a Python plugin module matching the
-%     package name, and a relative path containing a dot
-%     (`NeSyCat.Logics`) breaks its module-name parsing. A bare
-%     `\input{<path>/macros.sty}` does not crash plasTeX, but \seq/\sem
-%     depend on stmaryrd's \fatsemi/\llbracket/\rrbracket, which the web
-%     build's plain MathJax config (no stmaryrd extension loaded) is not
-%     guaranteed to render. The route below is the sanctioned one: a
-%     real import on the pdf path, and on the web path a MINIMAL set of
-%     local `\providecommand`s (one-liners, each marked "WEB FALLBACK")
-%     whose bodies mirror macros.sty's --- exactly, for \seqop/\bind
-%     (kerned with the plain \mkern primitive, MathJax-safe) and via a
-%     stmaryrd-free approximation for \seq/\sem (as this file already
-%     did, pre-centralization).
+% locally --- via a single import mechanism, identical on both engines
+% (M4: the prior per-engine \usepackage-vs-local-\providecommand split
+% is gone; see below for why it is no longer needed).
+%
+% Root cause of the earlier plasTeX crash on
+% `\usepackage{../../../NeSyCat.Logics/macros}` (diagnosed by reading
+% plasTeX 3.1's own source, then confirmed by direct reproduction
+% against this venv's plasTeX): \usepackage's handler
+% (plasTeX.Context.loadPackage/loadPythonPackage) does not go straight
+% to a TeX-style file search. It first tries to import the package
+% "name" as a Python module --- `import_module(plugin + '.Packages.' +
+% module)` --- with `module` set to whatever raw string was passed to
+% \usepackage, here the entire relative path
+% `../../../NeSyCat.Logics/macros`, slashes and all. That import fails,
+% and the surrounding `except` only swallows a `ModuleNotFoundError`
+% when `module in str(msg)`; a path containing slashes and a dot is not
+% a substring of Python's own "No module named ..." message, so the
+% exception escapes uncaught instead of the code ever falling through
+% to its later kpsewhich/LaTeX-package branch --- the crash. `\input`,
+% by contrast, calls `tex.kpsewhich(name)` directly and never enters
+% this Python-import machinery at all; reproduced directly that
+% `\input{path/with/slashes/macros.sty}` loads cleanly under plasTeX
+% with no engine-specific handling needed (kpsewhich treats a name
+% containing a path separator as a literal filesystem path on both
+% real kpsewhich and xelatex's kpathsea).
+%
+% Fix: `\input`, not `\usepackage`, identically on both engines below.
+% The remaining engine split is solely about typesetting quality, not
+% about the import itself: real xelatex additionally loads the real
+% `stmaryrd`/`cmll` packages first, for their genuine \fatsemi/\parr
+% glyphs (reproduced directly that asking plasTeX to load stmaryrd.sty
+% as a generic, Python-less LaTeX package does not crash but does not
+% work either --- it cannot process stmaryrd's
+% `\DeclareSymbolFont`/`\DeclareMathSymbol` font machinery, so \fatsemi
+% comes out genuinely undefined despite no reported error --- hence
+% plasTeX never attempts it). On the web path, macros.sty's own
+% `\providecommand`-guarded \fatsemi/\parr fallbacks (see macros.sty)
+% take over automatically: the same central file degrading gracefully,
+% not a second local definition of these symbols.
+% `@` must stay catcode-letter across the \input below too, not just the
+% engine check: unlike \usepackage, a bare \input does not itself flip
+% `\makeatletter` around the loaded file, and macros.sty's own
+% `\ProvidesPackage`/`\NeedsTeXFormat`/`\@ifpackageloaded` lines need `@`
+% as a letter to parse at all (an emergency stop otherwise, reproduced
+% directly while drafting this ticket) --- so \makeatother only closes
+% once the \input has completed.
 \makeatletter
-\@ifundefined{XeTeXversion}{%
-  % ---- WEB (plasTeX/MathJax) branch: minimal local fallbacks ----
-  % \parr: literal Unicode PARR character (U+214B); MathJax/plasTeX
-  % already has the glyph on this path (no stmaryrd dependency) ---
-  % same disclosed route as before centralization.
-  \newcommand{\parr}{\mathbin{⅋}}
-  \providecommand{\Rel}{\mathrm{Rel}}                        % WEB FALLBACK (rendering only, defs mirror macros.sty)
-  \providecommand{\Var}{\mathrm{Var}}                        % WEB FALLBACK (rendering only, defs mirror macros.sty)
-  \providecommand{\Fun}{\mathrm{Fun}}                        % WEB FALLBACK (rendering only, defs mirror macros.sty)
-  \providecommand{\Conn}{\mathrm{Conn}}                      % WEB FALLBACK (rendering only, defs mirror macros.sty)
-  \providecommand{\inn}{\mathrm{in}}                         % WEB FALLBACK (rendering only, defs mirror macros.sty)
-  \providecommand{\out}{\mathrm{out}}                        % WEB FALLBACK (rendering only, defs mirror macros.sty)
-  \providecommand{\sem}[1]{[\![#1]\!]}                       % WEB FALLBACK (rendering only, defs mirror macros.sty; stmaryrd-free stand-in for \llbracket/\rrbracket)
-  \providecommand{\seq}{\mathbin{;}}                         % WEB FALLBACK (rendering only, defs mirror macros.sty; stmaryrd-free stand-in for \fatsemi)
-  \providecommand{\seqop}{\mathrel{>\mkern-4mu>\mkern-4mu>}} % WEB FALLBACK (rendering only, defs mirror macros.sty exactly)
-  \providecommand{\bind}{\mathbin{>\mkern-5mu>\mkern-1mu=}}  % WEB FALLBACK (rendering only, defs mirror macros.sty exactly)
-}{%
-  % ---- PDF (real xelatex) branch: real central import ----
-  % stmaryrd supplies \fatsemi and \llbracket/\rrbracket, which \seq and
-  % \sem depend on in macros.sty. cmll supplies the real linear-logic
-  % \parr glyph that new.tex itself loads it for (`\let\parr=\invamp`);
-  % load it if this TeX install has it (confirmed available: its fonts
-  % loaded cleanly compiling new.tex directly for this ticket), else
-  % degrade to the previous rotated-ampersand approximation.
+\@ifundefined{XeTeXversion}{}{%
   \usepackage{stmaryrd}
-  \IfFileExists{cmll.sty}{\usepackage{cmll}}{%
-    \usepackage{graphicx}
-    \newcommand{\parr}{\mathbin{\rotatebox[origin=c]{180}{$\&$}}}
-  }
-  \usepackage{../../../NeSyCat.Logics/macros}
+  \IfFileExists{cmll.sty}{\usepackage{cmll}}{}
 }
+\input{../../../NeSyCat.Logics/macros.sty}
 \makeatother
 % ===== END SHARED-MACRO IMPORT =====
 
@@ -131,23 +130,29 @@
 % Lean `notation`/`scoped` twins; that file does not exist yet, and no
 % `\lean{}` mark attaches to any macro here (symbols are not citable
 % objects --- see the Blueprint-to-Lean correspondence paragraph in
-% content.tex). Entries whose definition now lives centrally carry a
-% "def: central" pointer instead of a local \newcommand (see the import
-% above); \Dom is the one deliberate exception, disclosed below.
-%   \seq    Lean: scoped notation (planned), mirrors mathlib's `≫`      -- def: central (NeSyCat.Logics/macros.sty)
-%   \seqop  Lean: scoped infixl (planned) "⋗", feed-forward composite   -- def: central (NeSyCat.Logics/macros.sty)
-%   \bind   Lean: scoped infixl (planned) "≫=", Kleisli bind            -- def: central (NeSyCat.Logics/macros.sty)
-%   \sem    Lean: scoped notation (planned) "⟦_⟧"                       -- def: central (NeSyCat.Logics/macros.sty)
-%   \Rel, \Var, \Fun, \Conn, \inn, \out (domain-signature vocabulary)   -- def: central (NeSyCat.Logics/macros.sty)
-% Truth-value-level (logical) monoid connectives and their units, Table
-% 3: \parr is or-like (unit $\dot0$), \AndC is and-like (unit $\dot1$).
-% Distinct from the categorical/semiring \oplus,\otimes used for
-% weight-semiring operations inside $\MS{S}$ (Chapter 1) --- see
-% Remark~\ref{rem:connective-conventions} in content.tex, right after
-% the Sources-and-provenance paragraph. \parr's engine-guarded route is
-% defined above, alongside the shared-macro import; none of \AndC,
-% \dzero, \done, \impc, \negc, \actop below exist in macros.sty, so they
-% stay locally defined here (def: local).
+% content.tex). Every entry below is defined centrally in
+% NeSyCat.Logics/macros.sty (see the import above); this block carries
+% no \newcommand of its own.
+%   \seq    Lean: scoped notation (planned), mirrors mathlib's `≫`      -- def: macros.sty
+%   \seqop  Lean: scoped infixl (planned) "⋗", feed-forward composite   -- def: macros.sty
+%   \bind   Lean: scoped infixl (planned) "≫=", Kleisli bind            -- def: macros.sty
+%   \sem    Lean: scoped notation (planned) "⟦_⟧"                       -- def: macros.sty
+%   \parr   Lean: scoped infixl (planned), or-like lifted connective    -- def: macros.sty
+%   \Rel, \Var, \Fun, \Conn, \inn, \out (domain-signature vocabulary)   -- def: macros.sty
+% ===== END SYMBOL INVENTORY =====
+
+% ----------------------------------------------------------------------
+% Local truth-value connectives (Table 3, Remark~rem:connective-conventions
+% in content.tex): NOT shared with the NeSyCat papers --- grep-checked
+% directly against new.tex and nesy2026-paper.tex while drafting this
+% ticket, neither uses any of \AndC/\dzero/\done/\impc/\negc/\actop under
+% any name --- so, unlike the symbol inventory above, these stay defined
+% locally here rather than in NeSyCat.Logics/macros.sty (which is
+% reserved for symbols genuinely shared with those papers; see its own
+% file header). \parr is the and/or-like counterpart of \AndC but IS
+% shared (papers use it via cmll), hence lives in the inventory above,
+% not here.
+% ----------------------------------------------------------------------
 \newcommand{\AndC}{\mathbin{\&}}                % Lean: scoped infixl " & "                -- def: local
 \newcommand{\dzero}{\dot 0}                     % Lean: scoped notation "0̇"                -- def: local
 \newcommand{\done}{\dot 1}                      % Lean: scoped notation "1̇"                -- def: local
@@ -158,7 +163,6 @@
 % the planned shape, following the same convention as the rest of this
 % inventory.
 \newcommand{\actop}{\mathbin{\bullet}}          % Lean: scoped infixr (planned) " • " --- actegory action (Definition~def:categorical-interpretation) -- def: local
-% ===== END SYMBOL INVENTORY =====
 
 % Monadic programming notation.
 \newcommand{\Ret}{\mathrm{return}}
