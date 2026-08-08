@@ -41,23 +41,30 @@
 \newtheorem{example}[theorem]{Example}
 \newtheorem{remark}[theorem]{Remark}
 
-% `abbreviation` is an unnumbered, bold run-in "Abbreviation." block,
-% ITALIC body like the rest of the content/claim group above (M4 addendum
-% #3; amsthm's "plain" style, starred form): reserved for a block that
-% introduces a *name* for existing content (a Lean `abbrev` twin) ---
-% see the Blueprint-to-Lean correspondence paragraph in content.tex
-% (M1), which also states this environment's invariant. Declared here
-% but not yet used by any item in this document: its first uses are a
-% later ticket's job (re-homing `Tens`/`LogTens` into it). If a future
-% plasTeX version chokes on the starred form, fall back to
-% \newtheorem{abbreviation}[theorem]{Abbreviation} here --- and note
-% that a starred amsthm environment carries no counter of its own, so
-% any \label placed inside one needs the numbered fallback before it
-% can be \ref'd correctly (observed directly while drafting this
-% ticket: plasTeX renders such a \ref as literal "??", and xelatex
-% resolves it to the nonsensical enclosing section number).
+% `abbreviation` is a bold "Abbreviation N." block, ITALIC body like the
+% rest of the content/claim group above (M4 addendum #3; amsthm's "plain"
+% style): reserved for a block that introduces a *name* for existing
+% content (a Lean `abbrev` twin) --- see the Blueprint-to-Lean
+% correspondence paragraph in content.tex (M1), which also states this
+% environment's invariant. In use since a later ticket re-homed
+% `Tens`/`LogTens` into it: \label{abbr:tensor-monad} and
+% \label{abbr:log-tensor-monad} in content.tex.
+%
+% M5 Part B.4: switched from the starred form
+% (\newtheorem*{abbreviation}{Abbreviation}, no counter of its own) to
+% this numbered fallback that the comment above used to flag as a
+% contingency. The starred form's web anchors were confirmed broken, not
+% just theoretically risky: plasTeX assigned `id="abbr:log-tensor-monad"`
+% to the *wrong* node (the preceding remark, "Semiring monad laws,
+% informally") and gave the actual "Tensor monad"/"Log-tensor monad"
+% blocks only auto-generated ids, with no `abbr:tensor-monad` id anywhere
+% in index.html --- a starred (uncounted) amsthm environment's \label
+% does not attach to its own node reliably under this plasTeX version.
+% Joining the shared `theorem` counter (numbered, like the rest of the
+% content/claim family) gives both abbreviations correct, distinct,
+% directly \ref'able anchors.
 \theoremstyle{plain}
-\newtheorem*{abbreviation}{Abbreviation}
+\newtheorem{abbreviation}[theorem]{Abbreviation}
 
 % ----------------------------------------------------------------------
 % Shorthands for the NeSyCat library content (blueprint/src/content.tex).
@@ -143,26 +150,19 @@
 
 % ----------------------------------------------------------------------
 % Local truth-value connectives (Table 3, Remark~rem:connective-conventions
-% in content.tex): NOT shared with the NeSyCat papers --- grep-checked
-% directly against new.tex and nesy2026-paper.tex while drafting this
-% ticket, neither uses any of \AndC/\dzero/\done/\impc/\negc/\actop under
-% any name --- so, unlike the symbol inventory above, these stay defined
-% locally here rather than in NeSyCat.Logics/macros.sty (which is
-% reserved for symbols genuinely shared with those papers; see its own
-% file header). \parr is the and/or-like counterpart of \AndC but IS
-% shared (papers use it via cmll), hence lives in the inventory above,
-% not here.
+% in content.tex): migrated into NeSyCat.Logics/macros.sty (M5 Part A, user
+% decree "migrate now"), alongside the shared-symbol inventory above --- so
+% this block is now pointer comments only, no \newcommand of its own (same
+% convention as the SYMBOL INVENTORY block above). \parr is the and/or-like
+% counterpart of \AndC and was already in that inventory (papers use it via
+% cmll).
 % ----------------------------------------------------------------------
-\newcommand{\AndC}{\mathbin{\&}}                % Lean: scoped infixl " & "                -- def: local
-\newcommand{\dzero}{\dot 0}                     % Lean: scoped notation "0̇"                -- def: local
-\newcommand{\done}{\dot 1}                      % Lean: scoped notation "1̇"                -- def: local
-\newcommand{\impc}[1]{\mathbin{\to_{#1}}}       % Lean: scoped notation:25 a " →[" c "] " b -- def: local
-\newcommand{\negc}[1]{\neg_{#1}}                % Lean: scoped prefix:75 "¬[" c "] "        -- def: local
-% NeSyCat Theory v2 (M2): the grammatical layer's actegory action. Not
-% formalized yet (no Lean file exists), so the twin comment records only
-% the planned shape, following the same convention as the rest of this
-% inventory.
-\newcommand{\actop}{\mathbin{\bullet}}          % Lean: scoped infixr (planned) " • " --- actegory action (Definition~def:categorical-interpretation) -- def: local
+%   \AndC   Lean: scoped infixl " & "                          -- def: macros.sty
+%   \dzero  Lean: scoped notation "0̇"                          -- def: macros.sty
+%   \done   Lean: scoped notation "1̇"                          -- def: macros.sty
+%   \impc   Lean: scoped notation:25 a " →[" c "] " b           -- def: macros.sty
+%   \negc   Lean: scoped prefix:75 "¬[" c "] "                  -- def: macros.sty
+%   \actop  Lean: scoped infixr (planned) " • " --- actegory action (Definition~def:categorical-interpretation) -- def: macros.sty
 
 % Monadic programming notation.
 \newcommand{\Ret}{\mathrm{return}}
@@ -194,21 +194,10 @@
 \DeclareMathOperator{\supp}{supp}
 
 % Syntax and semantics (Chapter 4).
-% \Dom is intentionally NOT centralized: NeSyCat.Logics/macros.sty
-% already uses the name \Dom for an unrelated unary macro
-% (\Dom[1]{\mathcal I(s_{#1})}, a different paper's indexed-state-space
-% notation), whereas this blueprint's \Dom is the nullary domain-symbol
-% set `\mathrm{Dom}` used throughout content.tex's domain-signature
-% material (Definition~def:domain-signature onward). Importing the
-% central file's \Dom in its place would silently turn every bare
-% `$\Dom$` in content.tex into a "Missing argument" error, so this one
-% symbol stays a deliberate local override (noticed during the M3
-% macro-centralization ticket, not resolved by it: resolving it means
-% either renaming content.tex's usage or renaming macros.sty's unary
-% \Dom, both out of this ticket's scope). On the pdf path the import
-% above already binds \Dom (to the unary macro), so \let it back to
-% \relax first --- \newcommand then (re)defines it uniformly on both
-% engines without an "already defined" clash.
-\let\Dom\relax
-\newcommand{\Dom}{\mathrm{Dom}}
+% \Dom: no local override needed --- content.tex spells the domain-symbol
+% set out as literal `\mathrm{Dom}` throughout (Definition~def:domain-signature
+% onward), never via a bare `\Dom` macro (verified by grep, M5 Part B.1:
+% zero `\Dom` uses in blueprint/src), so it never collides with
+% NeSyCat.Logics/macros.sty's unrelated unary `\Dom[1]{\mathcal I(s_{#1})}`
+% and no local `\Dom` definition is declared here at all.
 \newcommand{\Quan}{\mathrm{Quan}}

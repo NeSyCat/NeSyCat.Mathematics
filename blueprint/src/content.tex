@@ -138,8 +138,8 @@ the correspondence to Lean declaration kind:
   \texttt{abbreviation} environment carries a
   \texttt{\textbackslash lean\{\}} mark pointing at that
   \texttt{abbrev} --- no exceptions (a future gate may enforce mark
-  presence and kind); no \texttt{abbreviation} blocks exist in this
-  document yet.
+  presence and kind); two \texttt{abbreviation} blocks exist in this
+  document, \ref{abbr:tensor-monad} and \ref{abbr:log-tensor-monad}.
 \item \texttt{theorem}, \texttt{proposition}, \texttt{lemma}, and
   \texttt{corollary} $\leftrightarrow$ Lean \texttt{theorem} alike:
   Lean ranks nothing among these, the rank --- theorem vs.\ lemma
@@ -304,7 +304,7 @@ $(fK)(y) = \bigoplus_x f(x)\otimes K(x,y)$ at $K(x,y) := k(x)(y)$.
 % recorded as a stretch target, not proved by this or any prior ticket.
 \begin{theorem}[Semiring monad laws]
 \label{thm:semiring-monad-laws}
-\lean{NeSyCat.ret_bind, NeSyCat.bind_ret, NeSyCat.bind_assoc, NeSyCat.Tens}
+\lean{NeSyCat.ret_bind, NeSyCat.bind_ret, NeSyCat.bind_assoc}
 \leanok
 For every semiring $S$, $(\MS{S}, \Ret, \bind)$ of
 Definition~\ref{def:semiring-monad} is a monad on $\mathrm{Set}$:
@@ -469,7 +469,7 @@ defined by Definition~\ref{def:semiring-monad}.
 
 \begin{lemma}[Log isomorphism]
 \label{lem:log-iso}
-\lean{NeSyCat.LogS, NeSyCat.logEquiv, NeSyCat.logRingEquiv, NeSyCat.LogTens, NeSyCat.logTensEquiv, NeSyCat.toLogTens_ret, NeSyCat.toLogTens_bind}
+\lean{NeSyCat.LogS, NeSyCat.logEquiv, NeSyCat.logRingEquiv, NeSyCat.logTensEquiv, NeSyCat.toLogTens_ret, NeSyCat.toLogTens_bind}
 \leanok
 $\log \colon (\MassS, +, \cdot, 0, 1) \to (\LogS, \lse, +, -\infty, 0)$
 is a semiring isomorphism ($e^{\lse(u,v)} = e^u+e^v$), and it
@@ -766,9 +766,6 @@ lattice distributivity --- fail for the lifted family in general.
 Witness: in $\Dmon\,\BoolS \cong \ProbS$
 (Lemma~\ref{lem:lifted-prob-readout}), $p \AndC p = p^2 \ne p$ for
 $p \in (0,1)$, so $\AndC$ is not idempotent.
-This failure is structural, not accidental: a lifted operation reads
-its two arguments as independent, and non-idempotence is exactly what
-makes truth graded rather than classical.
 \uses{lem:lifted-prob-readout}
 [NeSy26, App.~A]
 \end{lemma}
@@ -776,6 +773,18 @@ makes truth graded rather than classical.
 \begin{proof}
 The displayed computation; $p^2=p$ iff $p\in\{0,1\}$.
 \end{proof}
+
+% Statement-minimality law (M5 Part B.8, predates this sweep): the
+% "This failure is structural..." commentary is discourse about the
+% lemma, not part of what it states or proves, so it moves to its own
+% remark rather than living inside the lemma body.
+\begin{remark}[Why copying fails]
+\label{rem:copying-fails-structural}
+This failure is structural, not accidental: a lifted operation reads
+its two arguments as independent, and non-idempotence is exactly what
+makes truth graded rather than classical.
+\uses{lem:copying-fails}
+\end{remark}
 
 \begin{theorem}[Three layers of lattice semirings]
 \label{thm:three-layers}
@@ -1269,8 +1278,6 @@ family, the simultaneous interpretation
 $\sem{Q\vec x(\phi)}$ of Definition~\ref{def:kleisli-interpretation}
 equals the iterated interpretation
 $\sem{Qx_1(Qx_2(\cdots(\phi)\cdots))}$, for any ordering of $\vec x$.
-The four running quantifier columns --- Max, Min, the $\Sigma$--$\Pi$
-pair, and their log-column twins --- all satisfy both hypotheses.
 \uses{def:kleisli-interpretation, def:logical-interpretation}
 [NeSyCat Theory v2 (new.tex)]
 \end{lemma}
@@ -1298,6 +1305,25 @@ needed to reach any other ordering of $\vec x$, since permuting the
 inputs of $\mathcal I(Q)_n$ (resp.\ $\mathcal I(Q)_m$) does not change
 its value.
 \end{proof}
+
+% Statement-minimality law (M5 Part B.7): the final sentence of the former
+% lemma statement --- "the four running quantifier columns ... satisfy both
+% hypotheses" --- was never argued by the proof above, which only proves the
+% general symmetric+nestable-implies-agreement claim. Moved out into this
+% remark rather than argued in the proof, since doing the latter honestly
+% would mean spelling out, and verifying, the concrete
+% associativity/commutativity and log-transport argument for each of the
+% four columns --- more than a one-paragraph addition can responsibly
+% claim as already checked here; recorded as an observation instead
+% (disclosed as this ticket's B.7 judgment call).
+\begin{remark}[Which quantifier families are nestable and symmetric]
+\label{rem:quantifier-families-nestable}
+The four running quantifier columns --- Max, Min, the $\Sigma$--$\Pi$
+pair, and their log-column twins --- all satisfy both hypotheses of
+Lemma~\ref{lem:quantifier-nestable}.
+\uses{lem:quantifier-nestable}
+[NeSyCat Theory v2 (new.tex)]
+\end{remark}
 
 \begin{example}[Dice or die]
 \label{ex:dice-scoping}

@@ -49,7 +49,7 @@ weight functions `ρ : X →₀ ℝ≥0` whose total mass `∑_x ρ(x)` (realize
 `1`. -/
 def Dist (X : Type*) := {ρ : MS ℝ≥0 X // ρ.sum (fun _ w => w) = 1}
 
-/-- Blueprint `def:dist-monad` (closure under `ret`): the point mass
+/-- Blueprint `lem:dist-closure` (closure under `ret`): the point mass
 `ret x = δ_x` has total mass `1` — `δ_x(x) = 1` and every other value is
 `0`, so the sum collapses to the single value `1` (`Finsupp.sum_single_index`,
 using only that the summand function vanishes at `0`). -/
@@ -57,7 +57,7 @@ theorem ret_mass_one (x : X) : (ret x : MS ℝ≥0 X).sum (fun _ w => w) = 1 := 
   unfold ret
   exact Finsupp.sum_single_index rfl
 
-/-- Blueprint `def:dist-monad` (closure under `bind`, the Fubini
+/-- Blueprint `lem:dist-closure` (closure under `bind`, the Fubini
 computation): if `ρ` has mass `1` and `k x` has mass `1` for every `x`, then
 `ρ >>= k` has mass `1`,
 \[

@@ -428,9 +428,10 @@ noncomputable def logTensEquiv (X : Type*) : MS ℝ≥0 X ≃ MS LogS X where
   left_inv := ofLogTens_toLogTens
   right_inv := toLogTens_ofLogTens
 
-/-- Blueprint `lem:log-iso` (`LTmon`): the log-tensor monad instantiation
-`MS LogS`, available now that `LogS` carries a semiring structure
-(`instCommSemiringLogS`, transported along `logRingEquiv`). -/
+/-- Blueprint `abbr:log-tensor-monad` (Log-tensor monad, `LTmon`): the
+log-tensor monad instantiation `MS LogS`, available now that `LogS` carries
+a semiring structure (`instCommSemiringLogS`, transported along
+`logRingEquiv`). -/
 abbrev LogTens (X : Type*) := MS LogS X
 
 end NeSyCat

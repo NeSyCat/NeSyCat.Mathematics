@@ -251,7 +251,7 @@ theorem dst_comm {S : Type*} [CommSemiring S] {X Y : Type*} (f : MS S X) (g : MS
 
 open scoped NNReal
 
-/-- Blueprint `thm:semiring-monad-laws` instance: the tensor monad
+/-- Blueprint `abbr:tensor-monad` (Tensor monad): the tensor monad
 `Tmon := MS(mass)`, i.e. `MS` at the mass semiring `ℝ≥0`. -/
 abbrev Tens (X : Type*) := MS ℝ≥0 X
 
