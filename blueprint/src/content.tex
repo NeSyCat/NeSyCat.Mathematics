@@ -157,8 +157,9 @@ the correspondence to Lean declaration kind:
 \end{itemize}
 In every case, the \texttt{\textbackslash lean\{\}} marks remain the
 authoritative name-level cross-reference; this environment/kind
-agreement is a convention that a future decl-check upgrade may
-enforce, not something currently checked.
+agreement is enforced by \texttt{scripts/blueprint.sh}'s
+\texttt{CORRESPONDENCE} section (structural checks plus a
+Lean-kind assertion per \texttt{\textbackslash lean\{\}} name).
 
 % ============================================================
 \section{Semiring weight monads}
