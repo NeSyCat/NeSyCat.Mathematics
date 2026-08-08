@@ -199,15 +199,21 @@ noncomputable def parrUnitSq : ℝ≥0ᵒᵈ × ℝ≥0 := (toDual 1, 0)
 under `orderedTwoSlot`, `(toDual 0, 1)`. -/
 noncomputable def andUnitSq : ℝ≥0ᵒᵈ × ℝ≥0 := (toDual 0, 1)
 
+/-- Blueprint `thm:square-not-lin` (`⅋`-unit law, left): `parrUnitSq` is a
+left unit for `parrSq`. -/
 theorem parrUnitSq_parrSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : parrSq parrUnitSq w = w := by
   unfold parrSq parrUnitSq; simp
 
+/-- Blueprint `thm:square-not-lin` (`⅋`-unit law, right). -/
 theorem parrSq_parrUnitSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : parrSq w parrUnitSq = w := by
   unfold parrSq parrUnitSq; simp
 
+/-- Blueprint `thm:square-not-lin` (`&`-unit law, left): `andUnitSq` is a
+left unit for `andSq`. -/
 theorem andUnitSq_andSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : andSq andUnitSq w = w := by
   unfold andSq andUnitSq; simp
 
+/-- Blueprint `thm:square-not-lin` (`&`-unit law, right). -/
 theorem andSq_andUnitSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : andSq w andUnitSq = w := by
   unfold andSq andUnitSq; simp
 
@@ -246,7 +252,8 @@ theorem andSq_not_monotone_right :
   rw [toDual_le_toDual] at h1
   norm_num at h1
 
-/-- The raw twin of `lem:lin-monotone`: if `f` distributes over `⊔` in an
+/-- Blueprint `thm:square-not-lin` (the "hence the linear laws fail"
+bridge; raw twin of `lem:lin-monotone`): if `f` distributes over `⊔` in an
 argument then `f` is monotone in it — on any `SemilatticeSup`, no
 `BLat2Mon`/monoid structure needed. Proof: `p ≤ q` gives `p ⊔ q = q`, so
 `f p ≤ f p ⊔ f q = f (p ⊔ q) = f q`. -/
