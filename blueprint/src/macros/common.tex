@@ -48,61 +48,105 @@
 % Kept deliberately at amsmath/amssymb level so plasTeX digests them.
 % ----------------------------------------------------------------------
 
-% ===== SYMBOL REGISTRY (mirror: NeSyCat/Notation.lean, future) =====
+% ===== SHARED-MACRO IMPORT (single source of truth: NeSyCat.Logics/macros.sty) =====
+% User decree: symbols shared with the NeSyCat papers (\seq, \seqop,
+% \bind, \sem, and the domain-signature vocabulary
+% \Rel/\Var/\Fun/\Conn/\inn/\out) are defined ONCE, centrally, in
+% NeSyCat.Logics/macros.sty, and imported here rather than re-invented
+% locally. The two engines that process this file tolerate the import
+% differently (verified directly while drafting this ticket):
+%   - real xelatex (pdf build, print.tex): `\usepackage{<path>/macros}`
+%     (path without the .sty extension) loads the file cleanly through
+%     the normal LaTeX package machinery.
+%   - plasTeX (web build, web.tex): the very same `\usepackage` call
+%     crashes hard --- `ModuleNotFoundError: No module named
+%     'leanblueprint.Packages.'` --- because plasTeX intercepts
+%     \usepackage to look for a Python plugin module matching the
+%     package name, and a relative path containing a dot
+%     (`NeSyCat.Logics`) breaks its module-name parsing. A bare
+%     `\input{<path>/macros.sty}` does not crash plasTeX, but \seq/\sem
+%     depend on stmaryrd's \fatsemi/\llbracket/\rrbracket, which the web
+%     build's plain MathJax config (no stmaryrd extension loaded) is not
+%     guaranteed to render. The route below is the sanctioned one: a
+%     real import on the pdf path, and on the web path a MINIMAL set of
+%     local `\providecommand`s (one-liners, each marked "WEB FALLBACK")
+%     whose bodies mirror macros.sty's --- exactly, for \seqop/\bind
+%     (kerned with the plain \mkern primitive, MathJax-safe) and via a
+%     stmaryrd-free approximation for \seq/\sem (as this file already
+%     did, pre-centralization).
+\makeatletter
+\@ifundefined{XeTeXversion}{%
+  % ---- WEB (plasTeX/MathJax) branch: minimal local fallbacks ----
+  % \parr: literal Unicode PARR character (U+214B); MathJax/plasTeX
+  % already has the glyph on this path (no stmaryrd dependency) ---
+  % same disclosed route as before centralization.
+  \newcommand{\parr}{\mathbin{⅋}}
+  \providecommand{\Rel}{\mathrm{Rel}}                        % WEB FALLBACK (rendering only, defs mirror macros.sty)
+  \providecommand{\Var}{\mathrm{Var}}                        % WEB FALLBACK (rendering only, defs mirror macros.sty)
+  \providecommand{\Fun}{\mathrm{Fun}}                        % WEB FALLBACK (rendering only, defs mirror macros.sty)
+  \providecommand{\Conn}{\mathrm{Conn}}                      % WEB FALLBACK (rendering only, defs mirror macros.sty)
+  \providecommand{\inn}{\mathrm{in}}                         % WEB FALLBACK (rendering only, defs mirror macros.sty)
+  \providecommand{\out}{\mathrm{out}}                        % WEB FALLBACK (rendering only, defs mirror macros.sty)
+  \providecommand{\sem}[1]{[\![#1]\!]}                       % WEB FALLBACK (rendering only, defs mirror macros.sty; stmaryrd-free stand-in for \llbracket/\rrbracket)
+  \providecommand{\seq}{\mathbin{;}}                         % WEB FALLBACK (rendering only, defs mirror macros.sty; stmaryrd-free stand-in for \fatsemi)
+  \providecommand{\seqop}{\mathrel{>\mkern-4mu>\mkern-4mu>}} % WEB FALLBACK (rendering only, defs mirror macros.sty exactly)
+  \providecommand{\bind}{\mathbin{>\mkern-5mu>\mkern-1mu=}}  % WEB FALLBACK (rendering only, defs mirror macros.sty exactly)
+}{%
+  % ---- PDF (real xelatex) branch: real central import ----
+  % stmaryrd supplies \fatsemi and \llbracket/\rrbracket, which \seq and
+  % \sem depend on in macros.sty. cmll supplies the real linear-logic
+  % \parr glyph that new.tex itself loads it for (`\let\parr=\invamp`);
+  % load it if this TeX install has it (confirmed available: its fonts
+  % loaded cleanly compiling new.tex directly for this ticket), else
+  % degrade to the previous rotated-ampersand approximation.
+  \usepackage{stmaryrd}
+  \IfFileExists{cmll.sty}{\usepackage{cmll}}{%
+    \usepackage{graphicx}
+    \newcommand{\parr}{\mathbin{\rotatebox[origin=c]{180}{$\&$}}}
+  }
+  \usepackage{../../../NeSyCat.Logics/macros}
+}
+\makeatother
+% ===== END SHARED-MACRO IMPORT =====
+
+% ===== SYMBOL INVENTORY (mirror: NeSyCat/Notation.lean, future) =====
+% Purely organizational, no rendering effect: this registry mirrors,
+% macro-by-macro, what a future `NeSyCat/Notation.lean` would declare as
+% Lean `notation`/`scoped` twins; that file does not exist yet, and no
+% `\lean{}` mark attaches to any macro here (symbols are not citable
+% objects --- see the Blueprint-to-Lean correspondence paragraph in
+% content.tex). Entries whose definition now lives centrally carry a
+% "def: central" pointer instead of a local \newcommand (see the import
+% above); \Dom is the one deliberate exception, disclosed below.
+%   \seq    Lean: scoped notation (planned), mirrors mathlib's `≫`      -- def: central (NeSyCat.Logics/macros.sty)
+%   \seqop  Lean: scoped infixl (planned) "⋗", feed-forward composite   -- def: central (NeSyCat.Logics/macros.sty)
+%   \bind   Lean: scoped infixl (planned) "≫=", Kleisli bind            -- def: central (NeSyCat.Logics/macros.sty)
+%   \sem    Lean: scoped notation (planned) "⟦_⟧"                       -- def: central (NeSyCat.Logics/macros.sty)
+%   \Rel, \Var, \Fun, \Conn, \inn, \out (domain-signature vocabulary)   -- def: central (NeSyCat.Logics/macros.sty)
 % Truth-value-level (logical) monoid connectives and their units, Table
 % 3: \parr is or-like (unit $\dot0$), \AndC is and-like (unit $\dot1$).
 % Distinct from the categorical/semiring \oplus,\otimes used for
 % weight-semiring operations inside $\MS{S}$ (Chapter 1) --- see
 % Remark~\ref{rem:connective-conventions} in content.tex, right after
-% the Sources-and-provenance paragraph. \parr uses the literal Unicode
-% PARR character
-% (renders natively under xelatex/unicode-math for the pdf build and
-% under plasTeX/MathJax for the web build; no stmaryrd dependency).
-% This registry is purely organizational for now: it mirrors,
-% macro-by-macro, what a future `NeSyCat/Notation.lean` would declare
-% as Lean `notation`/`scoped` twins; that file does not exist yet, and
-% no `\lean{}` mark attaches to any macro here (symbols are not
-% citable objects --- see the Blueprint-to-Lean correspondence
-% paragraph in content.tex).
-% \parr: tried as the literal Unicode PARR character (U+214B) under
-% both engines first, and it renders correctly in the web build
-% (plasTeX/MathJax has the glyph) but comes out BLANK in the pdf build
-% (xelatex + unicode-math's Latin Modern Math font has no U+214B glyph
-% --- confirmed by rendering both and inspecting the pdf directly).
-% Disclosed fallback: detect the real-xelatex pdf path via the
-% \XeTeXversion primitive (only ever defined when actually running
-% under the XeTeX engine, never under plasTeX's pure-Python parser) and
-% on that path only, approximate the glyph with a graphics-rotated
-% ampersand instead of the missing font glyph; the web path keeps the
-% literal Unicode character, which already renders correctly there.
-\makeatletter
-\@ifundefined{XeTeXversion}{%
-  \newcommand{\parr}{\mathbin{⅋}}
-}{%
-  \usepackage{graphicx}
-  \newcommand{\parr}{\mathbin{\rotatebox[origin=c]{180}{$\&$}}}
-}
-\makeatother                                    % Lean: scoped infixl " ⅋ "
-\newcommand{\AndC}{\mathbin{\&}}                % Lean: scoped infixl " & "
-\newcommand{\dzero}{\dot 0}                     % Lean: scoped notation "0̇"
-\newcommand{\done}{\dot 1}                      % Lean: scoped notation "1̇"
-\newcommand{\impc}[1]{\mathbin{\to_{#1}}}       % Lean: scoped notation:25 a " →[" c "] " b
-\newcommand{\negc}[1]{\neg_{#1}}                % Lean: scoped prefix:75 "¬[" c "] "
-% NeSyCat Theory v2 (M2): the grammatical layer's diagrammatic
-% composition, feed-forward composite, and actegory action. None of
-% these are formalized yet (no Lean file exists), so the twin comments
-% record only the planned shape, following the same convention as the
-% rest of this registry.
-\newcommand{\seq}{\mathbin{;}}                  % Lean: scoped notation (planned) --- diagrammatic (left-to-right) composition, mirrors mathlib's `≫`
-\newcommand{\seqop}{\mathbin{\gtrdot}}          % Lean: scoped infixl (planned) " ⋗ " --- feed-forward composite (Definition~def:feed-forward)
-\newcommand{\actop}{\mathbin{\bullet}}          % Lean: scoped infixr (planned) " • " --- actegory action (Definition~def:categorical-interpretation)
-% ===== END SYMBOL REGISTRY =====
+% the Sources-and-provenance paragraph. \parr's engine-guarded route is
+% defined above, alongside the shared-macro import; none of \AndC,
+% \dzero, \done, \impc, \negc, \actop below exist in macros.sty, so they
+% stay locally defined here (def: local).
+\newcommand{\AndC}{\mathbin{\&}}                % Lean: scoped infixl " & "                -- def: local
+\newcommand{\dzero}{\dot 0}                     % Lean: scoped notation "0̇"                -- def: local
+\newcommand{\done}{\dot 1}                      % Lean: scoped notation "1̇"                -- def: local
+\newcommand{\impc}[1]{\mathbin{\to_{#1}}}       % Lean: scoped notation:25 a " →[" c "] " b -- def: local
+\newcommand{\negc}[1]{\neg_{#1}}                % Lean: scoped prefix:75 "¬[" c "] "        -- def: local
+% NeSyCat Theory v2 (M2): the grammatical layer's actegory action. Not
+% formalized yet (no Lean file exists), so the twin comment records only
+% the planned shape, following the same convention as the rest of this
+% inventory.
+\newcommand{\actop}{\mathbin{\bullet}}          % Lean: scoped infixr (planned) " • " --- actegory action (Definition~def:categorical-interpretation) -- def: local
+% ===== END SYMBOL INVENTORY =====
 
 % Monadic programming notation.
-\newcommand{\bind}{\mathbin{\text{\texttt{>>=}}}}
 \newcommand{\Ret}{\mathrm{return}}
 \newcommand{\Do}{\mathbf{do}}
-\newcommand{\sem}[1]{[\![#1]\!]}
 
 % Semiring-monad family.
 \newcommand{\MS}[1]{\mathcal M_{#1}}
@@ -130,11 +174,21 @@
 \DeclareMathOperator{\supp}{supp}
 
 % Syntax and semantics (Chapter 4).
+% \Dom is intentionally NOT centralized: NeSyCat.Logics/macros.sty
+% already uses the name \Dom for an unrelated unary macro
+% (\Dom[1]{\mathcal I(s_{#1})}, a different paper's indexed-state-space
+% notation), whereas this blueprint's \Dom is the nullary domain-symbol
+% set `\mathrm{Dom}` used throughout content.tex's domain-signature
+% material (Definition~def:domain-signature onward). Importing the
+% central file's \Dom in its place would silently turn every bare
+% `$\Dom$` in content.tex into a "Missing argument" error, so this one
+% symbol stays a deliberate local override (noticed during the M3
+% macro-centralization ticket, not resolved by it: resolving it means
+% either renaming content.tex's usage or renaming macros.sty's unary
+% \Dom, both out of this ticket's scope). On the pdf path the import
+% above already binds \Dom (to the unary macro), so \let it back to
+% \relax first --- \newcommand then (re)defines it uniformly on both
+% engines without an "already defined" clash.
+\let\Dom\relax
 \newcommand{\Dom}{\mathrm{Dom}}
-\newcommand{\Var}{\mathrm{Var}}
-\newcommand{\Fun}{\mathrm{Fun}}
-\newcommand{\Rel}{\mathrm{Rel}}
-\newcommand{\Conn}{\mathrm{Conn}}
 \newcommand{\Quan}{\mathrm{Quan}}
-\newcommand{\inn}{\mathrm{in}}
-\newcommand{\out}{\mathrm{out}}
