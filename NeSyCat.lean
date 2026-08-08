@@ -10,3 +10,4 @@ import NeSyCat.Truth.Chain
 import NeSyCat.Truth.UnitInterval
 import NeSyCat.Truth.TruthSpace
 import NeSyCat.Truth.Lifted
+import NeSyCat.Truth.ThreeLayers

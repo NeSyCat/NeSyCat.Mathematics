@@ -281,7 +281,7 @@ failures several layers down (`NeSyCat/Truth/Lifted.lean`'s
 throughout, with no such boundary to cross. Agrees with `!x` pointwise
 (`negOp_eq_not` below) — a genuine Boolean negation, not a weaker
 substitute. -/
-noncomputable def negOp (x : BoolW) : BoolW := if x = 0 then 1 else 0
+def negOp (x : BoolW) : BoolW := if x = 0 then 1 else 0
 
 theorem negOp_eq_not (x : BoolW) : negOp x = !x := by
   unfold negOp
