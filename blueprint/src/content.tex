@@ -673,7 +673,7 @@ $\neg q$ is a two-sided $\parr$-inverse of $\neg p$.
 
 \begin{definition}[Unit-bound mixins]
 \label{def:unit-bounds}
-\lean{NeSyCat.ZeroBot, NeSyCat.OneTop}
+\lean{NeSyCat.ZeroBot, NeSyCat.OneTop, NeSyCat.UnitBounds}
 \leanok
 For a BLat2Mon (Definition~\ref{def:blat2mon}): \textbf{ZeroBot}
 demands $\dzero = \bot$; \textbf{OneTop} demands $\done = \top$;
@@ -684,6 +684,11 @@ Remark~\ref{rem:four-constants} to two.
 
 \begin{lemma}[Unit bounds via mixed absorption]
 \label{lem:dualabsorb-decomposition}
+\lean{NeSyCat.done_eq_top_iff_andC_le_inf,
+NeSyCat.done_eq_top_iff_sup_andC_absorb,
+NeSyCat.dzero_eq_bot_iff_sup_le_parr,
+NeSyCat.dzero_eq_bot_iff_inf_parr_absorb}
+\leanok
 In a LinBLat2Mon (Definition~\ref{def:lin-blat2mon}):
 \begin{enumerate}
 \item[(i)] $\done = \top$ iff $p \AndC q \le p \wedge q$ for all
@@ -695,6 +700,7 @@ In a LinBLat2Mon (Definition~\ref{def:lin-blat2mon}):
 \end{lemma}
 
 \begin{proof}
+\leanok
 (i) If $\done = \top$: monotonicity gives
 $p \AndC q \le p \AndC \top = p \AndC \done = p$ and likewise
 $p \AndC q \le \top \AndC q = q$, hence $\le p \wedge q$. Conversely,
@@ -708,6 +714,9 @@ $p \vee \dzero \le p$, so $\dzero \le p$ for all $p$.
 
 \begin{lemma}[The four-connective chain (MIX)]
 \label{lem:mix}
+\lean{NeSyCat.andC_le_inf, NeSyCat.sup_le_parr, NeSyCat.mix_chain,
+NeSyCat.andC_le_parr}
+\leanok
 In a LinBLat2Mon with UnitBounds (Definition~\ref{def:unit-bounds}),
 the four binary connectives form a chain:
 $p \AndC q \le p \wedge q \le p \vee q \le p \parr q$. In particular
@@ -717,12 +726,17 @@ The MIX rule [Girard 1987]; here it factors through the lattice.
 \end{lemma}
 
 \begin{proof}
+\leanok
 The outer inequalities are Lemma~\ref{lem:dualabsorb-decomposition}(i)
 and (ii); the middle one is the lattice.
 \end{proof}
 
 \begin{theorem}[Chains are linear]
 \label{thm:chain-lin}
+\lean{NeSyCat.chain_andC_sup, NeSyCat.chain_sup_andC,
+NeSyCat.chain_parr_inf, NeSyCat.chain_inf_parr,
+NeSyCat.LinBLat2Mon.ofChain}
+\leanok
 Let $L$ be a lattice, not necessarily bounded, carrying two monoid
 structures $(\parr,\dzero)$ and $(\AndC,\done)$ (a Lat2Mon), whose
 order is a chain (total order), and suppose $\AndC$ and $\parr$ are
@@ -734,6 +748,7 @@ hold too, so the structure is a LinBLat2Mon.
 \end{theorem}
 
 \begin{proof}
+\leanok
 (i) On a chain, $q \vee r \in \{q, r\}$; say $q \le r$, so
 $q \vee r = r$. Then $p \AndC (q \vee r) = p \AndC r$, while
 monotonicity gives $p \AndC q \le p \AndC r$, so
@@ -770,6 +785,12 @@ Theorem~\ref{thm:chain-lin} on the two-element chain.
 
 \begin{lemma}[The probability row]
 \label{lem:unit-interval-truth-structure}
+\lean{NeSyCat.unitInterval.instBLat2Mon, NeSyCat.unitInterval.instBLat2CMon,
+NeSyCat.unitInterval.instZeroBot, NeSyCat.unitInterval.instOneTop,
+NeSyCat.unitInterval.instUnitBounds, NeSyCat.unitInterval.instLinBLat2Mon,
+NeSyCat.unitInterval.instLinBLat2CMon, NeSyCat.unitInterval.instDMStructure,
+NeSyCat.unitInterval.coe_parr}
+\leanok
 $\ProbS = [0,1]$ with lattice $(\min,\max,0,1)$, monoids
 $(\parr,\dzero) = (p+q-pq,\ 0)$ and $(\AndC,\done) = (pq,\ 1)$, and
 $\neg p = 1-p$ is a LinBLat2CMon with DM structure and UnitBounds.
@@ -781,6 +802,7 @@ thm:chain-lin, lem:prob-not-semiring}
 \end{lemma}
 
 \begin{proof}
+\leanok
 Closure: $p+q-pq = 1-(1-p)(1-q) \in [0,1]$. Monoid laws: $\AndC$ is
 real multiplication; $\parr$ is its conjugate under the involution
 $x \mapsto 1-x$, hence associative, commutative, with unit

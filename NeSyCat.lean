@@ -6,3 +6,5 @@ import NeSyCat.Monad.LogIso
 import NeSyCat.Notation
 import NeSyCat.Truth.BLat2Mon
 import NeSyCat.Truth.BoolInstance
+import NeSyCat.Truth.Chain
+import NeSyCat.Truth.UnitInterval

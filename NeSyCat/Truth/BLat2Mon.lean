@@ -132,6 +132,15 @@ are `UnitBounds`, collapsing the four constants of Remark
 class OneTop (α : Type*) [Lattice α] [BoundedOrder α] [BLat2Mon α] : Prop where
   done_eq_top : (BLat2Mon.done : α) = ⊤
 
+/-- Blueprint `def:unit-bounds` (**UnitBounds**, the conjunction): for a
+`BLat2Mon`, `UnitBounds` demands both `ZeroBot` and `OneTop`, collapsing the
+four constants of Remark `rem:four-constants` to two. A trivial alias class
+(no new fields beyond its two parents) naming the conjunction the blueprint
+itself names, used as a single hypothesis by `thm:chain-lin`(ii) and
+`lem:mix` rather than threading `ZeroBot`/`OneTop` separately. -/
+class UnitBounds (α : Type*) [Lattice α] [BoundedOrder α] [BLat2Mon α] : Prop
+    extends ZeroBot α, OneTop α
+
 section LinearLemmas
 
 open BLat2Mon
