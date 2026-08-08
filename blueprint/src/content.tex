@@ -2,12 +2,6 @@
 % It will be used both by the web and the print version.
 % It should *not* include the \begin{document}
 
-% `remark` is not one of macros/common.tex's theorem-like environments
-% (theorem/proposition/lemma/corollary/definition/example), so it is
-% declared here, content.tex-local, the first time this document needs
-% one (rem:semiring-monad-algebras below).
-\newtheorem{remark}[theorem]{Remark}
-
 \section{NeSyCat}
 
 This blueprint is \textbf{version 0} of the NeSyCat library reference
@@ -72,6 +66,99 @@ documents are not vendored into this repository as standing copies ---
 where a later authoring or verification pass needs a pinned text, it is
 pinned by git ref at that moment and the ref is recorded here and in
 the campaign ledger.
+
+\begin{remark}[Connective conventions]
+\label{rem:connective-conventions}
+Table 3 of the source distinguishes two families of binary connective,
+kept visually and notationally apart throughout this document:
+\begin{itemize}
+\item \textbf{Lattice connectives} $\vee,\wedge$, with bounds
+  $\bot,\top$ (Definition~\ref{def:lattice-semiring},
+  Definition~\ref{def:order-family}).
+\item \textbf{Monoid connectives on truth values}, at the
+  \emph{logical/truth-value} level only: $\parr$ (or-like, unit
+  $\dzero$) and $\AndC$ (and-like, unit $\done$). These name the
+  \emph{lifted} family of Definition~\ref{def:lifted-connective} once
+  it is applied to truth spaces (Chapter~\ref{sec:truth-spaces}
+  onward): the lifted-family prose, the three-layers linear/lifted
+  layer, and the De~Morgan/negation laws.
+\end{itemize}
+\textbf{Scope rule.} $\parr,\AndC$ are reserved for the
+logical/truth-value level. The \emph{semiring/categorical} level ---
+the weight-semiring operations inside $\MS{S}$ itself, the $\bind$
+formula of Definition~\ref{def:semiring-monad}, and every Chapter~1
+item built directly on it (Definition~\ref{def:semiring-monad},
+Theorem~\ref{thm:semiring-monad-laws},
+Theorem~\ref{thm:semiring-monad-commutative},
+Lemma~\ref{lem:log-iso}) --- keeps $\oplus,\otimes$ throughout. This
+separation is deliberate: it is exactly what keeps the logical
+connectives from clashing, on the page, with the categorical ones they
+are built out of.
+
+Implications and negations are always written indexed by the
+connective they belong to: $\impc{\vee},\impc{\wedge},\impc{\parr},
+\impc{\AndC}$ and $\negc{\vee},\negc{\wedge},\negc{\parr},\negc{\AndC}$;
+the optional primitive involution (when one is assumed rather than
+derived) is plain $\neg$. Linear-logic notation such as $\multimap$,
+$\setminus$, or $\ominus$ for these connectives is never used here.
+
+\emph{One documented deviation from linear logic}: our $\AndC$ is the
+\emph{multiplicative} conjunction (linear logic's $\&$ is the
+\emph{additive} conjunction, which here is $\wedge$). This is
+deliberate and is recorded once, here, rather than at each site the
+symbol is used.
+
+These symbols are LaTeX \texttt{\textbackslash newcommand}s collected
+in the symbol registry of \texttt{blueprint/src/macros/common.tex}.
+\end{remark}
+
+\begin{remark}[The four constants]
+\label{rem:four-constants}
+Four constants recur at the logical/truth-value level, and are never
+conflated even where they happen to coincide: the lattice bounds
+$\bot,\top$ (Definition~\ref{def:order-family}) and the monoid units
+$\dzero,\done$ of $\parr,\AndC$
+(Remark~\ref{rem:connective-conventions}). A coincidence between a
+bound and a unit (e.g.\ on a normalized, mass-one row) is recorded as
+a \emph{named axiom} in the UnitBounds style when it is used --- never
+folded into the notation itself, so that $\bot=\dzero$ or
+$\top=\done$ always reads as a substantive fact about a particular
+instance, not a definitional identification.
+\end{remark}
+
+\paragraph{Blueprint-to-Lean correspondence.} Environment kind fixes
+the correspondence to Lean declaration kind:
+\begin{itemize}
+\item \texttt{definition} $\leftrightarrow$ Lean
+  \texttt{def}/\texttt{class}/\texttt{structure}/\texttt{instance}: new
+  mathematical content.
+\item \texttt{abbreviation} $\leftrightarrow$ Lean \texttt{abbrev}: a
+  block that introduces a \emph{name} for existing content (e.g.\
+  ``we write $\Tmon$ for $\MS{\MassS}$''). \emph{Invariant:} every
+  \texttt{abbreviation} environment carries a
+  \texttt{\textbackslash lean\{\}} mark pointing at that
+  \texttt{abbrev} --- no exceptions (a future gate may enforce mark
+  presence and kind); no \texttt{abbreviation} blocks exist in this
+  document yet.
+\item \texttt{theorem}, \texttt{proposition}, \texttt{lemma}, and
+  \texttt{corollary} $\leftrightarrow$ Lean \texttt{theorem} alike:
+  Lean ranks nothing among these, the rank --- theorem vs.\ lemma
+  vs.\ corollary --- lives only in this document.
+\item \texttt{remark} $\leftrightarrow$ nothing in Lean: prose only.
+  Notational and usage \emph{conventions} --- such as
+  Remarks~\ref{rem:connective-conventions}, \ref{rem:four-constants}
+  above --- live here, never as their own citable environment.
+\item A LaTeX \texttt{\textbackslash newcommand} in the symbol
+  registry of \texttt{blueprint/src/macros/common.tex}
+  $\leftrightarrow$ Lean \texttt{notation}: glyphs are macros, never
+  an environment of their own, mirrored one-for-one against an, as yet
+  unwritten, \texttt{NeSyCat/Notation.lean} (a future ticket may add a
+  grep-based sync gate between the two).
+\end{itemize}
+In every case, the \texttt{\textbackslash lean\{\}} marks remain the
+authoritative name-level cross-reference; this environment/kind
+agreement is a convention that a future decl-check upgrade may
+enforce, not something currently checked.
 
 % ============================================================
 \section{Semiring weight monads}
@@ -362,7 +449,7 @@ $\MS{S}(\BoolS^n)$) and push forward along $*$,
 \]
 Stated for a general $n$-ary Boolean operation via the $n$-ary
 strength; [NeSy26, App.~A] spells out only the binary cases
-$\wedge,\vee,\oplus,\otimes$ and the unary $\neg$, via the equivalent
+$\wedge,\vee,\parr,\AndC$ and the unary $\neg$, via the equivalent
 ``outer product then regroup along the operation'' description.
 \uses{def:truth-space}
 [NeSy26, App.~A]
@@ -374,16 +461,16 @@ On $\Tmon\,\BoolS \cong \MassS^2$ (coordinates $(w_0,w_1)$, slot $0$
 the weight against, slot $1$ the weight for), the lifted family of
 Definition~\ref{def:lifted-connective} is
 \[
-  w \otimes v = \bigl(w_0v_0+w_0v_1+w_1v_0,\ w_1v_1\bigr), \qquad
-  w \oplus v = \bigl(w_0v_0,\ w_0v_1+w_1v_0+w_1v_1\bigr), \qquad
+  w \AndC v = \bigl(w_0v_0+w_0v_1+w_1v_0,\ w_1v_1\bigr), \qquad
+  w \parr v = \bigl(w_0v_0,\ w_0v_1+w_1v_0+w_1v_1\bigr), \qquad
   \neg w = (w_1, w_0),
 \]
-with units $\Ret(0) = (1,0)$ (the $\oplus$-identity, i.e.\ certain
-False) and $\Ret(1) = (0,1)$ (the $\otimes$-identity, i.e.\ certain
+with units $\Ret(0) = (1,0)$ (the $\parr$-identity, i.e.\ certain
+False) and $\Ret(1) = (0,1)$ (the $\AndC$-identity, i.e.\ certain
 True). \emph{Declared correction relative to the source:} the source's
 summary table (revisions up to 2026-08-07) listed the two unit cells
 of this row transposed; the units above are forced by solving
-$e \oplus w = w$ and $e \otimes w = w$ against the explicit formulas,
+$e \parr w = w$ and $e \AndC w = w$ against the explicit formulas,
 agree with the source's own log row and one-hot text, and the erratum
 has been corrected upstream in the source paper. The order family
 (Definition~\ref{def:order-family}) gives
@@ -394,9 +481,9 @@ $\bot=(\infty,0)$, $\top=(0,\infty)$.
 at $*\in\{\wedge,\vee,\neg\}$ using $\bind$ of
 Definition~\ref{def:semiring-monad} for $S=\MassS$: the entry with
 $*(1,1)=1$ collects the product $w_1v_1$ into slot $1$ and the three
-entries with $*=0$ sum into slot $0$ (dually for $\oplus$); the unit
-values are the (unique) identities of $\oplus,\otimes$ found by solving
-$e\oplus w = w$, resp.\ $e\otimes w = w$, for all $w$. \qed
+entries with $*=0$ sum into slot $0$ (dually for $\parr$); the unit
+values are the (unique) identities of $\parr,\AndC$ found by solving
+$e\parr w = w$, resp.\ $e\AndC w = w$, for all $w$. \qed
 \uses{def:lifted-connective, def:order-family}
 [NeSy26, App.~A]
 \end{lemma}
@@ -408,9 +495,9 @@ $\log$-image of Lemma~\ref{lem:lifted-mass} under
 Lemma~\ref{lem:log-iso}, products becoming sums and sums becoming
 $\lse$):
 \[
-  a \otimes b = \bigl(\lse(a_0{+}b_0,\,a_0{+}b_1,\,a_1{+}b_0),\ a_1{+}b_1\bigr),
+  a \AndC b = \bigl(\lse(a_0{+}b_0,\,a_0{+}b_1,\,a_1{+}b_0),\ a_1{+}b_1\bigr),
   \qquad
-  a \oplus b = \bigl(a_0{+}b_0,\ \lse(a_0{+}b_1,\,a_1{+}b_0,\,a_1{+}b_1)\bigr),
+  a \parr b = \bigl(a_0{+}b_0,\ \lse(a_0{+}b_1,\,a_1{+}b_0,\,a_1{+}b_1)\bigr),
 \]
 \[
   \neg a = (a_1,a_0), \qquad
@@ -435,14 +522,14 @@ Under the $\Dmon$ readout $p := w_1$ (so $w_0 = 1-p$, the mass-one
 slice $Z(w) = w_0+w_1=1$ of Lemma~\ref{lem:lifted-mass}), the lifted
 family restricts to
 \[
-  p \otimes q = pq, \qquad p \oplus q = p+q-pq, \qquad \neg p = 1-p,
+  p \AndC q = pq, \qquad p \parr q = p+q-pq, \qquad \neg p = 1-p,
 \]
 i.e.\ exactly the operations of the (non-semiring)
 $\ProbS$ row of Lemma~\ref{lem:prob-not-semiring} --- \emph{derived}
 from binding two independent truth values and pushing forward along
 the Boolean operation, not stipulated.
 \emph{Proof.} Substitute $w_0=1-p,\ w_1=p,\ v_0=1-q,\ v_1=q$ into
-Lemma~\ref{lem:lifted-mass}: $w_1v_1=pq$; the $\oplus$-slot
+Lemma~\ref{lem:lifted-mass}: $w_1v_1=pq$; the $\parr$-slot
 $w_0v_1+w_1v_0+w_1v_1 = (1-p)q+p(1-q)+pq = p+q-pq$; and
 $\neg w = (w_1,w_0)=(p,1-p)$ read out at slot $1$ of the swapped pair
 is $1-p$. \qed
@@ -491,13 +578,13 @@ products); all structure is inherited componentwise. \qed
 
 \begin{lemma}[Linear laws lift]
 \label{lem:linear-lift}
-The lifted family $(\MS{S}\BoolS, \oplus, \Ret(0))$ and
-$(\MS{S}\BoolS, \otimes, \Ret(1))$ of
+The lifted family $(\MS{S}\BoolS, \parr, \Ret(0))$ and
+$(\MS{S}\BoolS, \AndC, \Ret(1))$ of
 Definition~\ref{def:lifted-connective} are commutative monoids, and
 $\neg$ is a De~Morgan involution between them: $\neg\neg w = w$,
 $\neg \Ret(0) = \Ret(1)$, and
-$\neg(w \oplus v) = \neg w \otimes \neg v$,
-$\neg(w \otimes v) = \neg v \oplus \neg w$.
+$\neg(w \parr v) = \neg w \AndC \neg v$,
+$\neg(w \AndC v) = \neg v \parr \neg w$.
 Stated as these concrete instances rather than as the source's
 meta-theorem over general equation schemas in which each variable
 occurs exactly once per side (hypothesis made explicit relative to the
@@ -506,7 +593,7 @@ there); this library records the theorem only at the instances it
 uses, not as a schema-level meta-theorem.
 \emph{Proof.} Directly from Lemma~\ref{lem:lifted-mass}
 (equivalently~\ref{lem:lifted-log}): associativity, commutativity and
-the unit laws of $\oplus,\otimes$ each involve every variable exactly
+the unit laws of $\parr,\AndC$ each involve every variable exactly
 once per side of the defining equation, hence expand, via
 Definition~\ref{def:lifted-connective}'s bind chain, to associativity,
 commutativity and the unit laws of $S$ itself
@@ -521,8 +608,8 @@ direct check on the explicit formulas of Lemma~\ref{lem:lifted-mass}. \qed
 Equations that duplicate a variable --- idempotence, absorption,
 lattice distributivity --- fail for the lifted family in general.
 Witness: in $\Dmon\,\BoolS \cong \ProbS$
-(Lemma~\ref{lem:lifted-prob-readout}), $p \otimes p = p^2 \ne p$ for
-$p \in (0,1)$, so $\otimes$ is not idempotent.
+(Lemma~\ref{lem:lifted-prob-readout}), $p \AndC p = p^2 \ne p$ for
+$p \in (0,1)$, so $\AndC$ is not idempotent.
 \emph{Proof.} The displayed computation; $p^2=p$ iff $p\in\{0,1\}$. \qed
 This failure is structural, not accidental: a lifted operation reads
 its two arguments as independent, and non-idempotence is exactly what
@@ -542,7 +629,7 @@ contributions:
   iterates --- $\MS{S}(\BoolS)$ can serve as the weight semiring of a
   next layer for $S \in \{\BoolS, \MassS, \LogS\}$ (not $\ProbS$, which
   is excluded by Lemma~\ref{lem:prob-not-semiring});
-\item[(ii)] \emph{linear/lifted}: the family $\otimes,\oplus,\neg$ with
+\item[(ii)] \emph{linear/lifted}: the family $\AndC,\parr,\neg$ with
   units $\Ret(0),\Ret(1)$ satisfies every linear Boolean law and no
   copying law (Lemmas~\ref{lem:linear-lift}, \ref{lem:copying-fails}):
   two commutative monoids with a De~Morgan involution, not a semiring;
@@ -811,7 +898,7 @@ identity and, after dividing by $Z(a)$, the commuting square. \qed
 \label{lem:tensor}
 Write $a \otimes b \in \Tmon(X\times Y)$ for the tensorial-strength
 pairing $(a\otimes b)_{(x,y)} := a_x+b_y$ of $a \in \Tmon X$, $b \in
-\Tmon Y$ (the general instance of which the Boolean-lifted $\otimes$ of
+\Tmon Y$ (the general instance of which the Boolean-lifted $\AndC$ of
 Definition~\ref{def:lifted-connective} is the special case $X=Y=\BoolS$
 composed with $\Tmon(\wedge)$). Then
 \[

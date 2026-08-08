@@ -20,10 +20,75 @@
 \theoremstyle{plain}
 \newtheorem{example}[theorem]{Example}
 
+% `remark` is not one of the numbered theorem-like environments above;
+% it lives here alongside them so every environment declaration for
+% this document is in one place (moved from content.tex, M1).
+\newtheorem{remark}[theorem]{Remark}
+
+% `abbreviation` is an unnumbered, bold run-in "Abbreviation." block
+% (amsthm remark-style, starred form): reserved for a block that
+% introduces a *name* for existing content (a Lean `abbrev` twin) ---
+% see the Blueprint-to-Lean correspondence paragraph in content.tex
+% (M1), which also states this environment's invariant. Declared here
+% but not yet used by any item in this document: its first uses are a
+% later ticket's job (re-homing `Tens`/`LogTens` into it). If a future
+% plasTeX version chokes on the starred form, fall back to
+% \newtheorem{abbreviation}[theorem]{Abbreviation} here --- and note
+% that a starred amsthm environment carries no counter of its own, so
+% any \label placed inside one needs the numbered fallback before it
+% can be \ref'd correctly (observed directly while drafting this
+% ticket: plasTeX renders such a \ref as literal "??", and xelatex
+% resolves it to the nonsensical enclosing section number).
+\theoremstyle{remark}
+\newtheorem*{abbreviation}{Abbreviation}
+\theoremstyle{plain}
+
 % ----------------------------------------------------------------------
 % Shorthands for the NeSyCat library content (blueprint/src/content.tex).
 % Kept deliberately at amsmath/amssymb level so plasTeX digests them.
 % ----------------------------------------------------------------------
+
+% ===== SYMBOL REGISTRY (mirror: NeSyCat/Notation.lean, future) =====
+% Truth-value-level (logical) monoid connectives and their units, Table
+% 3: \parr is or-like (unit $\dot0$), \AndC is and-like (unit $\dot1$).
+% Distinct from the categorical/semiring \oplus,\otimes used for
+% weight-semiring operations inside $\MS{S}$ (Chapter 1) --- see
+% Remark~\ref{rem:connective-conventions} in content.tex, right after
+% the Sources-and-provenance paragraph. \parr uses the literal Unicode
+% PARR character
+% (renders natively under xelatex/unicode-math for the pdf build and
+% under plasTeX/MathJax for the web build; no stmaryrd dependency).
+% This registry is purely organizational for now: it mirrors,
+% macro-by-macro, what a future `NeSyCat/Notation.lean` would declare
+% as Lean `notation`/`scoped` twins; that file does not exist yet, and
+% no `\lean{}` mark attaches to any macro here (symbols are not
+% citable objects --- see the Blueprint-to-Lean correspondence
+% paragraph in content.tex).
+% \parr: tried as the literal Unicode PARR character (U+214B) under
+% both engines first, and it renders correctly in the web build
+% (plasTeX/MathJax has the glyph) but comes out BLANK in the pdf build
+% (xelatex + unicode-math's Latin Modern Math font has no U+214B glyph
+% --- confirmed by rendering both and inspecting the pdf directly).
+% Disclosed fallback: detect the real-xelatex pdf path via the
+% \XeTeXversion primitive (only ever defined when actually running
+% under the XeTeX engine, never under plasTeX's pure-Python parser) and
+% on that path only, approximate the glyph with a graphics-rotated
+% ampersand instead of the missing font glyph; the web path keeps the
+% literal Unicode character, which already renders correctly there.
+\makeatletter
+\@ifundefined{XeTeXversion}{%
+  \newcommand{\parr}{\mathbin{⅋}}
+}{%
+  \usepackage{graphicx}
+  \newcommand{\parr}{\mathbin{\rotatebox[origin=c]{180}{$\&$}}}
+}
+\makeatother                                    % Lean: scoped infixl " ⅋ "
+\newcommand{\AndC}{\mathbin{\&}}                % Lean: scoped infixl " & "
+\newcommand{\dzero}{\dot 0}                     % Lean: scoped notation "0̇"
+\newcommand{\done}{\dot 1}                      % Lean: scoped notation "1̇"
+\newcommand{\impc}[1]{\mathbin{\to_{#1}}}       % Lean: scoped notation:25 a " →[" c "] " b
+\newcommand{\negc}[1]{\neg_{#1}}                % Lean: scoped prefix:75 "¬[" c "] "
+% ===== END SYMBOL REGISTRY =====
 
 % Monadic programming notation.
 \newcommand{\bind}{\mathbin{\text{\texttt{>>=}}}}

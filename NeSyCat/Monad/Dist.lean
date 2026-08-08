@@ -23,9 +23,10 @@ computation, `∑_y (ρ >>= k)(y) = ∑_y ∑_x ρ(x) k(x)(y) = ∑_x ρ(x) ∑_
 (`Finsupp.sum_sum_index` for the Fubini step, `Finsupp.sum_smul_index` and
 `Finsupp.mul_sum` for factoring `ρ(x)` out of the inner sum).
 
-**Not** Mathlib's `PMF`: Mathlib's probability-mass-function type `PMF α`
-carries a *countable*-support real-valued measure (`α →∞[Set.univ] ℝ≥0∞`,
-built over `ENNReal` and Mathlib's `MeasureTheory` machinery), whereas `Dist`
+**Not** Mathlib's `PMF`: Mathlib's probability-mass-function type
+`PMF α := {f : α → ℝ≥0∞ // HasSum f 1}` carries a *countable*-support
+real-valued measure, built over `ENNReal` and Mathlib's `MeasureTheory`
+machinery, whereas `Dist`
 here is the *finitely*-supported mass-one slice of the semiring monad `MS
 ℝ≥0` of `NeSyCat/Monad/SemiringMonad.lean` (a `Finsupp`, `X →₀ ℝ≥0`, with no
 measure-theoretic apparatus at all). The two types serve analogous

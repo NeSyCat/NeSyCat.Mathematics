@@ -313,8 +313,9 @@ obligation for `logRingEquiv` below. -/
 theorem logEquiv_map_mul (x y : ℝ≥0) : logEquiv (x * y) = logEquiv x * logEquiv y := by
   rw [logEquiv_mul, ← logS_mul_eq_logMul]
 
-/-- Blueprint `lem:log-iso`: `log : (ℝ≥0, +, ·) → (LogS, lse, +)` is a
-semiring isomorphism, packaged as a bundled `RingEquiv`. -/
+/-- Blueprint `lem:log-iso` (Log isomorphism): `log : (ℝ≥0, +, ·) →
+(LogS, lse, +)` is a semiring isomorphism, packaged as a bundled
+`RingEquiv`. -/
 noncomputable def logRingEquiv : ℝ≥0 ≃+* LogS :=
   { logEquiv with
     map_add' := logEquiv_map_add
