@@ -3,3 +3,6 @@ import NeSyCat.Monad.LatticeSemiring
 import NeSyCat.Monad.SemiringMonad
 import NeSyCat.Monad.Dist
 import NeSyCat.Monad.LogIso
+import NeSyCat.Notation
+import NeSyCat.Truth.BLat2Mon
+import NeSyCat.Truth.BoolInstance

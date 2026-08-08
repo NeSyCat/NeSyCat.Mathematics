@@ -502,6 +502,8 @@ The lifted connective family of a truth space (Definition~\ref{def:lifted-connec
 
 \begin{definition}[Two-monoid bounded lattice]
 \label{def:blat2mon}
+\lean{NeSyCat.BLat2Mon, NeSyCat.BLat2CMon}
+\leanok
 A \textbf{BLat2Mon} is a set carrying a bounded lattice
 $(\wedge,\vee,\bot,\top)$ together with two monoid structures
 $(\parr,\dzero)$ and $(\AndC,\done)$; unlike a lattice-semiring
@@ -516,6 +518,8 @@ vocabulary from linear logic [Girard 1987].
 
 \begin{definition}[Linear two-monoid lattice]
 \label{def:lin-blat2mon}
+\lean{NeSyCat.LinBLat2Mon, NeSyCat.LinBLat2CMon}
+\leanok
 A \textbf{LinBLat2Mon} is a BLat2Mon (Definition~\ref{def:blat2mon}) in
 which $\AndC$ preserves finite joins in each argument and $\parr$
 preserves finite meets in each argument:
@@ -538,12 +542,16 @@ Remark~\ref{rem:ll-dictionary}; [Girard 1987].
 
 \begin{lemma}[Linearity gives monotonicity]
 \label{lem:lin-monotone}
+\lean{NeSyCat.andC_le_andC_left, NeSyCat.andC_le_andC_right,
+NeSyCat.parr_le_parr_left, NeSyCat.parr_le_parr_right}
+\leanok
 In a LinBLat2Mon (Definition~\ref{def:lin-blat2mon}), $\AndC$ and
 $\parr$ are monotone in each argument.
 \uses{def:lin-blat2mon}
 \end{lemma}
 
 \begin{proof}
+\leanok
 If $p \le q$ then $q = p \vee q$, so
 $q \AndC r = (p \vee q) \AndC r = (p \AndC r) \vee (q \AndC r) \ge
 p \AndC r$; the other argument, and $\parr$ (via $p = p \wedge q$ and
@@ -552,6 +560,9 @@ meet-preservation), are dual.
 
 \begin{lemma}[Lax dual preservations]
 \label{lem:lin-lax-duals}
+\lean{NeSyCat.andC_inf_le, NeSyCat.inf_andC_le, NeSyCat.le_parr_sup,
+NeSyCat.le_sup_parr}
+\leanok
 In a LinBLat2Mon, the dual preservations hold laxly:
 $p \AndC (q \wedge r) \le (p \AndC q) \wedge (p \AndC r)$ and
 $(p \parr q) \vee (p \parr r) \le p \parr (q \vee r)$, and likewise in
@@ -560,6 +571,7 @@ the other argument.
 \end{lemma}
 
 \begin{proof}
+\leanok
 $q \wedge r \le q$ and $q \wedge r \le r$, so monotonicity
 (Lemma~\ref{lem:lin-monotone}) gives $p \AndC (q \wedge r) \le p \AndC q$
 and $\le p \AndC r$, hence $\le$ their meet; dually for $\parr$.
@@ -567,6 +579,8 @@ and $\le p \AndC r$, hence $\le$ their meet; dually for $\parr$.
 
 \begin{definition}[De Morgan structure]
 \label{def:dm-structure}
+\lean{NeSyCat.DMStructure}
+\leanok
 A \textbf{DM structure} on a BLat2Mon (Definition~\ref{def:blat2mon})
 is a map $\neg$ satisfying (i) $\neg\neg p = p$; (ii)
 $p \le q \Rightarrow \neg q \le \neg p$; (iii)
@@ -659,6 +673,8 @@ $\neg q$ is a two-sided $\parr$-inverse of $\neg p$.
 
 \begin{definition}[Unit-bound mixins]
 \label{def:unit-bounds}
+\lean{NeSyCat.ZeroBot, NeSyCat.OneTop}
+\leanok
 For a BLat2Mon (Definition~\ref{def:blat2mon}): \textbf{ZeroBot}
 demands $\dzero = \bot$; \textbf{OneTop} demands $\done = \top$;
 \textbf{UnitBounds} demands both, collapsing the four constants of
@@ -729,6 +745,12 @@ absorption from ZeroBot: $\top = \dzero \parr \top \le p \parr \top$.
 
 \begin{lemma}[The Boolean row]
 \label{lem:bool-truth-structure}
+\lean{NeSyCat.BoolW.instBLat2Mon, NeSyCat.BoolW.instBLat2CMon,
+NeSyCat.BoolW.instLinBLat2Mon, NeSyCat.BoolW.instLinBLat2CMon,
+NeSyCat.BoolW.instDMStructure, NeSyCat.BoolW.instZeroBot,
+NeSyCat.BoolW.instOneTop, NeSyCat.BoolW.parr_eq_sup,
+NeSyCat.BoolW.andC_eq_inf}
+\leanok
 $\BoolS$ with its lattice $(\wedge,\vee,0,1)$, monoids
 $(\parr,\dzero) = (\vee,0)$ and $(\AndC,\done) = (\wedge,1)$, and
 $\neg$ is a LinBLat2CMon (Definition~\ref{def:lin-blat2mon}) with DM
@@ -741,6 +763,7 @@ thm:chain-lin}
 \end{lemma}
 
 \begin{proof}
+\leanok
 A finite check (or: classical Boolean algebra); linearity via
 Theorem~\ref{thm:chain-lin} on the two-element chain.
 \end{proof}
