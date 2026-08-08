@@ -593,6 +593,8 @@ presentations are compared in Proposition~\ref{prop:dm-presentations}.
 
 \begin{lemma}[Negation is an order anti-automorphism]
 \label{lem:dm-lattice-laws}
+\lean{NeSyCat.dneg_inf, NeSyCat.dneg_sup, NeSyCat.dneg_bot, NeSyCat.dneg_top}
+\leanok
 For a DM structure (Definition~\ref{def:dm-structure}),
 $\neg(p \wedge q) = \neg p \vee \neg q$,
 $\neg(p \vee q) = \neg p \wedge \neg q$, $\neg\bot = \top$,
@@ -601,6 +603,7 @@ $\neg\top = \bot$.
 \end{lemma}
 
 \begin{proof}
+\leanok
 By (i) and (ii), $\neg$ is an order-reversing bijection, and an
 order-reversing bijection carries meets to joins, joins to meets, and
 each bound to the other.
@@ -608,11 +611,14 @@ each bound to the other.
 
 \begin{lemma}[The dual De Morgan law]
 \label{lem:dm-dual-law}
+\lean{NeSyCat.dneg_parr}
+\leanok
 For a DM structure, $\neg(p \parr q) = \neg q \AndC \neg p$.
 \uses{def:dm-structure}
 \end{lemma}
 
 \begin{proof}
+\leanok
 Applying (iii) at $\neg q, \neg p$ and using (i):
 $\neg(\neg q \AndC \neg p) = \neg\neg p \parr \neg\neg q = p \parr q$;
 applying $\neg$ to both sides and using (i) again gives the claim.
@@ -620,11 +626,14 @@ applying $\neg$ to both sides and using (i) again gives the claim.
 
 \begin{lemma}[Negation swaps the monoid units]
 \label{lem:dm-unit-swap}
+\lean{NeSyCat.dneg_done, NeSyCat.dneg_dzero}
+\leanok
 For a DM structure, $\neg\done = \dzero$ and $\neg\dzero = \done$.
 \uses{def:dm-structure}
 \end{lemma}
 
 \begin{proof}
+\leanok
 For every $p$, by (iii) and (i):
 $\neg\done \parr p = \neg\done \parr \neg\neg p = \neg(\neg p \AndC \done)
 = \neg\neg p = p$, and symmetrically
@@ -636,6 +645,8 @@ $\neg\done = \dzero$. Applying (i): $\neg\dzero = \neg\neg\done =
 
 \begin{proposition}[Presentations of De Morgan structure]
 \label{prop:dm-presentations}
+\lean{NeSyCat.DMFullCalculus, NeSyCat.dm_presentations}
+\leanok
 On a BLat2Mon, let $\neg$ satisfy (i) $\neg\neg p = p$ and (iii)
 $\neg(p \AndC q) = \neg q \parr \neg p$. Then the following are
 equivalent, and each yields the full De~Morgan calculus of
@@ -651,6 +662,7 @@ Lemmas~\ref{lem:dm-lattice-laws}, \ref{lem:dm-dual-law} and
 \end{proposition}
 
 \begin{proof}
+\leanok
 (a)$\Rightarrow$(c) is Lemmas~\ref{lem:dm-lattice-laws},
 \ref{lem:dm-dual-law} and \ref{lem:dm-unit-swap}. (c)$\Rightarrow$(b)
 is immediate. (b)$\Rightarrow$(a): if $p \le q$ then $p = p \wedge q$,
@@ -659,12 +671,15 @@ so $\neg p = \neg(p \wedge q) = \neg p \vee \neg q \ge \neg q$.
 
 \begin{lemma}[Negation maps invertibles to invertibles]
 \label{lem:dm-maps-units}
+\lean{NeSyCat.dneg_maps_units}
+\leanok
 For a DM structure, if $p$ is $\AndC$-invertible then $\neg p$ is
 $\parr$-invertible.
 \uses{def:dm-structure, lem:dm-unit-swap}
 \end{lemma}
 
 \begin{proof}
+\leanok
 Let $p \AndC q = \done = q \AndC p$. Applying $\neg$ and (iii):
 $\neg q \parr \neg p = \neg\done = \dzero$ and, by
 Lemma~\ref{lem:dm-unit-swap}, $\neg p \parr \neg q = \dzero$, so
@@ -818,6 +833,8 @@ UnitBounds: $\dzero = 0 = \bot$, $\done = 1 = \top$.
 
 \begin{theorem}[No De Morgan structure on the mass row]
 \label{thm:no-dm-mass}
+\lean{NeSyCat.no_antitone_involution_nnreal}
+\leanok
 On $\MassS = \mathbb{R}_{\ge 0}$ with its usual order there is no
 involutive antitone map; hence no two-monoid structure over the mass
 row carries a DM structure.
@@ -825,6 +842,7 @@ row carries a DM structure.
 \end{theorem}
 
 \begin{proof}
+\leanok
 Suppose $\neg$ is involutive and antitone. For every $p$,
 $\neg p \ge 0$, so applying $\neg$: $p = \neg\neg p \le \neg 0$. Thus
 $\neg 0$ is a top element, but $\MassS$ has none
@@ -833,12 +851,15 @@ $\neg 0$ is a top element, but $\MassS$ has none
 
 \begin{theorem}[No De Morgan structure on the log row]
 \label{thm:no-dm-log}
+\lean{NeSyCat.no_antitone_involution_logS}
+\leanok
 The same holds for $\LogS = \mathbb{R} \cup \{-\infty\}$: bottom
 $-\infty$, no top, hence no involutive antitone map.
 \uses{thm:no-dm-mass, lem:log-iso}
 \end{theorem}
 
 \begin{proof}
+\leanok
 As in Theorem~\ref{thm:no-dm-mass}, $\neg(-\infty)$ would be a top
 element.
 \end{proof}
@@ -855,6 +876,12 @@ instances in a later chapter.
 
 \begin{theorem}[The mass square is not linear]
 \label{thm:square-not-lin}
+\lean{NeSyCat.andSq, NeSyCat.parrSq, NeSyCat.swapSq, NeSyCat.swapSq_swapSq,
+NeSyCat.swapSq_antitone, NeSyCat.andSq_comm, NeSyCat.andSq_assoc,
+NeSyCat.parrSq_comm, NeSyCat.parrSq_assoc, NeSyCat.swapSq_dm,
+NeSyCat.andSq_not_monotone_right, NeSyCat.monotone_of_distrib_sup,
+NeSyCat.andSq_not_lin, NeSyCat.andSqENN_not_monotone_right}
+\leanok
 On $\MassS^2$ with the order family (slot $0$ reversed,
 Definition~\ref{def:order-family}) and the lifted operations of
 Lemma~\ref{lem:lifted-mass}, the slot swap
@@ -868,6 +895,7 @@ lem:lin-monotone}
 \end{theorem}
 
 \begin{proof}
+\leanok
 DM: the swap is involutive; it is antitone for the slot-0-reversed
 order; and $\neg(w \AndC v) = (w_1v_1,\ w_0v_0 + w_0v_1 + w_1v_0) =
 \neg w \parr \neg v$ by the formulas of Lemma~\ref{lem:lifted-mass}.

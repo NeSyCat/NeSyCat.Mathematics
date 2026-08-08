@@ -11,3 +11,5 @@ import NeSyCat.Truth.UnitInterval
 import NeSyCat.Truth.TruthSpace
 import NeSyCat.Truth.Lifted
 import NeSyCat.Truth.ThreeLayers
+import NeSyCat.Truth.DeMorgan
+import NeSyCat.Truth.Impossibility
