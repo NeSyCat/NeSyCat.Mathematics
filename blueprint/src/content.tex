@@ -935,6 +935,8 @@ completion instances.
 
 \begin{definition}[Truth space]
 \label{def:truth-space}
+\lean{NeSyCat.TruthSpace}
+\leanok
 For a semiring monad $\MS{S}$ (Definition~\ref{def:semiring-monad}) or
 $\Idmon$, the \textbf{truth space} is $\MS{S}\BoolS$ (resp.\
 $\Idmon\,\BoolS = \BoolS$): the monad applied to the Boolean carrier,
@@ -953,6 +955,9 @@ $\MS{S}$; [NeSy26, App.~A] only tabulates the four instances $\Idmon,
 
 \begin{lemma}[Truth-space instances]
 \label{lem:truth-space-instances}
+\lean{NeSyCat.twoSlot, NeSyCat.twoSlot_apply, NeSyCat.distReadout,
+NeSyCat.distReadout_apply_coe}
+\leanok
 The four truth spaces of the paper and their readouts:
 \begin{itemize}
 \item $\Idmon\,\BoolS = \BoolS$, readout $=\BoolS$ itself;
@@ -969,6 +974,7 @@ The four truth spaces of the paper and their readouts:
 \end{lemma}
 
 \begin{proof}
+\leanok
 $\Idmon$ and $\Tmon,\LTmon$ readouts are immediate from
 finite support; the $\Dmon$ readout uses the mass-one constraint of
 Definition~\ref{def:dist-monad} to eliminate $p(0)$.
@@ -976,6 +982,8 @@ Definition~\ref{def:dist-monad} to eliminate $p(0)$.
 
 \begin{definition}[Lifted connective]
 \label{def:lifted-connective}
+\lean{NeSyCat.dstN, NeSyCat.lift, NeSyCat.lift_zero, NeSyCat.lift_one, NeSyCat.lift_two}
+\leanok
 Let $* \colon \BoolS^n \to \BoolS$ be an $n$-ary Boolean operation and
 $\MS{S}$ a semiring monad. The \textbf{lifted connective}
 $*_{\MS{S}} \colon (\MS{S}\BoolS)^n \to \MS{S}\BoolS$ is
@@ -990,6 +998,8 @@ $*_{\MS{S}} \colon (\MS{S}\BoolS)^n \to \MS{S}\BoolS$ is
 
 \begin{corollary}[Lifted connective via strength]
 \label{cor:lifted-connective-strength}
+\lean{NeSyCat.lift_eq_dstN_bind}
+\leanok
 $*_{\MS{S}}(w_1,\ldots,w_n)$ of Definition~\ref{def:lifted-connective}
 equals $\mathrm{dst}(w_1,\ldots,w_n) \bind (\Ret \circ *)$, where
 $\mathrm{dst} \colon (\MS{S}\BoolS)^n \to \MS{S}(\BoolS^n)$ is the
@@ -1000,6 +1010,7 @@ of $\MS{S}(\BoolS^n)$.
 \end{corollary}
 
 \begin{proof}
+\leanok
 Both sides bind each of $w_1,\ldots,w_n$ in turn against $\Ret \circ *$;
 this is exactly the definition of the $n$-ary strength $\mathrm{dst}$
 as the iterated bind pairing the arguments.
@@ -1017,6 +1028,10 @@ description.
 
 \begin{lemma}[Lifted connectives, mass coordinates]
 \label{lem:lifted-mass}
+\lean{NeSyCat.twoSlot_andM, NeSyCat.twoSlot_parrM, NeSyCat.twoSlot_negM,
+NeSyCat.twoSlot_ret_zero, NeSyCat.twoSlot_ret_one, NeSyCat.twoSlot_orderMeet,
+NeSyCat.twoSlot_orderJoin}
+\leanok
 On $\Tmon\,\BoolS \cong \MassS^2$ (coordinates $(w_0,w_1)$, slot $0$
 the weight against, slot $1$ the weight for), the lifted family of
 Definition~\ref{def:lifted-connective} is
@@ -1037,6 +1052,7 @@ $\bot=(\infty,0)$, $\top=(0,\infty)$.
 \end{lemma}
 
 \begin{proof}
+\leanok
 Direct expansion of Definition~\ref{def:lifted-connective}
 at $*\in\{\wedge,\vee,\neg\}$ using $\bind$ of
 Definition~\ref{def:semiring-monad} for $S=\MassS$: the entry with
@@ -1059,6 +1075,10 @@ corrected upstream in the source paper.
 
 \begin{lemma}[Lifted connectives, log coordinates]
 \label{lem:lifted-log}
+\lean{NeSyCat.twoSlot_andM_log, NeSyCat.twoSlot_parrM_log, NeSyCat.twoSlot_negM_log,
+NeSyCat.twoSlot_ret_zero_log, NeSyCat.twoSlot_ret_one_log, NeSyCat.twoSlot_orderMeet,
+NeSyCat.twoSlot_orderJoin}
+\leanok
 On $\LTmon\,\BoolS \cong \LogS^2$ (coordinates $(a_0,a_1)$, the
 $\log$-image of Lemma~\ref{lem:lifted-mass} under
 Lemma~\ref{lem:log-iso}, products becoming sums and sums becoming
@@ -1082,6 +1102,7 @@ $\lse$):
 \end{lemma}
 
 \begin{proof}
+\leanok
 Apply Lemma~\ref{lem:log-iso} coordinatewise to
 Lemma~\ref{lem:lifted-mass}: $\log$ of a product is a sum, $\log$ of a
 sum is $\lse$ of the logs, and $\log$ is order-preserving so
@@ -1090,6 +1111,9 @@ $\max,\min$ pass through unchanged.
 
 \begin{lemma}[Lifted connectives, the {$[0,1]$} readout is derived]
 \label{lem:lifted-prob-readout}
+\lean{NeSyCat.andD, NeSyCat.parrD, NeSyCat.negD, NeSyCat.distReadout_andD,
+NeSyCat.distReadout_parrD, NeSyCat.distReadout_negD}
+\leanok
 Under the $\Dmon$ readout $p := w_1$ (so $w_0 = 1-p$, the mass-one
 slice $Z(w) = w_0+w_1=1$ of Lemma~\ref{lem:lifted-mass}), the lifted
 family restricts to
@@ -1105,6 +1129,7 @@ the Boolean operation, not stipulated.
 \end{lemma}
 
 \begin{proof}
+\leanok
 Substitute $w_0=1-p,\ w_1=p,\ v_0=1-q,\ v_1=q$ into
 Lemma~\ref{lem:lifted-mass}: $w_1v_1=pq$; the $\parr$-slot
 $w_0v_1+w_1v_0+w_1v_1 = (1-p)q+p(1-q)+pq = p+q-pq$; and
@@ -1114,6 +1139,9 @@ is $1-p$.
 
 \begin{definition}[Order family]
 \label{def:order-family}
+\lean{NeSyCat.orderedTwoSlot, NeSyCat.twoSlot_orderMeet, NeSyCat.twoSlot_orderJoin,
+NeSyCat.twoSlot_orderBot, NeSyCat.twoSlot_orderTop}
+\leanok
 For a lattice-semiring $S$ (Definition~\ref{def:lattice-semiring}), the
 \textbf{order family} on $\MS{S}\BoolS \cong S^2$ (coordinates
 $(w_0,w_1)$ as in Lemma~\ref{lem:truth-space-instances}) is the order

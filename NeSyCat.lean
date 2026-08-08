@@ -8,3 +8,5 @@ import NeSyCat.Truth.BLat2Mon
 import NeSyCat.Truth.BoolInstance
 import NeSyCat.Truth.Chain
 import NeSyCat.Truth.UnitInterval
+import NeSyCat.Truth.TruthSpace
+import NeSyCat.Truth.Lifted
