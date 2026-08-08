@@ -371,12 +371,12 @@ theorem negM_ret_zero : (negM (ret 0) : MS S BoolW) = ret 1 := by
   rw [twoSlot_negM, ret_zero_apply_zero, ret_zero_apply_one, twoSlot_ret_one]
 
 /-- Blueprint `lem:linear-lift` (De Morgan law, `⅋` to `\&`): `¬(w ⅋ v) = ¬w
-\& ¬v`. Unlike `negM_negM`/`negM_ret_zero` above, this needs `S`'s
-commutativity (the first coordinate's cross terms reorder as `w0v1+w1v0`
-vs. `w1v0+w0v1`, an `+`-only reordering that holds at any `[Semiring S]` —
-but stated under `[CommSemiring R]` alongside `negM_andM` to keep
+\& ¬v`. Unlike `negM_negM`/`negM_ret_zero` above, this identity's cross
+terms reorder as `w0v1+w1v0` vs. `w1v0+w0v1` — an `+`-only reordering that
+holds at any `[Semiring S]` — but it is stated under `[CommSemiring R]`
+alongside `negM_andM` (which does need `mul_comm`) to keep
 `lem:linear-lift`'s De Morgan package at one uniform hypothesis, matching
-the blueprint's own single-item bundling). -/
+the blueprint's own single-item bundling. -/
 theorem negM_parrM (w v : MS R BoolW) : negM (parrM w v) = andM (negM w) (negM v) := by
   apply twoSlot.injective
   rw [twoSlot_negM, twoSlot_andM, parrM_apply_zero, parrM_apply_one, negM_apply_zero,
