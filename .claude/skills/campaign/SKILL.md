@@ -54,7 +54,13 @@ Before dispatching work on any of:
 - item order and dependency structure within the batch;
 - an escalation budget per item (how many sonnet attempts before
   opus/fable);
-- acceptance criteria for the blind verifier.
+- acceptance criteria for the blind verifier, which must always include
+  the **correspondence sentinel**: `scripts/blueprint.sh` prints
+  `CORRESPONDENCE: OK` (structural editorial laws + Lean-kind checks)
+  followed by `BLUEPRINT: GREEN` for the batch's final commit, and every
+  commit that touched a blueprint-cited Lean declaration either staged
+  the corresponding `content.tex` tightening or carries a justified
+  `Blueprint-sync:` line.
 
 **Present the plan for user approval before any dispatch.** Do not
 skip this step because an item "looks easy" — the estimate itself is

@@ -32,7 +32,15 @@ others** — collect all results and report them together in Phase 2.
   `python3 -m json.tool .mcp.json` both parse.
 - Blueprint: `~/.venvs/leanblueprint/bin/leanblueprint --version` works;
   `dot -V` works; `scripts/blueprint.sh` is executable and prints
-  `BLUEPRINT: GREEN`.
+  `CORRESPONDENCE: OK` followed by `BLUEPRINT: GREEN` (the
+  blueprint<->Lean correspondence gate, ticket H1).
+- Feedback-loop hook: `.git/hooks/commit-msg` exists and is byte-identical
+  to `scripts/git-hooks/commit-msg` (`diff .git/hooks/commit-msg
+  scripts/git-hooks/commit-msg`). If missing or stale, instruct:
+  `cp scripts/git-hooks/commit-msg .git/hooks/commit-msg && chmod +x
+  .git/hooks/commit-msg` — this is the absolute blocker that enforces the
+  `Blueprint-sync:` commit-message law, and a Lean-only commit will
+  silently skip the feedback loop without it.
 - Git: `git status --short`, `git log --oneline -5`, current branch —
   note any uncommitted changes as a warning, not a failure.
 - Grind mode: `scripts/grind-mode.sh` with no arguments — report

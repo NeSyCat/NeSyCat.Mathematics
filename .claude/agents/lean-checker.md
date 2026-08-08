@@ -41,10 +41,28 @@ not. For each item you check:
    `sorry-report.sh`'s own scan.
 5. Blueprint cross-check: every `\leanok` in `blueprint/src/` sits on a
    declaration that exists and is sorry-free, and every `\lean{}` name
-   resolves. Evidence: run `scripts/blueprint.sh` (expect
-   `BLUEPRINT: GREEN`), plus a direct `grep`/`rg` of the named
-   declarations against `NeSyCat/`.
+   resolves. Evidence: run `scripts/blueprint.sh` and confirm it prints
+   `CORRESPONDENCE: OK` (the blueprint<->Lean structural + kind-check
+   gate) followed by `BLUEPRINT: GREEN` — reproduce both lines in your
+   report, do not trust a prior claim of green.
+6. **Statement register ("absolutely lean").** The item's blueprint
+   prose must read as tight as the Lean form it now cites: no hedge,
+   parenthetical, or looser gloss the proof has since made unnecessary.
+   Flag prose that is still more verbose or less precise than the
+   Lean statement/proof it is paired with.
+7. **Corollary-vs-remark triage.** A remark that carries a `\lean{}`
+   mark or contains display math is a promotion candidate — it should
+   likely be a corollary/proposition instead (this is exactly what
+   `.claude/hooks/lint-blueprint.py` nudges on edit; treat a
+   still-unresolved nudge as a finding, not noise).
+8. **Feedback-loop compliance.** For every item this batch's Lean edits
+   touch (i.e. every `\lean{}` name whose declaration changed), confirm
+   `blueprint/src/content.tex`'s text for that item was tightened to
+   match (criterion 6) in the same commit, OR the commit carries a
+   `Blueprint-sync: <reason>` line whose reason is actually justified
+   (a real no-statement-change edit, not a rubber stamp). Evidence:
+   `git show --stat <hash>` plus the commit message.
 
 Report verdict-first: `PASS` / `FAIL` / `PASS_WITH_NOTES`, then
 per-criterion evidence (command output, file:line references) for each
-of the five checks above.
+of the eight checks above.

@@ -45,8 +45,22 @@ possible without stopping to ask questions.
 - Include the `Co-Authored-By:` footer per session convention if one is
   in use.
 - When `blueprint/src/**` or any `\lean`/`\leanok` mark changes, run
-  `scripts/blueprint.sh` and confirm it prints `BLUEPRINT: GREEN`
-  before committing (`scripts/check.sh` remains the Lean commit gate).
+  `scripts/blueprint.sh` and confirm it prints `CORRESPONDENCE: OK`
+  followed by `BLUEPRINT: GREEN` before committing (`scripts/check.sh`
+  remains the Lean commit gate). `CORRESPONDENCE: OK` is the
+  blueprint<->Lean correspondence gate (structural editorial laws +
+  Lean-kind assertions per `\lean{}` name) — a red CORRESPONDENCE
+  section blocks exactly like a red decl-check.
+- **Blueprint-sync commit law.** A commit that touches a `NeSyCat/**.lean`
+  declaration cited by a blueprint `\lean{}` mark must either (1) stage
+  the corresponding `blueprint/src/content.tex` tightening alongside it
+  (the normal case — see the post-`\leanok` work-loop step below), or
+  (2) carry a commit-message line starting `Blueprint-sync: <reason>`
+  documenting a justified skip (e.g. a whitespace/comment-only edit or a
+  golf pass with no statement change) — the same justified-skip
+  convention as the never-lose-work line-count rule above. This is
+  mechanically enforced: `scripts/git-hooks/commit-msg`, installed at
+  `.git/hooks/commit-msg`, rejects a commit that satisfies neither.
 - Every `.lean` file begins with the standard copyright header (copy it
   from `NeSyCat/Monad/LatticeSemiring.lean`; Apache 2.0, see `LICENSE`);
   keep the style/header linter silent.
@@ -72,6 +86,14 @@ HARD BANS (no exceptions):
   with notes instead.
 
 ## Faithfulness
+
+**Absolutely lean.** Once an item's Lean form is settled (post-`\leanok`),
+the blueprint's own prose for that item is tightened to match it: Lean's
+economy and its natural proof language are the standard the informal
+text is pulled toward, not the other way around. A blueprint item is
+never left more verbose, more hedged, or less precise than the Lean
+declaration and proof it now cites — see the post-`\leanok` work-loop
+step below.
 
 - Every formal item gets a doc comment of the form:
   `/-- Blueprint <tex-label> (<name>): <informal statement>. -/`, where
@@ -148,9 +170,18 @@ Only after all five steps should you start editing.
    needed; the blueprint item's `\label` names the target).
 3. Run `scripts/check.sh` (module-scoped, then full project before
    committing).
-4. Commit (small, with the message format above).
-5. Update `PROGRESS.md`.
-6. Repeat. Work as long as possible without stopping to ask questions.
+4. Once the item is `\leanok` (fully proved, no `sorry`): tighten the
+   blueprint text against the formalized form — the "absolutely lean"
+   motto above — trimming hedges, matching the Lean statement's exact
+   hypotheses/conclusion shape, and preferring the proof's own natural
+   argument over a looser gloss written before the proof existed. Run
+   `scripts/blueprint.sh` and confirm `CORRESPONDENCE: OK`.
+5. Commit (small, with the message format above; stage the tightened
+   `blueprint/src/content.tex` alongside the Lean change, or add a
+   `Blueprint-sync:` line if step 4 found nothing to tighten — see the
+   Blueprint-sync commit law above).
+6. Update `PROGRESS.md`.
+7. Repeat. Work as long as possible without stopping to ask questions.
 
 ## Tooling
 
