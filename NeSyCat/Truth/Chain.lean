@@ -10,8 +10,10 @@ import NeSyCat.Truth.BLat2Mon
 # Chains are linear, unit-bound decompositions, and MIX
 
 Blueprint items `thm:chain-lin`, `lem:dualabsorb-decomposition`, `lem:mix`
-(`blueprint/src/content.tex`, §"Truth-value structures", `[NeSy26, App. A]`;
-vocabulary from linear logic, Girard 1987).
+(`blueprint/src/content.tex`, §"Truth-value structures") — the library's
+own development; the MIX vocabulary is from linear logic (Girard 1987),
+and `[NeSy26, App. A]` is cited by the blueprint only on the concrete
+row lemmas, not on these.
 
 ## `thm:chain-lin`
 
