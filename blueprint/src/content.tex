@@ -662,7 +662,7 @@ and its $(D \to M\Omega) \to M\Omega$ quantifier semantics, all now
 working text of \emph{NeSyCat Theory: Semantics in Kleisli Categories
 for Neuro-Symbolic AI in HaskTorch} (\textbf{NeSyCat Theory v2}), lines
 1--396 of \texttt{new.tex} in the \texttt{NeSyCat.Logics} repository
-(sha256 prefix \texttt{e212698c94d35a48} of that working text, itself
+(sha256 prefix \texttt{9a84f22551f1e9ec} of that working text, itself
 layered over \texttt{NeSyCat.Logics} git ref \texttt{1ade210}); no
 notation from the superseded §3+ of the NeSy26 paper is reused below.
 The theory is a stack of four signature/interpretation layers ---
@@ -690,7 +690,7 @@ $(\mathcal C, \otimes_{\mathcal C}, \mathrm I_{\mathcal C}, \mathsf{copy}, \math
 is a symmetric monoidal category equipped with a commutative comonoid
 $\mathsf{copy}_X \colon X \to X \otimes_{\mathcal C} X$,
 $\mathsf{del}_X \colon X \to \mathrm I_{\mathcal C}$ on every object
-$X$, natural in $X$ and compatible with $\otimes_{\mathcal C}$.
+$X$, compatible with $\otimes_{\mathcal C}$.
 [NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
 
@@ -1018,16 +1018,12 @@ $\sem x$ & $\eta_{\mathcal I([x])}$ & $\mathcal I([x]) \to \mathcal M\mathcal I(
 $\sem{f(\vec\xi)}$ & $\sem{\vec\xi} \seqop \mathcal I(f)$ & $\mathcal I(\inn(\vec\xi)) \to \mathcal M\,\mathcal I(\mathrm{cod}(f))$ \\
 $\sem{R(\vec\xi)}$ & $\sem{\vec\xi} \seqop \mathcal I(R)$ & $\mathcal I(\inn(\vec\xi)) \to \mathcal M\Omega$ \\
 $\sem{*(\vec\phi)}$ & $\sem{\vec\phi} \seqop \mathcal I(*)$ & $\mathcal I([\vec\phi]) \to \mathcal M\Omega$ \\
-$\sem{Qx(\phi)}$ & $\bigotimes_i \sem\phi_{[x\mapsto\mathcal I([x])_i]} \seq \mathcal I(Q)_{|\mathcal I([x])|}$ & $\mathcal I([\phi]\setminus[x]) \to \mathcal M\Omega$ \\
+$\sem{Q\vec x(\phi)}$ & $\bigotimes_i \sem\phi_{[\vec x\mapsto\mathcal I([\vec x])_i]} \seq \mathcal I(Q)_{|\mathcal I([\vec x])|}$ & $\mathcal I([\phi]\setminus[\vec x]) \to \mathcal M\Omega$ \\
 $\sem{\phi[x:=\xi]}$ & $\sem\phi_{[x\mapsto\sem\xi]}$ & $\mathcal I([\phi]_{[x]\mapsto\inn(\xi)}) \to \mathcal M\Omega$ \\
 \hline
 \end{tabular}
 \end{center}
-(the Type column above records only the overall domain and codomain of
-each clause; Definition~\ref{def:feed-forward}'s own type already spells
-out the intermediate step through $\mathcal I(\mathrm{dom}(f))$, resp.\
-$\Omega^{\otimes\mathrm{ari}(*)}$, that a fully expanded column would
-repeat). The semantics of a \emph{list} of formulas is the tensor of
+The semantics of a \emph{list} of formulas is the tensor of
 the components over their shared context,
 \[
   \sem{\vec\phi} := \mathsf{copy} \seq (\sem{\phi_1} \otimes \cdots
@@ -1039,30 +1035,43 @@ where $\mathsf{copy}$ routes each shared variable to every component
 using it, built from $\mathsf{copy}$ and the symmetry of the CD
 category $\mathcal C$ (Definition~\ref{def:cd-category}), and is the
 identity on disjoint contexts. For a (finite-sorted) quantified formula
-$Qx(\phi)$, enumerate the states of $\mathcal I([x])$ as
-$\mathcal I([x])_i \colon \mathrm I \to \mathcal I([x])$,
-$i = 1,\ldots,|\mathcal I([x])|$; if $x$ occupies position $p$ in the
-canonical context
-$[\phi] = [y_1,\ldots,y_{p-1},x,y_{p+1},\ldots,y_m]$, the
-\emph{insertion} of the $i$-th state at position $p$ is
+$Q\vec x(\phi)$ with $\vec x = [x_{p_1},\ldots,x_{p_l}] \subseteq [\phi]$
+a sublist of the canonical context occupying positions
+$p_1 < \cdots < p_l$, the \textbf{product state space}
+$\mathcal I([\vec x]) := \mathcal I([x_{p_1}]) \otimes \cdots \otimes
+\mathcal I([x_{p_l}])$ is again finite, enumerated lexicographically by
+$\mathcal I([\vec x])_i \colon \mathrm I \to \mathcal I([\vec x])$,
+$i = 1,\ldots,|\mathcal I([\vec x])| = \prod_{j=1}^l|\mathcal
+I([x_{p_j}])|$, each $i$ decomposing lexicographically into components
+$(i_1,\ldots,i_l)$ indexing the states of
+$\mathcal I([x_{p_1}]),\ldots,\mathcal I([x_{p_l}])$. Splitting $[\phi]$
+at the positions of $\vec x$ into the (possibly empty) gaps
+$[\phi] = [z_0] + [x_{p_1}] + [z_1] + \cdots + [x_{p_l}] + [z_l]$, so
+that $[\phi]\setminus[\vec x] = [z_0]+\cdots+[z_l]$, the
+\emph{insertion} of the $i$-th product state at positions
+$\vec p = (p_1,\ldots,p_l)$ is
 \[
-  \mathcal I([x])_i^{(p)} := \mathrm{id}_{\mathcal I([y_1,\ldots,y_{p-1}])}
-  \otimes \mathcal I([x])_i \otimes \mathrm{id}_{\mathcal
-  I([y_{p+1},\ldots,y_m])} \colon \mathcal I([\phi]\setminus[x]) \to
-  \mathcal I([\phi]),
+  \mathcal I([\vec x])_i^{(\vec p)} := \mathrm{id}_{\mathcal I([z_0])}
+  \otimes \mathcal I([x_{p_1}])_{i_1} \otimes \mathrm{id}_{\mathcal
+  I([z_1])} \otimes \cdots \otimes \mathcal I([x_{p_l}])_{i_l} \otimes
+  \mathrm{id}_{\mathcal I([z_l])} \colon \mathcal I([\phi]\setminus[\vec
+  x]) \to \mathcal I([\phi]),
 \]
-via the unitor identifying an empty context part with the tensor unit
-$\mathrm I$, so every position $p$ is covered; then
-$\sem\phi_{[x \mapsto \mathcal I([x])_i]} := \mathcal I([x])_i^{(p)}
-\seq \sem\phi$ and
+via the unitors identifying each empty gap with the tensor unit
+$\mathrm I$, so every $\vec p$ is covered; then
+$\sem\phi_{[\vec x \mapsto \mathcal I([\vec x])_i]} := \mathcal
+I([\vec x])_i^{(\vec p)} \seq \sem\phi$ and
 \[
-  \sem{Qx(\phi)} = \bigotimes_i \sem\phi_{[x \mapsto \mathcal
-  I([x])_i]} \seq \mathcal I(Q)_{|\mathcal I([x])|} \colon \mathcal
-  I([\phi]\setminus[x]) \to (\mathcal M\Omega)^{\otimes|\mathcal
-  I([x])|} \to \mathcal M\Omega.
+  \sem{Q\vec x(\phi)} = \bigotimes_i \sem\phi_{[\vec x \mapsto \mathcal
+  I([\vec x])_i]} \seq \mathcal I(Q)_{|\mathcal I([\vec x])|} \colon
+  \mathcal I([\phi]\setminus[\vec x]) \to (\mathcal M\Omega)^{\otimes
+  |\mathcal I([\vec x])|} \to \mathcal M\Omega,
 \]
-The substituted formula $\phi[x:=\xi]$ uses the same insertion notation
-for the \emph{term}'s denotation: with
+the single-variable case $l=1$ ---with $\vec x = [x]$ and gaps
+$[z_0]=[y_1,\ldots,y_{p-1}]$, $[z_1]=[y_{p+1},\ldots,y_m]$ for $x$ at
+position $p$--- recovering the source's original clause $\sem{Qx(\phi)}$.
+The substituted formula $\phi[x:=\xi]$ uses the analogous
+single-position insertion notation for the \emph{term}'s denotation: with
 $\sem\xi^{(p)} := \mathrm{id}_{\mathcal I([y_1,\ldots,y_{p-1}])} \otimes
 \sem\xi \otimes \mathrm{id}_{\mathcal I([y_{p+1},\ldots,y_m])}$, define
 $\sem\phi_{[x \mapsto \sem\xi]} := \sem\xi^{(p)} \seqop \sem\phi$, so
@@ -1080,6 +1089,23 @@ the term itself (Example~\ref{ex:dice-scoping}).
 \uses{def:grammatical-signature, def:feed-forward, def:domain-interpretation, def:logical-interpretation, def:cd-category}
 [NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
+
+\begin{lemma}[Quantifier nestability]
+\label{lem:quantifier-nestable}
+Call a family $\mathcal I(Q)_n$ ($n = 1,2,\ldots$) \textbf{nestable}
+when $\mathcal I(Q)_{mn} = \bigl(\mathcal I(Q)_n\bigr)^{\otimes m} \seq
+\mathcal I(Q)_m$ (grouping $mn$ inputs into $m$ blocks of $n$), and
+\textbf{symmetric} when $\mathcal I(Q)_n$ is invariant under
+permutations of its $n$ inputs. For a symmetric, nestable quantifier
+family, the simultaneous interpretation
+$\sem{Q\vec x(\phi)}$ of Definition~\ref{def:kleisli-interpretation}
+equals the iterated interpretation
+$\sem{Qx_1(Qx_2(\cdots(\phi)\cdots))}$, for any ordering of $\vec x$.
+The four running quantifier columns --- Max, Min, the $\Sigma$--$\Pi$
+pair, and their log-column twins --- all satisfy both hypotheses.
+\uses{def:kleisli-interpretation, def:logical-interpretation}
+[NeSyCat Theory v2 (new.tex)]
+\end{lemma}
 
 \begin{example}[Dice or die]
 \label{ex:dice-scoping}

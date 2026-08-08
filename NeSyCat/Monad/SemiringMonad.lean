@@ -220,7 +220,7 @@ general semiring), but for the monad's own commutativity. Downstream, it is
 the monad's commutativity — not the bare monad laws — that the lifted
 connectives of chapter 2 (`def:lifted-connective`) and the
 order-irrelevance of independent binds in the `Do`-notation semantics
-(`def:semantics`) both rely on. -/
+(`def:kleisli-interpretation`) both rely on. -/
 theorem dst_comm_iff :
     (∀ a b : S, a * b = b * a) ↔
       (∀ (X Y : Type*) (f : MS S X) (g : MS S Y), dstL f g = dstR f g) := by
