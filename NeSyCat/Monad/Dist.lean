@@ -99,4 +99,3 @@ noncomputable def bind (ρ : Dist X) (k : X → Dist Y) : Dist Y :=
 end Dist
 
 end NeSyCat
--- hook-test: scripts/git-hooks/commit-msg feedback-loop gate (ticket H1)
