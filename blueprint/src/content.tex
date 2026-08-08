@@ -169,7 +169,7 @@ enforce, not something currently checked.
 \lean{NeSyCat.LatSRng, NeSyCat.LatCSRng, NeSyCat.BLatSRng, NeSyCat.BLatCSRng, NeSyCat.BoolW.instBLatCSRng, NeSyCat.instLatCSRngNNReal, NeSyCat.instLatCSRngLogS}
 \leanok
 A \textbf{lattice-semiring} ($\mathrm{LatSRng}$) is a semiring
-$(S, \oplus, \otimes, 0, 1)$ --- not assumed commutative --- equipped
+$(S, \oplus, \otimes, 0, 1)$ equipped
 with a lattice order $\le$ on the carrier $S$: a meet $\wedge$ and join
 $\vee$ exist for every pair of elements, and $\oplus$, $\otimes$ are
 each monotone in \emph{both} arguments with respect to $\le$. A
@@ -177,8 +177,7 @@ each monotone in \emph{both} arguments with respect to $\le$. A
 lattice-semiring whose $\otimes$ is commutative; a \textbf{bounded
 lattice-semiring} ($\mathrm{BLatSRng}$, resp.\ its commutative
 refinement $\mathrm{BLatCSRng}$) additionally carries an in-carrier
-$\bot$ and $\top$. Plain (possibly noncommutative, unbounded) semirings
-need no separate name of their own here --- they are just semirings.
+$\bot$ and $\top$.
 
 The library's three running instances are all commutative
 ($\mathrm{LatCSRng}$); only the Boolean one is bounded
@@ -200,19 +199,26 @@ without adjoining $\infty$ externally:
 \emph{Not} an instance: the probability row $(\ProbS, p{+}q{-}pq,
 \cdot)$ carried by $\max,\min$ as its lattice --- see
 Lemma~\ref{lem:prob-not-semiring}.
-
-On the general (possibly noncommutative) case: $\oplus$'s two
-directions of monotonicity are never independent data --- a semiring's
-addition is unconditionally commutative, so right-monotonicity always
-follows from left-monotonicity --- but $\otimes$'s two directions
-genuinely are, absent commutativity of $\otimes$; they collapse to one
-only in the commutative refinement $\mathrm{LatCSRng}$. This library
-states the lattice-semiring notion at this natural level of generality,
-splitting it the way Mathlib splits \texttt{Semiring}/\texttt{CommSemiring};
-[NeSy26, App.~A] states the commutative case throughout, matching the
-library's three running instances.
 [NeSy26, App.~A]
 \end{definition}
+
+\begin{remark}[Why the noncommutative generality]
+\label{rem:lattice-semiring-generality}
+Plain (possibly noncommutative, unbounded) semirings need no separate
+name of their own in Definition~\ref{def:lattice-semiring} --- they are
+just semirings. On the general (possibly noncommutative) case:
+$\oplus$'s two directions of monotonicity are never independent data
+--- a semiring's addition is unconditionally commutative, so
+right-monotonicity always follows from left-monotonicity --- but
+$\otimes$'s two directions genuinely are, absent commutativity of
+$\otimes$; they collapse to one only in the commutative refinement
+$\mathrm{LatCSRng}$. This library states the lattice-semiring notion at
+this natural level of generality, splitting it the way Mathlib splits
+\texttt{Semiring}/\texttt{CommSemiring}; [NeSy26, App.~A] states the
+commutative case throughout, matching the library's three running
+instances.
+\uses{def:lattice-semiring}
+\end{remark}
 
 \begin{lemma}[Probability is not a semiring]
 \label{lem:prob-not-semiring}
@@ -234,35 +240,61 @@ it is the mass-one slice of the \emph{lifted} Boolean De~Morgan family
 of Definition~\ref{def:lifted-connective} (a pair of commutative
 monoids, not a semiring), read out as in
 Lemma~\ref{lem:lifted-prob-readout}, not a semiring in its own right.
-\emph{Proof.} The displayed numerical instance witnesses the failure
-of distributivity directly. \qed
 \uses{def:lattice-semiring}
 \lean{NeSyCat.prob_not_semiring}
 \leanok
 [NeSy26, App.~A]
 \end{lemma}
 
+\begin{proof}
+\leanok
+The displayed numerical instance witnesses the failure
+of distributivity directly.
+\end{proof}
+
 \begin{definition}[Semiring monad $\MS{S}$]
 \label{def:semiring-monad}
 \lean{NeSyCat.MS, NeSyCat.ret, NeSyCat.bind, NeSyCat.bind_apply}
 \leanok
-Let $S = (S,\oplus,\otimes,0,1)$ be a semiring (not assumed
-commutative). The \textbf{semiring monad} $\MS{S}$ sends a set $X$ to
-the set $\MS{S}X$ of finitely supported functions $f \colon X \to S$ (a
-finitely-supported $S$-weighted formal combination of elements of
-$X$), with
+Let $S = (S,\oplus,\otimes,0,1)$ be a semiring. The \textbf{semiring
+monad} $\MS{S}$ sends a set $X$ to the set $\MS{S}X$ of finitely
+supported functions $f \colon X \to S$, with
 \[
   \Ret(x) := \delta_x, \quad \delta_x(x')=1 \text{ if } x'=x,\ 0
   \text{ otherwise},
   \qquad
   (f \bind k)(y) := \bigoplus_{x \in X} f(x) \otimes k(x)(y)
 \]
-for $k \colon X \to \MS{S}Y$ (a finite sum, since $f$ is finitely
-supported, in this left-to-right order $f(x)\otimes k(x)(y)$ throughout
---- no step needs $\otimes$ to commute). Equivalently, $\bind$ is
-matrix multiplication over $S$.
+for $k \colon X \to \MS{S}Y$.
 [NeSy26, App.~A]
 \end{definition}
+
+\begin{remark}[Reading $\MS{S}$ and its bind]
+\label{rem:semiring-monad-reading}
+$\MS{S}X$ reads as the set of finitely-supported $S$-weighted formal
+combinations of elements of $X$; the sum defining $f \bind k$ in
+Definition~\ref{def:semiring-monad} is finite since $f$ is finitely
+supported, and is taken in the left-to-right order $f(x)\otimes
+k(x)(y)$ throughout --- no step needs $\otimes$ to commute.
+\uses{def:semiring-monad}
+\end{remark}
+
+\begin{corollary}[Bind is matrix multiplication]
+\label{cor:bind-matrix-mult}
+$\bind$ of Definition~\ref{def:semiring-monad} is matrix multiplication
+over $S$: $f \colon X \to S$ and $k \colon X \to \MS{S}Y$ correspond to
+a row vector and an $X \times Y$ matrix over $S$, and $(f \bind k)(y) =
+\bigoplus_x f(x) \otimes k(x)(y)$ is exactly the $y$-th entry of their
+product.
+\uses{def:semiring-monad}
+[NeSy26, App.~A]
+\end{corollary}
+
+\begin{proof}
+Immediate from unfolding the $\bind$ formula of
+Definition~\ref{def:semiring-monad} against the matrix-product formula
+$(fK)(y) = \bigoplus_x f(x)\otimes K(x,y)$ at $K(x,y) := k(x)(y)$.
+\end{proof}
 
 % Declared blueprint split (C1-T2): the source clause "with algebras
 % the $S$-semimodules" is split out of the theorem statement below into
@@ -275,30 +307,58 @@ matrix multiplication over $S$.
 \lean{NeSyCat.ret_bind, NeSyCat.bind_ret, NeSyCat.bind_assoc, NeSyCat.Tens}
 \leanok
 For every semiring $S$, $(\MS{S}, \Ret, \bind)$ of
-Definition~\ref{def:semiring-monad} is a monad on $\mathrm{Set}$. The
-semiring laws of $S$ become exactly
-the monad laws: commutativity and associativity of $\oplus$ give
-associativity and commutativity of independent binds
-(``addition marginalises''), associativity of $\otimes$ gives
-associativity of chained binds (``multiplication chains''), and
-distributivity of $\otimes$ over $\oplus$ gives associativity of
-$\bind$ itself --- none of this needs $\otimes$ to commute. In
-particular this instantiates to $\Tmon := \MS{\MassS}$ (the tensor
-monad); the further instantiation to $\LTmon := \MS{\LogS}$ (the
-log-tensor monad) becomes available once $\LogS$ itself carries a
-semiring structure, transported along the log isomorphism of
-Lemma~\ref{lem:log-iso}.
-\emph{Proof.} Unfolding $\bind$ from Definition~\ref{def:semiring-monad}, the
+Definition~\ref{def:semiring-monad} is a monad on $\mathrm{Set}$:
+commutativity and associativity of $\oplus$ give associativity and
+commutativity of independent binds, associativity of $\otimes$ gives
+associativity of chained binds, and distributivity of $\otimes$ over
+$\oplus$ gives associativity of $\bind$ itself.
+\uses{def:semiring-monad}
+[NeSy26, App.~A]
+\end{theorem}
+
+\begin{proof}
+\leanok
+Unfolding $\bind$ from Definition~\ref{def:semiring-monad}, the
 left and right unit laws are the two distributivity-free identities
 $\delta_x \bind k = k(x)$ and $f \bind \Ret = f$ (each uses only a unit
 law of $S$), and associativity of $\bind$ expands, on both sides, to a
 double sum over $S$ that is rearranged into the other order by
 associativity and commutativity of $\oplus$ together with
 associativity of $\otimes$ and distributivity of $\otimes$ over
-$\oplus$ --- commutativity of $\otimes$ is never invoked. \qed
-\uses{def:semiring-monad}
+$\oplus$ --- commutativity of $\otimes$ is never invoked.
+\end{proof}
+
+\begin{remark}[Semiring monad laws, informally]
+\label{rem:semiring-monad-laws-gloss}
+Informally, in Theorem~\ref{thm:semiring-monad-laws}: commutativity and
+associativity of $\oplus$ is ``addition marginalises'' (independent
+binds commute and associate), and associativity of $\otimes$ is
+``multiplication chains'' (chained binds associate); none of this needs
+$\otimes$ to commute.
+\uses{thm:semiring-monad-laws}
+\end{remark}
+
+\begin{abbreviation}[Tensor monad]
+\label{abbr:tensor-monad}
+\lean{NeSyCat.Tens}
+\leanok
+Write $\Tmon := \MS{\MassS}$, the instance of
+Theorem~\ref{thm:semiring-monad-laws} at $S = \MassS$.
+\uses{thm:semiring-monad-laws}
 [NeSy26, App.~A]
-\end{theorem}
+\end{abbreviation}
+
+\begin{abbreviation}[Log-tensor monad]
+\label{abbr:log-tensor-monad}
+\lean{NeSyCat.LogTens}
+\leanok
+Write $\LTmon := \MS{\LogS}$, the instance of
+Theorem~\ref{thm:semiring-monad-laws} at $S = \LogS$, available once
+$\LogS$ carries a semiring structure, transported along the log
+isomorphism of Lemma~\ref{lem:log-iso}.
+\uses{thm:semiring-monad-laws, lem:log-iso}
+[NeSy26, App.~A]
+\end{abbreviation}
 
 \begin{theorem}[Semiring monad commutativity]
 \label{thm:semiring-monad-commutative}
@@ -317,7 +377,13 @@ $\dstR(f,g)(x,y) = g(y)\otimes f(x)$. Then $\MS{S}$
 (Theorem~\ref{thm:semiring-monad-laws}) is a \emph{commutative} monad
 --- $\dstL(f,g) = \dstR(f,g)$ for every $X,Y,f,g$ --- \emph{if and only
 if} $S$ itself is commutative.
-\emph{Proof.} Forward: $\otimes$ commuting makes the two pointwise
+\uses{def:semiring-monad, thm:semiring-monad-laws}
+[NeSy26, App.~A; Coumans--Jacobs, Lem.~23]
+\end{theorem}
+
+\begin{proof}
+\leanok
+Forward: $\otimes$ commuting makes the two pointwise
 formulas $f(x)\otimes g(y)$ and $g(y)\otimes f(x)$ agree directly.
 Converse: testing $\dstL=\dstR$ at $X=Y=\{*\}$ (a one-point set) against
 the two point masses $\delta_a,\delta_b$ ($a,b\in S$) evaluates both
@@ -325,21 +391,25 @@ sides at $(*,*)$ to $a\otimes b$, resp.\ $b\otimes a$, recovering
 $a\otimes b = b\otimes a$ for arbitrary $a,b$ --- so no weaker
 hypothesis than full commutativity of $\otimes$ suffices; even the
 single instance of $\dstL=\dstR$ at this one-point set already forces
-it. \qed
-This is exactly where $\otimes$-commutativity is first needed in this
-chapter: not for the monad laws of Theorem~\ref{thm:semiring-monad-laws}
-(which hold for a general, possibly noncommutative semiring), but for
-the monad's own commutativity in the technical, monad-theoretic sense
-above. Downstream, it is this monad-level commutativity --- not the
-bare monad laws --- that the lifted connectives of
+it.
+\end{proof}
+
+\begin{remark}[Where commutativity is first needed]
+\label{rem:monad-commutativity-role}
+Theorem~\ref{thm:semiring-monad-commutative} is exactly where
+$\otimes$-commutativity is first needed in this chapter: not for the
+monad laws of Theorem~\ref{thm:semiring-monad-laws} (which hold for a
+general, possibly noncommutative semiring), but for the monad's own
+commutativity in the technical, monad-theoretic sense above.
+Downstream, it is this monad-level commutativity --- not the bare
+monad laws --- that the lifted connectives of
 Definition~\ref{def:lifted-connective} (built by binding several
 arguments and pushing forward along a Boolean operation, order
 immaterial only once the binds commute) and the order-irrelevance of
 independent binds in the $\Do$-notation semantics of
 Definition~\ref{def:kleisli-interpretation} both rely on.
-\uses{def:semiring-monad, thm:semiring-monad-laws}
-[NeSy26, App.~A; Coumans--Jacobs, Lem.~23]
-\end{theorem}
+\uses{thm:semiring-monad-commutative, def:lifted-connective, def:kleisli-interpretation}
+\end{remark}
 
 \begin{remark}[Semiring monad algebras]
 \label{rem:semiring-monad-algebras}
@@ -351,29 +421,51 @@ claimed by this or any prior ticket.
 [NeSy26, App.~A]
 \end{remark}
 
+\begin{lemma}[Mass-one closure]
+\label{lem:dist-closure}
+\lean{NeSyCat.ret_mass_one, NeSyCat.bind_mass_one}
+\leanok
+For the mass semiring monad $\Tmon = \MS{\MassS}$
+(Definition~\ref{def:semiring-monad}), $\Ret$ has mass one, and
+$\bind$ of mass-one families has mass one: if $\sum_x \rho(x) = 1$ and
+$\sum_y k(x)(y) = 1$ for every $x$, then $\sum_y (\rho \bind k)(y) = 1$.
+\uses{def:semiring-monad}
+[NeSy26, App.~A]
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\Ret(x)=\delta_x$ has mass
+$\sum_{x'}\delta_x(x')=1$, and if $\sum_x\rho(x)=1$ and
+$\sum_y k(x)(y)=1$ for every $x$ then
+\[
+  \sum_y (\rho \bind k)(y) = \sum_y\sum_x \rho(x)\,k(x)(y)
+  = \sum_x \rho(x) \sum_y k(x)(y) = \sum_x \rho(x)\cdot 1 = 1.
+\]
+\end{proof}
+
 \begin{definition}[Distribution monad]
 \label{def:dist-monad}
-\lean{NeSyCat.Dist, NeSyCat.ret_mass_one, NeSyCat.bind_mass_one, NeSyCat.Dist.pure, NeSyCat.Dist.bind}
+\lean{NeSyCat.Dist, NeSyCat.Dist.pure, NeSyCat.Dist.bind}
 \leanok
 The \textbf{distribution monad} is the mass-one submonad of the mass
 semiring monad,
 \[
   \Dmon X := \{\, \rho \in \MS{\MassS} X \mid \textstyle\sum_x \rho(x) = 1 \,\}
-  \;\subset\; \MS{\MassS} X \;=\; \Tmon X.
+  \;\subset\; \MS{\MassS} X \;=\; \Tmon X,
 \]
-This is \emph{not} $\MS{\ProbS}$: $\ProbS$ is not a semiring
-(Lemma~\ref{lem:prob-not-semiring}), so $\MS{\ProbS}$ is not even
-defined by Definition~\ref{def:semiring-monad}. $\Dmon$ is closed
-under $\Ret$ and $\bind$: $\Ret(x)=\delta_x$ has mass
-$\sum_{x'}\delta_x(x')=1$, and if $\sum_x\rho(x)=1$ and
-$\sum_y k(x)(y)=1$ for every $x$ then
-\[
-  \sum_y (\rho \bind k)(y) = \sum_y\sum_x \rho(x)\,k(x)(y)
-  = \sum_x \rho(x) \sum_y k(x)(y) = \sum_x \rho(x)\cdot 1 = 1,
-\]
-so $\Dmon$ inherits a monad structure from $\Tmon$.
+well-defined by Lemma~\ref{lem:dist-closure}.
+\uses{lem:dist-closure, def:semiring-monad}
 [NeSy26, App.~A]
 \end{definition}
+
+\begin{remark}[Not $\MS{\ProbS}$]
+\label{rem:dist-not-prob-semiring}
+$\Dmon$ is not $\MS{\ProbS}$: $\ProbS$ is not a semiring
+(Lemma~\ref{lem:prob-not-semiring}), so $\MS{\ProbS}$ is not even
+defined by Definition~\ref{def:semiring-monad}.
+\uses{def:dist-monad, lem:prob-not-semiring}
+\end{remark}
 
 \begin{lemma}[Log isomorphism]
 \label{lem:log-iso}
@@ -384,7 +476,13 @@ is a semiring isomorphism ($e^{\lse(u,v)} = e^u+e^v$), and it
 transports the monad $\MS{\MassS} = \Tmon$ pointwise (applying $\log$
 to every weight) to an isomorphism of monads
 $\Tmon \cong \LTmon = \MS{\LogS}$.
-\emph{Proof.} $\log$ is a bijection $\MassS \to \LogS$ carrying $+
+\uses{def:semiring-monad, thm:semiring-monad-laws}
+[NeSy26, App.~A]
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\log$ is a bijection $\MassS \to \LogS$ carrying $+
 \mapsto \lse$ (definition of $\lse$) and $\cdot \mapsto +$ (log of a
 product), hence a semiring isomorphism by
 Definition~\ref{def:lattice-semiring}; applying it coordinatewise to a
@@ -392,10 +490,8 @@ finitely supported weight function commutes with $\Ret$ (both are the
 indicator/point mass) and with $\bind$ (a monad-law computation as in
 Theorem~\ref{thm:semiring-monad-laws}, transported along the semiring
 isomorphism), so it is a monad isomorphism $\MS{\MassS} \cong
-\MS{\LogS}$. \qed
-\uses{def:semiring-monad, thm:semiring-monad-laws}
-[NeSy26, App.~A]
-\end{lemma}
+\MS{\LogS}$.
+\end{proof}
 
 % ============================================================
 \section{Truth spaces and lifted connectives}
@@ -407,12 +503,17 @@ For a semiring monad $\MS{S}$ (Definition~\ref{def:semiring-monad}) or
 $\Idmon$, the \textbf{truth space} is $\MS{S}\BoolS$ (resp.\
 $\Idmon\,\BoolS = \BoolS$): the monad applied to the Boolean carrier,
 with Boolean value $0$ read as \emph{False} and $1$ as \emph{True}.
-Stated for a general semiring monad $\MS{S}$; [NeSy26, App.~A] only
-tabulates the four instances $\Idmon, \Dmon, \Tmon, \LTmon$ used in the
-paper.
 \uses{def:semiring-monad}
 [NeSy26, App.~A]
 \end{definition}
+
+\begin{remark}[Generality of the truth-space definition]
+\label{rem:truth-space-generality}
+Definition~\ref{def:truth-space} is stated for a general semiring monad
+$\MS{S}$; [NeSy26, App.~A] only tabulates the four instances $\Idmon,
+\Dmon, \Tmon, \LTmon$ used in the paper.
+\uses{def:truth-space}
+\end{remark}
 
 \begin{lemma}[Truth-space instances]
 \label{lem:truth-space-instances}
@@ -427,33 +528,56 @@ The four truth spaces of the paper and their readouts:
 \item $\LTmon\,\BoolS \cong \LogS^2$ via $a \mapsto (a(0), a(1))$, the
   image of the $\Tmon$ readout under Lemma~\ref{lem:log-iso}.
 \end{itemize}
-\emph{Proof.} $\Idmon$ and $\Tmon,\LTmon$ readouts are immediate from
-finite support; the $\Dmon$ readout uses the mass-one constraint of
-Definition~\ref{def:dist-monad} to eliminate $p(0)$. \qed
 \uses{def:truth-space, def:dist-monad, lem:log-iso}
 [NeSy26, App.~A]
 \end{lemma}
+
+\begin{proof}
+$\Idmon$ and $\Tmon,\LTmon$ readouts are immediate from
+finite support; the $\Dmon$ readout uses the mass-one constraint of
+Definition~\ref{def:dist-monad} to eliminate $p(0)$.
+\end{proof}
 
 \begin{definition}[Lifted connective]
 \label{def:lifted-connective}
 Let $* \colon \BoolS^n \to \BoolS$ be an $n$-ary Boolean operation and
 $\MS{S}$ a semiring monad. The \textbf{lifted connective}
-$*_{\MS{S}} \colon (\MS{S}\BoolS)^n \to \MS{S}\BoolS$ is: bind each of
-the $n$ arguments in turn (equivalently, pair them via the $n$-ary
-tensorial strength $\mathrm{dst}$ into one element of
-$\MS{S}(\BoolS^n)$) and push forward along $*$,
+$*_{\MS{S}} \colon (\MS{S}\BoolS)^n \to \MS{S}\BoolS$ is
 \[
   *_{\MS{S}}(w_1,\ldots,w_n)
   := w_1 \bind \lambda u_1.\, \cdots\, w_n \bind \lambda u_n.\,
      \Ret(*(u_1,\ldots,u_n)).
 \]
-Stated for a general $n$-ary Boolean operation via the $n$-ary
-strength; [NeSy26, App.~A] spells out only the binary cases
-$\wedge,\vee,\parr,\AndC$ and the unary $\neg$, via the equivalent
-``outer product then regroup along the operation'' description.
 \uses{def:truth-space}
 [NeSy26, App.~A]
 \end{definition}
+
+\begin{corollary}[Lifted connective via strength]
+\label{cor:lifted-connective-strength}
+$*_{\MS{S}}(w_1,\ldots,w_n)$ of Definition~\ref{def:lifted-connective}
+equals $\mathrm{dst}(w_1,\ldots,w_n) \bind (\Ret \circ *)$, where
+$\mathrm{dst} \colon (\MS{S}\BoolS)^n \to \MS{S}(\BoolS^n)$ is the
+$n$-ary tensorial strength pairing the $n$ arguments into one element
+of $\MS{S}(\BoolS^n)$.
+\uses{def:lifted-connective}
+[NeSy26, App.~A]
+\end{corollary}
+
+\begin{proof}
+Both sides bind each of $w_1,\ldots,w_n$ in turn against $\Ret \circ *$;
+this is exactly the definition of the $n$-ary strength $\mathrm{dst}$
+as the iterated bind pairing the arguments.
+\end{proof}
+
+\begin{remark}[Generality of the lifted connective]
+\label{rem:lifted-connective-generality}
+Definition~\ref{def:lifted-connective} is stated for a general $n$-ary
+Boolean operation via the $n$-ary strength; [NeSy26, App.~A] spells out
+only the binary cases $\wedge,\vee,\parr,\AndC$ and the unary $\neg$,
+via the equivalent ``outer product then regroup along the operation''
+description.
+\uses{def:lifted-connective}
+\end{remark}
 
 \begin{lemma}[Lifted connectives, mass coordinates]
 \label{lem:lifted-mass}
@@ -467,26 +591,35 @@ Definition~\ref{def:lifted-connective} is
 \]
 with units $\Ret(0) = (1,0)$ (the $\parr$-identity, i.e.\ certain
 False) and $\Ret(1) = (0,1)$ (the $\AndC$-identity, i.e.\ certain
-True). \emph{Declared correction relative to the source:} the source's
-summary table (revisions up to 2026-08-07) listed the two unit cells
-of this row transposed; the units above are forced by solving
-$e \parr w = w$ and $e \AndC w = w$ against the explicit formulas,
-agree with the source's own log row and one-hot text, and the erratum
-has been corrected upstream in the source paper. The order family
+True). The order family
 (Definition~\ref{def:order-family}) gives
 $w \wedge v = (\max(w_0,v_0), \min(w_1,v_1))$,
 $w \vee v = (\min(w_0,v_0), \max(w_1,v_1))$, with bounds
 $\bot=(\infty,0)$, $\top=(0,\infty)$.
-\emph{Proof.} Direct expansion of Definition~\ref{def:lifted-connective}
+\uses{def:lifted-connective, def:order-family}
+[NeSy26, App.~A]
+\end{lemma}
+
+\begin{proof}
+Direct expansion of Definition~\ref{def:lifted-connective}
 at $*\in\{\wedge,\vee,\neg\}$ using $\bind$ of
 Definition~\ref{def:semiring-monad} for $S=\MassS$: the entry with
 $*(1,1)=1$ collects the product $w_1v_1$ into slot $1$ and the three
 entries with $*=0$ sum into slot $0$ (dually for $\parr$); the unit
 values are the (unique) identities of $\parr,\AndC$ found by solving
-$e\parr w = w$, resp.\ $e\AndC w = w$, for all $w$. \qed
-\uses{def:lifted-connective, def:order-family}
-[NeSy26, App.~A]
-\end{lemma}
+$e\parr w = w$, resp.\ $e\AndC w = w$, for all $w$.
+\end{proof}
+
+\begin{remark}[Erratum, corrected upstream]
+\label{rem:mass-units-erratum}
+The source's summary table (revisions up to 2026-08-07) listed the two
+unit cells of Lemma~\ref{lem:lifted-mass}'s row transposed; the units
+$\Ret(0)=(1,0)$, $\Ret(1)=(0,1)$ are forced by solving $e \parr w = w$
+and $e \AndC w = w$ against the explicit formulas, agree with the
+source's own log row and one-hot text, and the erratum has been
+corrected upstream in the source paper.
+\uses{lem:lifted-mass}
+\end{remark}
 
 \begin{lemma}[Lifted connectives, log coordinates]
 \label{lem:lifted-log}
@@ -508,13 +641,16 @@ $\lse$):
   a \vee b = (\min(a_0,b_0), \max(a_1,b_1)), \qquad
   \bot=(\infty,-\infty),\ \top=(-\infty,\infty).
 \]
-\emph{Proof.} Apply Lemma~\ref{lem:log-iso} coordinatewise to
-Lemma~\ref{lem:lifted-mass}: $\log$ of a product is a sum, $\log$ of a
-sum is $\lse$ of the logs, and $\log$ is order-preserving so
-$\max,\min$ pass through unchanged. \qed
 \uses{lem:lifted-mass, lem:log-iso}
 [NeSy26, App.~A]
 \end{lemma}
+
+\begin{proof}
+Apply Lemma~\ref{lem:log-iso} coordinatewise to
+Lemma~\ref{lem:lifted-mass}: $\log$ of a product is a sum, $\log$ of a
+sum is $\lse$ of the logs, and $\log$ is order-preserving so
+$\max,\min$ pass through unchanged.
+\end{proof}
 
 \begin{lemma}[Lifted connectives, the {$[0,1]$} readout is derived]
 \label{lem:lifted-prob-readout}
@@ -528,14 +664,17 @@ i.e.\ exactly the operations of the (non-semiring)
 $\ProbS$ row of Lemma~\ref{lem:prob-not-semiring} --- \emph{derived}
 from binding two independent truth values and pushing forward along
 the Boolean operation, not stipulated.
-\emph{Proof.} Substitute $w_0=1-p,\ w_1=p,\ v_0=1-q,\ v_1=q$ into
-Lemma~\ref{lem:lifted-mass}: $w_1v_1=pq$; the $\parr$-slot
-$w_0v_1+w_1v_0+w_1v_1 = (1-p)q+p(1-q)+pq = p+q-pq$; and
-$\neg w = (w_1,w_0)=(p,1-p)$ read out at slot $1$ of the swapped pair
-is $1-p$. \qed
 \uses{lem:lifted-mass, def:dist-monad}
 [NeSy26, App.~A]
 \end{lemma}
+
+\begin{proof}
+Substitute $w_0=1-p,\ w_1=p,\ v_0=1-q,\ v_1=q$ into
+Lemma~\ref{lem:lifted-mass}: $w_1v_1=pq$; the $\parr$-slot
+$w_0v_1+w_1v_0+w_1v_1 = (1-p)q+p(1-q)+pq = p+q-pq$; and
+$\neg w = (w_1,w_0)=(p,1-p)$ read out at slot $1$ of the swapped pair
+is $1-p$.
+\end{proof}
 
 \begin{definition}[Order family]
 \label{def:order-family}
@@ -548,14 +687,20 @@ $(w_0,w_1)$ as in Lemma~\ref{lem:truth-space-instances}) is the order
 (componentwise in $S$'s own order, slot $0$ reversed), with meet
 $\wedge$ and join $\vee$ its meet and join, and bounds
 $\bot = (\top_S, \bot_S)$, $\top = (\bot_S, \top_S)$ where they exist
-in $S$ (after adjoining $\infty$ to $S$ if needed). This family is
-induced by the order of $S$, not by the monad structure of $\MS{S}$.
-Stated for a general lattice-semiring $S$; [NeSy26, App.~A] works the
-order out concretely only for $S \in \{\MassS, \LogS\}$
-(Lemmas~\ref{lem:lifted-mass}, \ref{lem:lifted-log}).
+in $S$ (after adjoining $\infty$ to $S$ if needed).
 \uses{def:lattice-semiring, def:truth-space}
 [NeSy26, App.~A]
 \end{definition}
+
+\begin{remark}[Order family: provenance and generality]
+\label{rem:order-family-generality}
+The order family of Definition~\ref{def:order-family} is induced by
+the order of $S$, not by the monad structure of $\MS{S}$. It is stated
+for a general lattice-semiring $S$; [NeSy26, App.~A] works the order
+out concretely only for $S \in \{\MassS, \LogS\}$
+(Lemmas~\ref{lem:lifted-mass}, \ref{lem:lifted-log}).
+\uses{def:order-family}
+\end{remark}
 
 % ============================================================
 \section{Three layers}
@@ -567,14 +712,17 @@ For a lattice-semiring $S$, $\MS{S}(\BoolS) = S^{\BoolS} \cong S\times
 S$ carries all scalar operations ($\oplus,\otimes,0,1$) and the order
 ($\wedge,\vee,\bot,\top,\le$) componentwise, and a (finite) power of a
 lattice-semiring is again a lattice-semiring.
-\emph{Proof.} $S^{\BoolS}$ is the product of two copies of $S$ in the
-variety of lattice-semirings (a variety defined by the semiring
-equations plus the monotonicity axioms of
-Definition~\ref{def:lattice-semiring}, all of which are preserved by
-products); all structure is inherited componentwise. \qed
 \uses{def:lattice-semiring, def:semiring-monad}
 [NeSy26, App.~A]
 \end{lemma}
+
+\begin{proof}
+$S^{\BoolS}$ is the product of two copies of $S$ in the
+variety of lattice-semirings (a variety defined by the semiring
+equations plus the monotonicity axioms of
+Definition~\ref{def:lattice-semiring}, all of which are preserved by
+products); all structure is inherited componentwise.
+\end{proof}
 
 \begin{lemma}[Linear laws lift]
 \label{lem:linear-lift}
@@ -585,23 +733,31 @@ $\neg$ is a De~Morgan involution between them: $\neg\neg w = w$,
 $\neg \Ret(0) = \Ret(1)$, and
 $\neg(w \parr v) = \neg w \AndC \neg v$,
 $\neg(w \AndC v) = \neg v \parr \neg w$.
-Stated as these concrete instances rather than as the source's
-meta-theorem over general equation schemas in which each variable
-occurs exactly once per side (hypothesis made explicit relative to the
-source, per the commutative-monad/symmetric-monoidal argument cited
-there); this library records the theorem only at the instances it
-uses, not as a schema-level meta-theorem.
-\emph{Proof.} Directly from Lemma~\ref{lem:lifted-mass}
+\uses{def:lifted-connective, lem:pointwise}
+[NeSy26, App.~A]
+\end{lemma}
+
+\begin{proof}
+Directly from Lemma~\ref{lem:lifted-mass}
 (equivalently~\ref{lem:lifted-log}): associativity, commutativity and
 the unit laws of $\parr,\AndC$ each involve every variable exactly
 once per side of the defining equation, hence expand, via
 Definition~\ref{def:lifted-connective}'s bind chain, to associativity,
 commutativity and the unit laws of $S$ itself
 (Definition~\ref{def:semiring-monad}); the De~Morgan identities are a
-direct check on the explicit formulas of Lemma~\ref{lem:lifted-mass}. \qed
-\uses{def:lifted-connective, lem:pointwise}
-[NeSy26, App.~A]
-\end{lemma}
+direct check on the explicit formulas of Lemma~\ref{lem:lifted-mass}.
+\end{proof}
+
+\begin{remark}[Instances, not a schema]
+\label{rem:linear-lift-schema}
+Lemma~\ref{lem:linear-lift} is stated as these concrete instances
+rather than as the source's meta-theorem over general equation schemas
+in which each variable occurs exactly once per side, per the
+commutative-monad/symmetric-monoidal argument cited there; this
+library records the theorem only at the instances it uses, not as a
+schema-level meta-theorem.
+\uses{lem:linear-lift}
+\end{remark}
 
 \begin{lemma}[Copying laws do not lift]
 \label{lem:copying-fails}
@@ -610,13 +766,16 @@ lattice distributivity --- fail for the lifted family in general.
 Witness: in $\Dmon\,\BoolS \cong \ProbS$
 (Lemma~\ref{lem:lifted-prob-readout}), $p \AndC p = p^2 \ne p$ for
 $p \in (0,1)$, so $\AndC$ is not idempotent.
-\emph{Proof.} The displayed computation; $p^2=p$ iff $p\in\{0,1\}$. \qed
 This failure is structural, not accidental: a lifted operation reads
 its two arguments as independent, and non-idempotence is exactly what
 makes truth graded rather than classical.
 \uses{lem:lifted-prob-readout}
 [NeSy26, App.~A]
 \end{lemma}
+
+\begin{proof}
+The displayed computation; $p^2=p$ iff $p\in\{0,1\}$.
+\end{proof}
 
 \begin{theorem}[Three layers of lattice semirings]
 \label{thm:three-layers}
@@ -643,12 +802,15 @@ both families are logic, differing only in origin. They coincide
 exactly where the carrier is idempotent, on $\BoolS$ itself. The units
 $\Ret(0),\Ret(1)$ agree with the bounds $\bot,\top$ only in the
 normalized (mass-one) rows.
-\emph{Proof.} (i) is Lemma~\ref{lem:pointwise}; (ii) is
-Lemmas~\ref{lem:linear-lift} and \ref{lem:copying-fails}; (iii) is the
-construction of Definition~\ref{def:order-family}. \qed
 \uses{lem:pointwise, lem:linear-lift, lem:copying-fails, def:order-family, lem:prob-not-semiring}
 [NeSy26, App.~A]
 \end{theorem}
+
+\begin{proof}
+(i) is Lemma~\ref{lem:pointwise}; (ii) is
+Lemmas~\ref{lem:linear-lift} and \ref{lem:copying-fails}; (iii) is the
+construction of Definition~\ref{def:order-family}.
+\end{proof}
 
 % ============================================================
 \section{Syntax and monadic semantics}
@@ -778,24 +940,24 @@ $\mathcal I(M)$.
 \label{def:domain-signature}
 A \textbf{domain signature} $\Sigma_\gamma$ is given by:
 \begin{itemize}
-\item a set of \textbf{domain symbols} $\Dom$ and a set of
+\item a set of \textbf{domain symbols} $\mathrm{Dom}$ and a set of
   \textbf{(parameter) space symbols} $\mathrm{Spc}$;
 \item a set of \textbf{function symbols} $\Fun$ with functions
   $\mathrm{dom}, \mathrm{cod} \colon \Fun \to \mathcal L(\mathrm{Mon}
-  \times \Dom)$, mapping each function symbol to a list of pairs of
+  \times \mathrm{Dom})$, mapping each function symbol to a list of pairs of
   monad and domain symbols --- one marker per argument, so a function
   may consume and produce a mix of plain and monadic arguments --- for
   its domain and codomain respectively, and a function
   $\mathrm{par} \colon \Fun \to \mathcal L(\mathrm{Spc})$, mapping each
   function symbol to its list of parameter spaces;
 \item a set of \textbf{relation symbols} $\Rel$ with a function
-  $\mathrm{ari} \colon \Rel \to \mathcal L(\mathrm{Mon} \times \Dom)$,
+  $\mathrm{ari} \colon \Rel \to \mathcal L(\mathrm{Mon} \times \mathrm{Dom})$,
   mapping each relation symbol to its list of pairs of monad and
   domain symbols, and a function
   $\mathrm{par} \colon \Rel \to \mathcal L(\mathrm{Spc})$, mapping each
   relation symbol to its list of parameter spaces;
 \item a set of \textbf{variable symbols} $\Var$ with a function
-  $\mathrm{ovr} \colon \Var \to \Dom$, mapping each variable symbol to
+  $\mathrm{ovr} \colon \Var \to \mathrm{Dom}$, mapping each variable symbol to
   its domain symbol, and a set of \textbf{parameter symbols}
   $\mathrm{Par}$ with a function
   $\mathrm{ovr} \colon \mathrm{Par} \to \mathrm{Spc}$, mapping each
@@ -844,7 +1006,7 @@ $\mathcal I(\Theta_1,\ldots,\Theta_k) := \mathcal I(\Theta_1)
 and assigns:
 \begin{itemize}
 \item an object $\mathcal I(S) \in \mathrm{Ob}_{\mathcal C}$ for each
-  domain symbol $S \in \Dom$, and an object
+  domain symbol $S \in \mathrm{Dom}$, and an object
   $\mathcal I(\Theta) \in \mathrm{Ob}_{\mathcal A}$ for each space
   symbol $\Theta \in \mathrm{Spc}$;
 \item for each function symbol
@@ -880,13 +1042,19 @@ and assigns:
 A \textbf{context} $\vec x$ is a finite list $[x_1,\ldots,x_n]$ of
 \emph{distinct} variable symbols from $\Var$
 (Definition~\ref{def:domain-signature}), including the empty context
-$[\,]$. This is the Elephant-style presentation of contexts
-(Johnstone); contexts are equivalently linearly ordered subsets of
-$\Var$, so the usual set operations (union, intersection, difference)
-apply to them.
+$[\,]$.
 \uses{def:domain-signature}
 [NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
+
+\begin{remark}[Contexts as Elephant-style lists]
+\label{rem:context-elephant-style}
+Definition~\ref{def:context} is the Elephant-style presentation of
+contexts (Johnstone); contexts are equivalently linearly ordered
+subsets of $\Var$, so the usual set operations (union, intersection,
+difference) apply to them.
+\uses{def:context}
+\end{remark}
 
 \begin{definition}[Grammatical signature]
 \label{def:grammatical-signature}
@@ -1107,6 +1275,30 @@ pair, and their log-column twins --- all satisfy both hypotheses.
 [NeSyCat Theory v2 (new.tex)]
 \end{lemma}
 
+\begin{proof}
+Induction on the length $l$ of $\vec x$. Base case $l=1$: the
+simultaneous and iterated interpretations coincide definitionally, both
+being $\sem\phi_{[\vec x\mapsto \mathcal I([\vec x])_i]} \seq \mathcal
+I(Q)_1$ at the single variable. Inductive step: enumerating the product
+state space $\mathcal I([\vec x])$ lexicographically
+(Definition~\ref{def:kleisli-interpretation}) groups its
+$\bigl|\mathcal I([x_{p_1}])\bigr|\cdot n$ states into
+$\bigl|\mathcal I([x_{p_1}])\bigr|$ blocks of size $n$, one block per
+value of the first variable $x_{p_1}$, with the remaining $l-1$
+variables enumerated within each block by the induction hypothesis;
+nestability, $\mathcal I(Q)_{mn} = \bigl(\mathcal I(Q)_n\bigr)^{\otimes
+m} \seq \mathcal I(Q)_m$ at $m = \bigl|\mathcal I([x_{p_1}])\bigr|$,
+collapses this blocked tensor into first applying the (by induction)
+iterated interpretation of $Q$ over the last $l-1$ variables within
+each block, then applying $\mathcal I(Q)_m$ over the blocks indexed by
+$x_{p_1}$ --- exactly the iterated interpretation
+$\sem{Qx_{p_1}(Q\vec x'(\phi))}$ for $\vec x' = \vec x
+\setminus\{x_{p_1}\}$. Symmetry of the family absorbs the reindexing
+needed to reach any other ordering of $\vec x$, since permuting the
+inputs of $\mathcal I(Q)_n$ (resp.\ $\mathcal I(Q)_m$) does not change
+its value.
+\end{proof}
+
 \begin{example}[Dice or die]
 \label{ex:dice-scoping}
 Let $\mathsf{dice} \colon [\,] \to \bigcirc\mathrm{Nat}$,
@@ -1158,10 +1350,15 @@ $X$,
   \Ret_{\Bmon}(x) := \mathrm{const}\,x, \qquad
   (m \bind f)(b) := f(m(b))(b).
 \]
-Its bind is the \emph{diagonal}: the continuation at index $b$ sees
-only index $b$'s value.
 [NeSy26, \S 5]
 \end{definition}
+
+\begin{remark}[The batch monad's bind is diagonal]
+\label{rem:batch-monad-diagonal}
+The bind of Definition~\ref{def:batch-monad} is the \emph{diagonal}:
+the continuation at index $b$ sees only index $b$'s value.
+\uses{def:batch-monad}
+\end{remark}
 
 \begin{proposition}[Batch transformer]
 \label{prop:batch-transformer}
@@ -1183,7 +1380,12 @@ $\mathcal M$ --- and there are two canonical monad morphisms into it:
 $\mathrm{lift}_{\mathcal M}$ embeds a batch-constant effect;
 $\mathrm{lift}_{\Bmon}$ embeds a batched but \emph{certain} value (an
 observation).
-\emph{Proof.} $\Bmon\mathcal M$'s unit and bind are the reader-monad
+\uses{def:batch-monad, thm:semiring-monad-laws}
+[NeSy26, App.~A]
+\end{proposition}
+
+\begin{proof}
+$\Bmon\mathcal M$'s unit and bind are the reader-monad
 ones of Definition~\ref{def:batch-monad} taken pointwise in
 $\mathcal M X$; the monad laws for $\Bmon\mathcal M$ reduce, index by
 index, to the monad laws of $\mathcal M$
@@ -1191,45 +1393,52 @@ index, to the monad laws of $\mathcal M$
 is a monad morphism since a constant family trivially commutes with
 diagonal bind; $\mathrm{lift}_{\Bmon}$ is a monad morphism since
 $\Ret_{\mathcal M}$ is natural and $\Ret_{\mathcal M}(m(b)) \bind_{\mathcal M} \Ret_{\mathcal M}\circ f = \Ret_{\mathcal M}(f(m(b)))$
-by the unit laws of $\mathcal M$. \qed
-\uses{def:batch-monad, thm:semiring-monad-laws}
-[NeSy26, App.~A]
-\end{proposition}
+by the unit laws of $\mathcal M$.
+\end{proof}
 
 \begin{proposition}[Pointwise evaluation]
 \label{prop:pointwise-eval}
 For each $i \in \Bidx$, evaluation
 $\mathrm{ev}_i \colon \Bmon\mathcal M X \to \mathcal M X$,
-$m \mapsto m(i)$, is a monad morphism. \textbf{Hypothesis made explicit
-relative to the source:} assuming in addition that every symbol and
-quantifier interpretation of Definition~\ref{def:domain-interpretation}
-used in the batched reading is \emph{batch-natural}, i.e.\ defined
-pointwise across the batch --- $\mathcal I^{\Bmon\mathcal M}(f) =
-\mathrm{lift}_{\mathcal M} \circ \mathcal I^{\mathcal M}(f)$ applied
-index by index, for every symbol $f$ --- $\mathrm{ev}_i$ commutes with
-the Kleisli interpretation of feed-forward composites (grammar
-interpretation, Definition~\ref{def:kleisli-interpretation}): for a
-batch $s \colon \Bidx \to \mathcal I(S)$,
+$m \mapsto m(i)$, is a monad morphism. Assuming in addition that every
+symbol and quantifier interpretation of
+Definition~\ref{def:domain-interpretation} used in the batched reading
+is \emph{batch-natural}, i.e.\ defined pointwise across the batch ---
+$\mathcal I^{\Bmon\mathcal M}(f) = \mathrm{lift}_{\mathcal M} \circ
+\mathcal I^{\mathcal M}(f)$ applied index by index, for every symbol
+$f$ --- $\mathrm{ev}_i$ commutes with the Kleisli interpretation of
+feed-forward composites (grammar interpretation,
+Definition~\ref{def:kleisli-interpretation}): for a batch $s \colon
+\Bidx \to \mathcal I(S)$,
 \[
   \sem{\varphi}^{\Bmon\mathcal M}(s)(i) \;=\; \sem{\varphi}^{\mathcal M}(s_i)
   \qquad (i \in \Bidx).
 \]
-Without this hypothesis, only the pure $\Ret/\bind$ skeleton of a
-feed-forward fragment is guaranteed to commute (that part follows from
-$\mathrm{ev}_i$ being a monad morphism alone); a symbol interpretation
-chosen independently per batch index rather than pointwise would break
-the displayed equation.
-\emph{Proof.} $\mathrm{ev}_i$ is a monad morphism because
+\uses{prop:batch-transformer, def:kleisli-interpretation}
+[NeSy26, App.~A]
+\end{proposition}
+
+\begin{proof}
+$\mathrm{ev}_i$ is a monad morphism because
 $\mathrm{ev}_i(\Ret_{\Bmon\mathcal M}(a)) = \mathrm{const}(a)(i) = a =
 \Ret_{\mathcal M}(a)$ and $\mathrm{ev}_i(m \bind f) = f(m(i))(i) =
 m(i) \bind_{?}\!\ldots$ unfolds, under the batch-naturality hypothesis
 on every symbol occurring in $f$, to $\mathrm{ev}_i(m) \bind
 \mathrm{ev}_i \circ f$; induction on the grammar of
 Definition~\ref{def:grammatical-signature} then transports this through
-every clause of Definition~\ref{def:kleisli-interpretation}. \qed
-\uses{prop:batch-transformer, def:kleisli-interpretation}
-[NeSy26, App.~A]
-\end{proposition}
+every clause of Definition~\ref{def:kleisli-interpretation}.
+\end{proof}
+
+\begin{remark}[Necessity of batch-naturality]
+\label{rem:batch-naturality-necessity}
+Without the batch-naturality hypothesis of
+Proposition~\ref{prop:pointwise-eval}, only the pure $\Ret/\bind$
+skeleton of a feed-forward fragment is guaranteed to commute with
+$\mathrm{ev}_i$ (that part follows from $\mathrm{ev}_i$ being a monad
+morphism alone); a symbol interpretation chosen independently per batch
+index rather than pointwise would break the displayed equation.
+\uses{prop:pointwise-eval}
+\end{remark}
 
 % ============================================================
 \section{Bridges and normalization}
@@ -1258,12 +1467,15 @@ $a \in \LogS^X$ (allowing $-\infty$ coordinates for zero mass). Define
 \label{lem:pure-maps}
 For pure $h \colon X \to Y$: $Z\bigl(\Tmon(h)(a)\bigr) = Z(a)$ and
 $\dec_Y \circ \Tmon(h) = \Dmon(h) \circ \dec_X$.
-\emph{Proof.} The fibers $h^{-1}(y)$ partition $X$; summing $e^{a_x}$
-fiber by fiber rearranges the same total sum, giving both the mass
-identity and, after dividing by $Z(a)$, the commuting square. \qed
 \uses{def:dec-enc-mass}
 [NeSy26, App.~B draft/T3]
 \end{lemma}
+
+\begin{proof}
+The fibers $h^{-1}(y)$ partition $X$; summing $e^{a_x}$
+fiber by fiber rearranges the same total sum, giving both the mass
+identity and, after dividing by $Z(a)$, the commuting square.
+\end{proof}
 
 \begin{lemma}[Tensor]
 \label{lem:tensor}
@@ -1278,36 +1490,47 @@ composed with $\Tmon(\wedge)$). Then
 \]
 (the right-hand $\otimes$ the analogous independent-joint pairing on
 $\Dmon$).
-\emph{Proof.} $e^{a_x+b_y} = e^{a_x}e^{b_y}$; sum over $x,y$ for the
-mass identity, then divide by $Z(a)Z(b)$ to get the pointwise product
-of softmaxes. \qed
 \uses{def:dec-enc-mass}
 [NeSy26, App.~B draft/T3]
 \end{lemma}
+
+\begin{proof}
+$e^{a_x+b_y} = e^{a_x}e^{b_y}$; sum over $x,y$ for the
+mass identity, then divide by $Z(a)Z(b)$ to get the pointwise product
+of softmaxes.
+\end{proof}
 
 \begin{lemma}[Units]
 \label{lem:units}
 $\enc \circ \Ret_{\Dmon} = \Ret_{\Tmon}$, $\dec \circ \enc =
 \mathrm{id}_{\Dmon}$, hence $\dec \circ \Ret_{\Tmon} = \Ret_{\Dmon}$,
-and $Z(\Ret_{\Tmon}(x)) = 1$. \textbf{Hypothesis made explicit relative
-to the source:} these identities are exact only over the true log
-semiring $\LogS = \mathbb R \cup \{-\infty\}$ of
+and $Z(\Ret_{\Tmon}(x)) = 1$.
+\uses{def:dec-enc-mass}
+[NeSy26, App.~B draft/T3]
+\end{lemma}
+
+\begin{proof}
+$\enc(\Ret_{\Dmon}(x))_{x'} = \log \delta_x(x')$, which
+is $0$ at $x'=x$ and $\log 0 = -\infty$ elsewhere, matching
+$\Ret_{\Tmon}(x)$ exactly (over $\LogS$); $\dec(\enc(p))_x =
+e^{\log p(x)}/\sum_{x'} e^{\log p(x')} = p(x)/\sum_{x'}p(x') = p(x)$
+since $p$ has mass $1$ (Definition~\ref{def:dist-monad}); the third
+identity follows by composing the first two, and
+$Z(\Ret_{\Tmon}(x)) = e^0 + \sum_{x'\ne x}e^{-\infty} = 1$.
+\end{proof}
+
+\begin{remark}[Exactness and the numerical $\epsilon$-floor]
+\label{rem:units-epsilon-floor}
+The identities of Lemma~\ref{lem:units} are exact only over the true
+log semiring $\LogS = \mathbb R \cup \{-\infty\}$ of
 Definition~\ref{def:lattice-semiring}; the numerical $\epsilon$-floor
 implementation, which substitutes a large negative finite number for
 $-\infty$, satisfies them only up to $O(\epsilon)$ error, because
 $\Ret_{\Tmon}(x)$ genuinely needs a $-\infty$ (not merely small)
 coordinate at every $x' \ne x$ for $\enc\circ\Ret_{\Dmon} =
 \Ret_{\Tmon}$ to hold on the nose.
-\emph{Proof.} $\enc(\Ret_{\Dmon}(x))_{x'} = \log \delta_x(x')$, which
-is $0$ at $x'=x$ and $\log 0 = -\infty$ elsewhere, matching
-$\Ret_{\Tmon}(x)$ exactly (over $\LogS$); $\dec(\enc(p))_x =
-e^{\log p(x)}/\sum_{x'} e^{\log p(x')} = p(x)/\sum_{x'}p(x') = p(x)$
-since $p$ has mass $1$ (Definition~\ref{def:dist-monad}); the third
-identity follows by composing the first two, and
-$Z(\Ret_{\Tmon}(x)) = e^0 + \sum_{x'\ne x}e^{-\infty} = 1$. \qed
-\uses{def:dec-enc-mass}
-[NeSy26, App.~B draft/T3]
-\end{lemma}
+\uses{lem:units}
+\end{remark}
 
 \begin{lemma}[Strengths]
 \label{lem:strengths}
@@ -1327,24 +1550,26 @@ $\sigma^{(j)}_{\Dmon}$ likewise over $\Dmon$. Then
 \]
 in the sense that decoding the strength agrees with decoding only the
 effectful slot and inserting the plain coordinates as certain values.
-\emph{Proof.} The plain coordinates enter as $\Ret_{\Tmon}(x_i)$,
-mass $1$ by Lemma~\ref{lem:units}; apply
-Lemma~\ref{lem:tensor} to the resulting $m$-fold tensor, all of whose
-factors but the $j$-th have mass $1$, so both the total mass and the
-decode-commutation reduce to the single effectful factor. \qed
 \uses{lem:tensor, lem:units}
 [NeSy26, App.~B draft/T3]
 \end{lemma}
+
+\begin{proof}
+The plain coordinates enter as $\Ret_{\Tmon}(x_i)$,
+mass $1$ by Lemma~\ref{lem:units}; apply
+Lemma~\ref{lem:tensor} to the resulting $m$-fold tensor, all of whose
+factors but the $j$-th have mass $1$, so both the total mass and the
+decode-commutation reduce to the single effectful factor.
+\end{proof}
 
 \begin{lemma}[Tilt]
 \label{lem:tilt}
 Let $a \in \Tmon X$ and $k \colon X \to \Tmon Y$, with $\bind$ the
 $\Tmon$-bind of Definition~\ref{def:semiring-monad} (i.e.\
-$(a \bind k)_y = \lse_x(a_x+k(x)_y)$). \textbf{Hypothesis made explicit
-relative to the source:} assume $Z(k(x)) > 0$ for every $x \in
-\supp(\dec(a))$ (equivalently, $k$'s mass is nowhere zero on $a$'s
-support), needed for the tilt weight below to be positive there and
-hence for $\mathrm{tilt}$ to be well-defined. Then
+$(a \bind k)_y = \lse_x(a_x+k(x)_y)$). Assume $Z(k(x)) > 0$ for every
+$x \in \supp(\dec(a))$ (equivalently, $k$'s mass is nowhere zero on
+$a$'s support), needed for the tilt weight below to be positive there
+and hence for $\mathrm{tilt}$ to be well-defined. Then
 \[
   \dec(a \bind k) \;=\; \tilt_{Z \circ k}\bigl(\dec(a)\bigr) \bind
   \bigl(\dec \circ k\bigr),
@@ -1352,7 +1577,12 @@ hence for $\mathrm{tilt}$ to be well-defined. Then
   \tilt_w(p)(x) := \frac{w(x)\,p(x)}{\sum_{x'} w(x')\,p(x')}
   \quad (w \colon X \to \mathbb R_{>0}).
 \]
-\emph{Proof.} Expand both sides at $y \in Y$: the left side is
+\uses{def:dec-enc-mass, lem:units}
+[NeSy26, App.~B draft/T3]
+\end{lemma}
+
+\begin{proof}
+Expand both sides at $y \in Y$: the left side is
 $e^{\lse_x(a_x+k(x)_y)}/Z(a\bind k) = \sum_x e^{a_x}e^{k(x)_y} /
 \sum_{x,y'}e^{a_x+k(x)_{y'}}$; the right side is
 $\sum_x \tilt_{Z\circ k}(\dec(a))(x)\,\dec(k(x))_y = \sum_x
@@ -1360,10 +1590,8 @@ $\sum_x \tilt_{Z\circ k}(\dec(a))(x)\,\dec(k(x))_y = \sum_x
 \frac{e^{k(x)_y}}{Z(k(x))}$. The numerators agree termwise once
 $\dec(a)_x = e^{a_x}/Z(a)$ is unfolded and the $Z(k(x))$ factors
 cancel, and the two denominators both equal
-$\sum_x e^{a_x}Z(k(x))/Z(a) = \sum_{x,y'}e^{a_x+k(x)_{y'}}/Z(a)$. \qed
-\uses{def:dec-enc-mass, lem:units}
-[NeSy26, App.~B draft/T3]
-\end{lemma}
+$\sum_x e^{a_x}Z(k(x))/Z(a) = \sum_{x,y'}e^{a_x+k(x)_{y'}}/Z(a)$.
+\end{proof}
 
 \begin{definition}[Mass preserving]
 \label{def:mass-preserving}
@@ -1382,7 +1610,12 @@ Lemma~\ref{lem:strengths}; it is closed under composition, under
 $\otimes$ (Lemma~\ref{lem:tensor}), and under the structural wiring
 (copying, discarding, permuting wires). A neural leaf is generally
 \emph{not} in the class: its logits carry whatever mass they like.
-\emph{Proof.} $Z(\Ret_{\Tmon}(h(x))) = 1$ for all $x$
+\uses{def:mass-preserving, lem:pure-maps, lem:tensor, lem:units, lem:strengths}
+[NeSy26, App.~B draft/T3]
+\end{lemma}
+
+\begin{proof}
+$Z(\Ret_{\Tmon}(h(x))) = 1$ for all $x$
 (Lemma~\ref{lem:units}), constant; $Z(\Tmon(h)(a)) = Z(a)$
 (Lemma~\ref{lem:pure-maps}) exhibits $\Tmon(h)$ as mass-preserving only
 when precomposed with a fixed $a$, and as an arrow $X \to \Tmon Y$ via
@@ -1393,10 +1626,8 @@ composing two mass-preserving arrows composes two constant functions
 into a constant function, and $\otimes$ of two mass-preserving arrows
 has mass the (constant) product by Lemma~\ref{lem:tensor}; wiring
 (copying, discarding, permuting) does not touch the weight vector at
-all, hence trivially preserves any constant-mass property. \qed
-\uses{def:mass-preserving, lem:pure-maps, lem:tensor, lem:units, lem:strengths}
-[NeSy26, App.~B draft/T3]
-\end{lemma}
+all, hence trivially preserves any constant-mass property.
+\end{proof}
 
 \begin{theorem}[Pull out]
 \label{thm:pullout}
@@ -1418,24 +1649,30 @@ the same chain read in $\Dmon$, with one $\dec$ per leaf. If some
 $k_i$ is not mass preserving, the two sides differ in general, and
 Lemma~\ref{lem:tilt} gives the exact discrepancy: one
 $\tilt_{Z \circ k_i}$ per offending bind.
-\emph{Proof.} Induction on $r$: each non-bind factor commutes with
+\uses{lem:pure-maps, lem:tensor, lem:units, lem:strengths, lem:tilt, def:mass-preserving, def:feed-forward}
+[NeSy26, App.~B draft/T3]
+\end{theorem}
+
+\begin{proof}
+Induction on $r$: each non-bind factor commutes with
 $\dec$ by Lemmas~\ref{lem:pure-maps}, \ref{lem:tensor},
 \ref{lem:units}, \ref{lem:strengths}; a bind factor commutes with
 $\dec$ exactly when $\tilt_{Z\circ k_i} = \mathrm{id}$, which by
 Lemma~\ref{lem:tilt} holds precisely when $Z\circ k_i$ is constant,
 i.e.\ $k_i$ is mass preserving; the converse direction (some $k_i$ not
 mass preserving forces a genuine discrepancy) is witnessed by
-Example~\ref{ex:tilt-failure}. \qed
-\uses{lem:pure-maps, lem:tensor, lem:units, lem:strengths, lem:tilt, def:mass-preserving, def:feed-forward}
-[NeSy26, App.~B draft/T3]
-\end{theorem}
+Example~\ref{ex:tilt-failure}.
+\end{proof}
 
 % OPEN: one-bind case provable from lem:tilt; the chain version is
 % unproved in the source ("still to do") --- standing research target
-% of this library.
-\begin{corollary}[How wrong can it get -- OPEN]
-\label{cor:chain-bound}
-\textbf{Status: open.} If $m_i \le Z(k_i(x)) \le M_i$ for all $x$ and
+% of this library. Environment kind `conjecture` (M4 addendum #2)
+% already says "open, unproved" --- no ad-hoc "-- OPEN"/"Status: open"
+% phrasing needed in the title or body; a conjecture environment never
+% carries a \begin{proof} or a proof-side \leanok.
+\begin{conjecture}[How wrong can it get]
+\label{cnj:chain-bound}
+If $m_i \le Z(k_i(x)) \le M_i$ for all $x$ and
 every bind $k_i$ in the chain $\Phi$ of Theorem~\ref{thm:pullout}, the
 conjectured statement is that the two log-truth values satisfy
 \[
@@ -1449,16 +1686,23 @@ single-term bound $\bigl|\log t_{\Tmon} - \log t_{\Dmon}\bigr| \le
 \log(M/m)$). The \emph{chain} (multi-bind) version stated above is
 \emph{not} established by any proof in the source and is recorded here
 as a standing research target of this library, not as a theorem; no
-proof or proof sketch below may cite this corollary as if it were
+proof or proof sketch below may cite this conjecture as if it were
 proved for $r > 1$ binds.
 \uses{lem:tilt, thm:pullout}
 [NeSy26, App.~B draft/T3]
-\end{corollary}
+\end{conjecture}
 
 \begin{definition}[Normalizer]
 \label{def:normalizer}
 $\nrm_X := \enc_X \circ \dec_X \colon \Tmon X \to \Tmon X$, concretely
-$\nrm(a) = a - \log Z(a)\cdot\mathbf 1$ (the log-softmax). It satisfies:
+$\nrm(a) = a - \log Z(a)\cdot\mathbf 1$ (the log-softmax).
+\uses{def:dec-enc-mass}
+[NeSy26, App.~B draft/T3]
+\end{definition}
+
+\begin{lemma}[Normalizer properties]
+\label{lem:normalizer-props}
+$\nrm$ (Definition~\ref{def:normalizer}) satisfies:
 \begin{enumerate}
 \item[(i)] $\dec \circ \nrm = \dec$ (predictions unchanged);
 \item[(ii)] $Z(\nrm(a)) = 1$ (mass one);
@@ -1466,15 +1710,18 @@ $\nrm(a) = a - \log Z(a)\cdot\mathbf 1$ (the log-softmax). It satisfies:
   $c$ (kills the shift);
 \item[(iv)] $\nrm \circ \nrm = \nrm$ (idempotent).
 \end{enumerate}
-\emph{Proof.} (i) $\dec(\nrm(a))_x = e^{a_x-\log Z(a)}/Z(\nrm(a))$, and
+\uses{def:normalizer}
+[NeSy26, App.~B draft/T3]
+\end{lemma}
+
+\begin{proof}
+(i) $\dec(\nrm(a))_x = e^{a_x-\log Z(a)}/Z(\nrm(a))$, and
 (ii) $Z(\nrm(a)) = \sum_x e^{a_x}/Z(a) = 1$, so (i)'s numerator/1 is
 $e^{a_x}/Z(a) = \dec(a)_x$; (iii) $Z(a+c\mathbf1) = e^cZ(a)$, so
 $\nrm(a+c\mathbf1) = a+c\mathbf1-\log(e^cZ(a))\mathbf1 =
 a-\log Z(a)\mathbf1 = \nrm(a)$; (iv) is (iii) at $c=-\log Z(a)$ applied
-to $\nrm(a)$, using (ii). \qed
-\uses{def:dec-enc-mass}
-[NeSy26, App.~B draft/T3]
-\end{definition}
+to $\nrm(a)$, using (ii).
+\end{proof}
 
 \begin{corollary}[Normalized heads]
 \label{cor:normalized-heads}
@@ -1484,19 +1731,22 @@ continuation has mass one, hence is mass preserving
 (Definition~\ref{def:mass-preserving}), and Theorem~\ref{thm:pullout}
 applies to \emph{every} program: $t_{\Tmon} = t_{\Dmon}$ for arbitrary
 chains of neural symbols. By property (i) of
-Definition~\ref{def:normalizer}, no prediction changes; the price is
+Lemma~\ref{lem:normalizer-props}, no prediction changes; the price is
 one $\lse$ evaluation per head.
-\emph{Proof.} A mass-one weight vector $w$ has $Z(w)=1$
-(Definition~\ref{def:normalizer}(ii)), so $Z\circ(\text{symbol})$ is
+\uses{def:normalizer, lem:normalizer-props, thm:pullout, def:mass-preserving}
+[NeSy26, App.~B draft/T3]
+\end{corollary}
+
+\begin{proof}
+A mass-one weight vector $w$ has $Z(w)=1$
+(Lemma~\ref{lem:normalizer-props}(ii)), so $Z\circ(\text{symbol})$ is
 the constant function $1$, i.e.\ mass preserving
 (Definition~\ref{def:mass-preserving}); apply
 Theorem~\ref{thm:pullout} with every $k_i$ of this form, so the
 mass-preservation hypothesis holds unconditionally and the two sides
-coincide, and (i) of Definition~\ref{def:normalizer} shows the
-predicted distribution is unchanged by inserting $\nrm$. \qed
-\uses{def:normalizer, thm:pullout, def:mass-preserving}
-[NeSy26, App.~B draft/T3]
-\end{corollary}
+coincide, and (i) of Lemma~\ref{lem:normalizer-props} shows the
+predicted distribution is unchanged by inserting $\nrm$.
+\end{proof}
 
 \begin{example}[Tilt failure, exact numbers]
 \label{ex:tilt-failure}
