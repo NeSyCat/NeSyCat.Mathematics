@@ -72,7 +72,15 @@ Before dispatching work on any of:
 - item order and dependency structure within the batch;
 - an escalation budget per item (how many standard-seat attempts
   before escalation);
-- acceptance criteria for the blind verifier.
+- acceptance criteria for the blind verifier, which — for a host repo
+  carrying a leanblueprint `blueprint/src/content.tex` — must always
+  include the **correspondence sentinel**: `scripts/blueprint.sh`
+  prints `CORRESPONDENCE: OK` (structural editorial-law checks plus a
+  Lean-kind assertion per `\lean{}` name) followed by its final success
+  signal for the batch's final commit, and every commit that touched a
+  blueprint-cited Lean declaration either staged the corresponding
+  `content.tex` tightening or carries a justified `Blueprint-sync:`
+  line.
 
 **Present the plan for user approval before any dispatch.** Do not
 skip this step because an item "looks easy" — the estimate itself is

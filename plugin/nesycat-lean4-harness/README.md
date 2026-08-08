@@ -26,10 +26,25 @@ it.
 - `agents/lean-prover.md` — a delegated formalization grinder.
 - `agents/lean-checker.md` — a read-only blind verifier that never
   edits.
-- `hooks/hooks.json` + four hook scripts — `guard-scope` (PreToolUse
+- `hooks/hooks.json` + hook scripts — `guard-scope` (PreToolUse
   scope-rail enforcement), `lint-lean` (PostToolUse hard-ban / sorry
-  policy check), `session-start` (status digest at session start),
-  `grind-stop` (Stop-hook re-prompt loop for unattended grind mode).
+  policy check, plus advisory blueprint-label and feedback-loop
+  reminders when the host repo carries a leanblueprint), `lint-blueprint`
+  (PostToolUse editorial-law smells on edited `blueprint/src/*.tex`:
+  markless abbreviation, promotion-candidate remark, `\uses{rem:...}`,
+  proofless theorem-family environment — advisory only), `session-start`
+  (status digest at session start), `grind-stop` (Stop-hook re-prompt
+  loop for unattended grind mode).
+- `hooks/commit-msg` — a git `commit-msg` hook (NOT registered in
+  `hooks.json`; it is a git hook, not a Claude Code tool hook). For a
+  host repo carrying a leanblueprint, it is the absolute blocker for the
+  blueprint<->Lean feedback loop: a commit that touches a Lean
+  declaration cited by a `\lean{}` mark must either stage
+  `blueprint/src/content.tex` alongside it or carry a commit-message
+  line starting `Blueprint-sync: <reason>`. Host repos install it with
+  `cp hooks/commit-msg .git/hooks/commit-msg && chmod +x
+  .git/hooks/commit-msg` — plugins cannot install git hooks
+  automatically.
 
 ## Host-repo contract
 

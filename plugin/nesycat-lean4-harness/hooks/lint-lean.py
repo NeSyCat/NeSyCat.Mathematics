@@ -16,6 +16,58 @@ AXIOM_RE = re.compile(r"^[ \t]*(private[ \t]+|protected[ \t]+)?axiom[ \t]")
 NATIVE_DECIDE_RE = re.compile(r"(^|[^A-Za-z0-9_])native_decide([^A-Za-z0-9_]|$)")
 TODO_RE = re.compile(r"--.*TODO")
 
+# FEEDBACK-LOOP / blueprint-correspondence additions (generic twin of the
+# host repo's own gate; see the host-repo contract at the top of this
+# plugin's README and skills): advisory only (additionalContext), never
+# blocking -- the host repo's own scripts/blueprint.sh-style gate is the
+# enforcement point, when one is present.
+BLUEPRINT_LABEL_RE = re.compile(r"Blueprint\s+([A-Za-z]+:[A-Za-z0-9_-]+)")
+DECL_NAME_RE = re.compile(
+    r"^(?:noncomputable\s+|private\s+|protected\s+)*"
+    r"(?:def|abbrev|theorem|lemma|structure|class|instance)\s+"
+    r"([A-Za-z_][A-Za-z0-9_.']*)")
+TEX_LABEL_RE = re.compile(r"\\label\{([^}]*)\}")
+TEX_LEAN_RE = re.compile(r"\\lean\{([^}]*)\}")
+
+
+def find_content_tex(project_dir):
+    path = os.path.join(project_dir, "blueprint", "src", "content.tex")
+    return path if os.path.isfile(path) else None
+
+
+def blueprint_labels(content_tex_path):
+    """Return the set of all \\label{...} keys in content.tex."""
+    try:
+        with open(content_tex_path, "r", encoding="utf-8", errors="replace") as fh:
+            text = fh.read()
+    except Exception:
+        return set()
+    return set(TEX_LABEL_RE.findall(text))
+
+
+def blueprint_lean_name_index(content_tex_path):
+    """Return {declared-name: nearest-preceding-\\label} for every name that
+    appears in a \\lean{...} mark, by walking the file line-by-line and
+    tracking the most recently seen \\label{...} (labels conventionally sit
+    right after \\begin{...}, \\lean{...} shortly after)."""
+    try:
+        with open(content_tex_path, "r", encoding="utf-8", errors="replace") as fh:
+            lines = fh.readlines()
+    except Exception:
+        return {}
+    index = {}
+    current_label = None
+    for line in lines:
+        lm = TEX_LABEL_RE.search(line)
+        if lm:
+            current_label = lm.group(1)
+        for m in TEX_LEAN_RE.finditer(line):
+            for nm in m.group(1).split(','):
+                nm = nm.strip()
+                if nm and current_label:
+                    index[nm] = current_label
+    return index
+
 
 def main():
     if len(sys.argv) < 2:
@@ -90,14 +142,71 @@ def main():
         print(json.dumps(out))
         return
 
+    advisories = []
+
     if sorry_lines:
+        advisories.append(
+            "Reminder: every sorry needs an adjacent -- TODO: note "
+            f"(rules-of-work sorry policy). Found at: {', '.join(sorry_lines)}"
+        )
+
+    # (i) doc comments citing "Blueprint <label>": the label must exist in
+    # content.tex, if the host repo carries one.
+    content_tex_path = find_content_tex(project_dir)
+    if content_tex_path:
+        labels = blueprint_labels(content_tex_path)
+        cited_missing = []
+        for idx, line in enumerate(lines):
+            for m in BLUEPRINT_LABEL_RE.finditer(line):
+                label = m.group(1)
+                if label not in labels:
+                    cited_missing.append(f"{rel_posix}:{idx + 1}: '{label}'")
+        if cited_missing:
+            advisories.append(
+                "Doc comment cites a blueprint label not found in "
+                "content.tex (check the tex-label matches exactly): "
+                + "; ".join(cited_missing)
+            )
+
+        # (ii) FEEDBACK-LOOP reminder: declaration names in this file that
+        # are cited by a \lean{} mark in content.tex -- touching them means
+        # the rules-of-work feedback-loop duty applies (tighten the
+        # blueprint text against the final Lean form; a 'Blueprint-sync:'
+        # commit-message line documents a justified skip).
+        lean_index = blueprint_lean_name_index(content_tex_path)
+        if lean_index:
+            declared_names = set()
+            for line in lines:
+                m = DECL_NAME_RE.match(line)
+                if m:
+                    declared_names.add(m.group(1))
+            # \lean{} names are conventionally dotted (Namespace.Foo);
+            # declarations inside a matching `namespace ... end` block are
+            # written bare (`Foo`). Match on the full name, or on the tail
+            # component after the last dot, so this stays namespace-agnostic
+            # across host repos.
+            affected_labels = set()
+            for nm, label in lean_index.items():
+                tail = nm.rsplit(".", 1)[-1]
+                if nm in declared_names or tail in declared_names:
+                    affected_labels.add(label)
+            if affected_labels:
+                advisories.append(
+                    "FEEDBACK-LOOP duty (rules-of-work file / blueprint<->"
+                    "Lean correspondence): this file touches declaration(s) "
+                    "cited by blueprint item(s) "
+                    f"{', '.join(sorted(affected_labels))}. After \\leanok, "
+                    "tighten the blueprint text against the formalized "
+                    "form and, if content.tex changes, commit it together "
+                    "with this file or note the justified skip via a "
+                    "'Blueprint-sync:' commit-message line."
+                )
+
+    if advisories:
         out = {
             "hookSpecificOutput": {
                 "hookEventName": "PostToolUse",
-                "additionalContext": (
-                    "Reminder: every sorry needs an adjacent -- TODO: note "
-                    f"(FORMALIZE.md sorry policy). Found at: {', '.join(sorry_lines)}"
-                ),
+                "additionalContext": "\n".join(advisories),
             }
         }
         print(json.dumps(out))

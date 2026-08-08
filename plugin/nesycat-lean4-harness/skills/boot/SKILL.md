@@ -53,6 +53,17 @@ others** — collect all results and report them together in Phase 2.
   under `scripts/*.sh` and any host `.claude/hooks/*` is executable;
   validate `python3 -m json.tool .claude/settings.json` and
   `python3 -m json.tool .mcp.json` both parse, if present.
+- Correspondence gate: if the host repo carries a leanblueprint
+  `blueprint/src/content.tex`, confirm `scripts/blueprint.sh` prints a
+  `CORRESPONDENCE: OK` line (structural editorial-law checks plus a
+  Lean-kind assertion per `\lean{}` name) before its final success
+  signal — not just the build/decl-check portion.
+- Feedback-loop hook: if the host repo ships a
+  `scripts/git-hooks/commit-msg` (or this plugin's `hooks/commit-msg`),
+  confirm `.git/hooks/commit-msg` exists and is byte-identical to it.
+  If missing or stale, instruct: copy it into `.git/hooks/commit-msg`
+  and `chmod +x` it — without this, a Lean-only commit can silently
+  skip the blueprint-tightening feedback loop.
 - Git: `git status --short`, `git log --oneline -5`, current branch —
   note any uncommitted changes as a warning, not a failure.
 - Grind mode: `scripts/grind-mode.sh` with no arguments, if the host
