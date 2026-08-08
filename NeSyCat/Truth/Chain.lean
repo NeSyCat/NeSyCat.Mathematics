@@ -15,14 +15,23 @@ vocabulary from linear logic, Girard 1987).
 
 ## `thm:chain-lin`
 
-The blueprint's carrier is "a lattice, not necessarily bounded, carrying two
-monoid structures ... whose order is a chain". This file works with the
-already-registered `BLat2Mon α` class instead of inventing a separate
-unbounded `Lat2Mon` class: `BLat2Mon` bundles `[BoundedOrder α]` regardless,
-and the four binary chain lemmas (`chain_andC_sup`, `chain_sup_andC`,
-`chain_parr_inf`, `chain_inf_parr`) simply never use the bound. Part (ii)'s
-nullary laws genuinely need the bound plus `UnitBounds`, and are assembled
-together with (i) into `LinBLat2Mon.ofChain`.
+The blueprint's carrier for part (i) is "a lattice, **not necessarily
+bounded**, carrying two monoid structures ... whose order is a chain" —
+and part (i)'s proof never actually uses any monoid law (associativity,
+units) either, only that a *binary operation* is monotone in each
+argument. So part (i) is stated at its own honest maximal generality: raw
+binary-operation lemmas over a bare `[LinearOrder α]` with *no*
+`BoundedOrder` and *no* `BLat2Mon` in sight (`chain_binop_sup_right`,
+`chain_binop_sup_left`, `chain_binop_inf_right`, `chain_binop_inf_left`) —
+these instantiate directly at the unbounded chains the "not necessarily
+bounded" clause is *for* (`ℝ≥0`, `LogS`, ...), which have no
+`BoundedOrder` instance at all. The `BLat2Mon`-context lemmas
+(`chain_andC_sup`, `chain_sup_andC`, `chain_parr_inf`, `chain_inf_parr`)
+are one-line corollaries specializing the raw operation `f` to `andC`/
+`parr`; they exist only because `LinBLat2Mon.ofChain` (part (ii), which
+*does* need the bound and `UnitBounds`) wants its four binary fields
+already in `BLat2Mon`-native shape, not to add anything past the raw
+lemmas.
 
 The monotonicity hypotheses ("suppose `andC` and `parr` are monotone in each
 argument") are taken as plain function arguments to each lemma, not as a new
@@ -61,54 +70,103 @@ namespace NeSyCat
 
 open BLat2Mon
 
+section RawChain
+
+/-! ### `thm:chain-lin`(i), raw form: no monoid, no bound, just a chain
+
+The blueprint's part (i) hypothesis is exactly "a lattice, not necessarily
+bounded, ... whose order is a chain, and [a binary operation] monotone in
+each argument" — captured here with no `BoundedOrder` and no `BLat2Mon` at
+all, just a bare explicit `f : α → α → α`. This is the honest maximal
+statement: it instantiates directly at unbounded chains such as
+`NeSyCat.MassS` (`ℝ≥0`) or `NeSyCat.LogS`, which the blueprint's clause is
+for and which carry no `BoundedOrder` instance. -/
+
+variable {α : Type*} [LinearOrder α]
+
+/-- Blueprint `thm:chain-lin` (i, raw join, right argument): "a lattice, not
+necessarily bounded, ... whose order is a chain", for any binary operation
+`f` monotone with a fixed left element, `f` preserves finite joins in its
+right argument. Proof: on a chain `q ⊔ r ∈ {q, r}`; say `q ≤ r`, so
+`q ⊔ r = r` and monotonicity gives `f p q ≤ f p r`, hence
+`f p q ⊔ f p r = f p r` too. -/
+theorem chain_binop_sup_right (f : α → α → α)
+    (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f r x ≤ f r y)
+    (p q r : α) : f p (q ⊔ r) = f p q ⊔ f p r := by
+  rcases le_total q r with h | h
+  · rw [sup_eq_right.mpr h, sup_eq_right.mpr (hf h p)]
+  · rw [sup_eq_left.mpr h, sup_eq_left.mpr (hf h p)]
+
+/-- Blueprint `thm:chain-lin` (i, raw join, left argument): dually, for any
+binary operation `f` monotone with a fixed right element, `f` preserves
+finite joins in its left argument. -/
+theorem chain_binop_sup_left (f : α → α → α)
+    (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f x r ≤ f y r)
+    (p q r : α) : f (p ⊔ q) r = f p r ⊔ f q r := by
+  rcases le_total p q with h | h
+  · rw [sup_eq_right.mpr h, sup_eq_right.mpr (hf h r)]
+  · rw [sup_eq_left.mpr h, sup_eq_left.mpr (hf h r)]
+
+/-- Blueprint `thm:chain-lin` (i, raw meet, right argument): dually to
+`chain_binop_sup_right`, for any binary operation `f` monotone with a fixed
+left element, `f` preserves finite meets in its right argument. -/
+theorem chain_binop_inf_right (f : α → α → α)
+    (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f r x ≤ f r y)
+    (p q r : α) : f p (q ⊓ r) = f p q ⊓ f p r := by
+  rcases le_total q r with h | h
+  · rw [inf_eq_left.mpr h, inf_eq_left.mpr (hf h p)]
+  · rw [inf_eq_right.mpr h, inf_eq_right.mpr (hf h p)]
+
+/-- Blueprint `thm:chain-lin` (i, raw meet, left argument): dually to
+`chain_binop_sup_left`, for any binary operation `f` monotone with a fixed
+right element, `f` preserves finite meets in its left argument. -/
+theorem chain_binop_inf_left (f : α → α → α)
+    (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f x r ≤ f y r)
+    (p q r : α) : f (p ⊓ q) r = f p r ⊓ f q r := by
+  rcases le_total p q with h | h
+  · rw [inf_eq_left.mpr h, inf_eq_left.mpr (hf h r)]
+  · rw [inf_eq_right.mpr h, inf_eq_right.mpr (hf h r)]
+
+end RawChain
+
 section Chain
 
 variable {α : Type*} [LinearOrder α] [BoundedOrder α] [BLat2Mon α]
 
-/-! ### `thm:chain-lin`(i): the four binary linear laws on a chain -/
+/-! ### `thm:chain-lin`(i), `BLat2Mon`-context corollaries
 
-/-- Blueprint `thm:chain-lin` (i, `andC`-join, right argument): on a chain,
-if `andC` is monotone with a fixed left element (the shape of
-`lem:lin-monotone`'s `andC_le_andC_left`), then `andC` preserves finite joins
-in its right argument. Proof: on a chain `q ⊔ r ∈ {q, r}`; say `q ≤ r`, so
-`q ⊔ r = r` and monotonicity gives `andC p q ≤ andC p r`, hence
-`(andC p q) ⊔ (andC p r) = andC p r` too. -/
+One-line specializations of the raw lemmas above at `f := andC`/`parr`,
+kept (name and statement unchanged from before this rider) because
+`LinBLat2Mon.ofChain` below wants its four binary fields already in this
+shape. -/
+
+/-- Blueprint `thm:chain-lin` (i, `andC`-join, right argument): a corollary
+of `chain_binop_sup_right` at `f := andC`. -/
 theorem chain_andC_sup
     (andC_mono_left : ∀ {x y : α}, x ≤ y → ∀ r : α, andC r x ≤ andC r y)
-    (p q r : α) : andC p (q ⊔ r) = andC p q ⊔ andC p r := by
-  rcases le_total q r with h | h
-  · rw [sup_eq_right.mpr h, sup_eq_right.mpr (andC_mono_left h p)]
-  · rw [sup_eq_left.mpr h, sup_eq_left.mpr (andC_mono_left h p)]
+    (p q r : α) : andC p (q ⊔ r) = andC p q ⊔ andC p r :=
+  chain_binop_sup_right andC andC_mono_left p q r
 
-/-- Blueprint `thm:chain-lin` (i, `andC`-join, left argument): dually,
-if `andC` is monotone with a fixed right element, it preserves finite joins
-in its left argument. -/
+/-- Blueprint `thm:chain-lin` (i, `andC`-join, left argument): a corollary
+of `chain_binop_sup_left` at `f := andC`. -/
 theorem chain_sup_andC
     (andC_mono_right : ∀ {x y : α}, x ≤ y → ∀ r : α, andC x r ≤ andC y r)
-    (p q r : α) : andC (p ⊔ q) r = andC p r ⊔ andC q r := by
-  rcases le_total p q with h | h
-  · rw [sup_eq_right.mpr h, sup_eq_right.mpr (andC_mono_right h r)]
-  · rw [sup_eq_left.mpr h, sup_eq_left.mpr (andC_mono_right h r)]
+    (p q r : α) : andC (p ⊔ q) r = andC p r ⊔ andC q r :=
+  chain_binop_sup_left andC andC_mono_right p q r
 
-/-- Blueprint `thm:chain-lin` (i, `parr`-meet, right argument): dually to
-`chain_andC_sup`, if `parr` is monotone with a fixed left element, it
-preserves finite meets in its right argument. -/
+/-- Blueprint `thm:chain-lin` (i, `parr`-meet, right argument): a corollary
+of `chain_binop_inf_right` at `f := parr`. -/
 theorem chain_parr_inf
     (parr_mono_left : ∀ {x y : α}, x ≤ y → ∀ r : α, parr r x ≤ parr r y)
-    (p q r : α) : parr p (q ⊓ r) = parr p q ⊓ parr p r := by
-  rcases le_total q r with h | h
-  · rw [inf_eq_left.mpr h, inf_eq_left.mpr (parr_mono_left h p)]
-  · rw [inf_eq_right.mpr h, inf_eq_right.mpr (parr_mono_left h p)]
+    (p q r : α) : parr p (q ⊓ r) = parr p q ⊓ parr p r :=
+  chain_binop_inf_right parr parr_mono_left p q r
 
-/-- Blueprint `thm:chain-lin` (i, `parr`-meet, left argument): dually to
-`chain_sup_andC`, if `parr` is monotone with a fixed right element, it
-preserves finite meets in its left argument. -/
+/-- Blueprint `thm:chain-lin` (i, `parr`-meet, left argument): a corollary
+of `chain_binop_inf_left` at `f := parr`. -/
 theorem chain_inf_parr
     (parr_mono_right : ∀ {x y : α}, x ≤ y → ∀ r : α, parr x r ≤ parr y r)
-    (p q r : α) : parr (p ⊓ q) r = parr p r ⊓ parr q r := by
-  rcases le_total p q with h | h
-  · rw [inf_eq_left.mpr h, inf_eq_left.mpr (parr_mono_right h r)]
-  · rw [inf_eq_right.mpr h, inf_eq_right.mpr (parr_mono_right h r)]
+    (p q r : α) : parr (p ⊓ q) r = parr p r ⊓ parr q r :=
+  chain_binop_inf_left parr parr_mono_right p q r
 
 /-- Blueprint `thm:chain-lin`: on a chain (`[LinearOrder α]`) whose `andC`
 and `parr` are monotone in each argument, and which is bounded with
