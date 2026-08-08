@@ -197,9 +197,10 @@ theorem dstR_apply (f : MS S X) (g : MS S Y) (x : X) (y : Y) :
   simp_rw [inner, mul_ite, mul_zero]
   exact sum_ite_eq_of_apply_zero g y (fun _ w => w * f x) (by rw [zero_mul])
 
-/-- Blueprint `thm:semiring-monad-commutative`: `MS S` is a *commutative*
-monad — its two double-strength maps `dstL`/`dstR` agree, for every `X Y f
-g` — if and only if `S` itself is commutative.
+/-- Blueprint `thm:semiring-monad-commutative` (Semiring monad
+commutativity): `MS S` is a *commutative* monad — its two double-strength
+maps `dstL`/`dstR` agree, for every `X Y f g` — if and only if `S` itself is
+commutative.
 
 Forward: `⊗` commuting makes the two orders of independent binding agree
 pointwise, `f x * g y = g y * f x` (`dstL_apply`/`dstR_apply`).

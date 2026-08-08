@@ -29,14 +29,20 @@ Two editorial principles govern every item:
 \begin{itemize}
 \item \textbf{Natural generality.} Each item is stated at its natural
   mathematical level (for example, the weight-monad construction
-  $\MS{S}$ for an arbitrary commutative semiring $S$), with the
+  $\MS{S}$ for any semiring $S$, not assumed commutative), with the
   paper's concrete cases (Boolean, mass, log semirings; the $[0,1]$
-  readout) presented as instances. Every point where this document
-  diverges from the source text --- by generalizing, by adding a
-  hypothesis, or by restructuring an argument --- is declared in the
-  item's own prose.
+  readout) presented as instances. This document is the canonical
+  informal reference of the NeSyCat library in its own right, not a
+  restatement graded against the source text: items are stated at
+  their natural generality in the library's own voice, and a cited
+  source's narrower case then appears in-item as an instance or
+  corollary, noted as such rather than as a divergence declared
+  relative to the source.
 \item \textbf{Provenance.} Every item ends with a bracketed pointer
-  into the source, e.g.\ \texttt{[NeSy26, App.~A]}.
+  into the source, e.g.\ \texttt{[NeSy26, App.~A]}; the pointer credits
+  where the mathematical content originates, and is checked for
+  accuracy against what the source actually contains, not for whether
+  the source's own statement matches this document's verbatim.
 \end{itemize}
 
 Notation is simplified from the source where this costs nothing
@@ -73,7 +79,8 @@ the campaign ledger.
 
 \begin{definition}[Lattice-semiring]
 \label{def:lattice-semiring}
-\lean{NeSyCat.LatSRng, NeSyCat.LatCSRng, NeSyCat.BLatSRng, NeSyCat.BLatCSRng, NeSyCat.BoolW.instBLatCSRng, NeSyCat.instLatCSRngNNReal}
+\lean{NeSyCat.LatSRng, NeSyCat.LatCSRng, NeSyCat.BLatSRng, NeSyCat.BLatCSRng, NeSyCat.BoolW.instBLatCSRng, NeSyCat.instLatCSRngNNReal, NeSyCat.instLatCSRngLogS}
+\leanok
 A \textbf{lattice-semiring} ($\mathrm{LatSRng}$) is a semiring
 $(S, \oplus, \otimes, 0, 1)$ --- not assumed commutative --- equipped
 with a lattice order $\le$ on the carrier $S$: a meet $\wedge$ and join
@@ -259,6 +266,8 @@ claimed by this or any prior ticket.
 
 \begin{definition}[Distribution monad]
 \label{def:dist-monad}
+\lean{NeSyCat.Dist, NeSyCat.ret_mass_one, NeSyCat.bind_mass_one, NeSyCat.Dist.pure, NeSyCat.Dist.bind}
+\leanok
 The \textbf{distribution monad} is the mass-one submonad of the mass
 semiring monad,
 \[
@@ -281,6 +290,8 @@ so $\Dmon$ inherits a monad structure from $\Tmon$.
 
 \begin{lemma}[Log isomorphism]
 \label{lem:log-iso}
+\lean{NeSyCat.LogS, NeSyCat.logEquiv, NeSyCat.logRingEquiv, NeSyCat.LogTens, NeSyCat.logTensEquiv, NeSyCat.toLogTens_ret, NeSyCat.toLogTens_bind}
+\leanok
 $\log \colon (\MassS, +, \cdot, 0, 1) \to (\LogS, \lse, +, -\infty, 0)$
 is a semiring isomorphism ($e^{\lse(u,v)} = e^u+e^v$), and it
 transports the monad $\MS{\MassS} = \Tmon$ pointwise (applying $\log$
@@ -664,13 +675,14 @@ symbol's value is already monadic and stands as the final $\Do$-clause
 without $\Ret$; a Nesy symbol and a quantifier consume monadic values
 directly, with no additional binds.
 
-Since $\MS{S}$ is commutative whenever $S$ is a commutative semiring
-(Theorem~\ref{thm:semiring-monad-laws} builds it from the commutative
-and associative laws of $S$), the order of independent binds in the
+Since $\MS{S}$ is a commutative monad whenever $S$ is a commutative
+semiring (Theorem~\ref{thm:semiring-monad-commutative}: the monad's
+own commutativity, in the technical monad-theoretic sense, is exactly
+$S$'s own commutativity), the order of independent binds in the
 $\Do$-clause above is immaterial: permuting the $x_i \leftarrow t_i$
 lines whose values are not used in one another's construction does not
 change $\sem{\cdot}$.
-\uses{def:term-grammar, def:domain-interpretation}
+\uses{def:term-grammar, def:domain-interpretation, thm:semiring-monad-commutative}
 [NeSy26, \S 3]
 \end{definition}
 
