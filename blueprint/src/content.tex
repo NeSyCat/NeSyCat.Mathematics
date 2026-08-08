@@ -1030,7 +1030,8 @@ description.
 \label{lem:lifted-mass}
 \lean{NeSyCat.twoSlot_andM, NeSyCat.twoSlot_parrM, NeSyCat.twoSlot_negM,
 NeSyCat.twoSlot_ret_zero, NeSyCat.twoSlot_ret_one, NeSyCat.twoSlot_orderMeet,
-NeSyCat.twoSlot_orderJoin}
+NeSyCat.twoSlot_orderJoin, NeSyCat.twoSlot_andM_mass, NeSyCat.twoSlot_parrM_mass,
+NeSyCat.twoSlot_negM_mass, NeSyCat.twoSlot_ret_zero_mass, NeSyCat.twoSlot_ret_one_mass}
 \leanok
 On $\Tmon\,\BoolS \cong \MassS^2$ (coordinates $(w_0,w_1)$, slot $0$
 the weight against, slot $1$ the weight for), the lifted family of
@@ -1172,6 +1173,14 @@ out concretely only for $S \in \{\MassS, \LogS\}$
 
 \begin{lemma}[Pointwise]
 \label{lem:pointwise}
+\lean{NeSyCat.instLatSRngProd, NeSyCat.instLatCSRngProd, NeSyCat.instBLatSRngProd,
+NeSyCat.instBLatCSRngProd, NeSyCat.instLatSRngPi, NeSyCat.instLatCSRngPi,
+NeSyCat.twoSlot_add, NeSyCat.twoSlot_zero, NeSyCat.pointwiseMul,
+NeSyCat.twoSlot_pointwiseMul, NeSyCat.pointwiseOne, NeSyCat.twoSlot_pointwiseOne,
+NeSyCat.pointwiseMeet, NeSyCat.twoSlot_pointwiseMeet, NeSyCat.pointwiseJoin,
+NeSyCat.twoSlot_pointwiseJoin, NeSyCat.pointwiseBot, NeSyCat.twoSlot_pointwiseBot,
+NeSyCat.pointwiseTop, NeSyCat.twoSlot_pointwiseTop}
+\leanok
 For a lattice-semiring $S$, $\MS{S}(\BoolS) = S^{\BoolS} \cong S\times
 S$ carries all scalar operations ($\oplus,\otimes,0,1$) and the order
 ($\wedge,\vee,\bot,\top,\le$) componentwise, and a (finite) power of a
@@ -1181,6 +1190,7 @@ lattice-semiring is again a lattice-semiring.
 \end{lemma}
 
 \begin{proof}
+\leanok
 $S^{\BoolS}$ is the product of two copies of $S$ in the
 variety of lattice-semirings (a variety defined by the semiring
 equations plus the monotonicity axioms of
@@ -1190,6 +1200,11 @@ products); all structure is inherited componentwise.
 
 \begin{lemma}[Linear laws lift]
 \label{lem:linear-lift}
+\lean{NeSyCat.andM_assoc, NeSyCat.andM_comm, NeSyCat.ret_one_andM,
+NeSyCat.andM_ret_one, NeSyCat.parrM_assoc, NeSyCat.parrM_comm,
+NeSyCat.ret_zero_parrM, NeSyCat.parrM_ret_zero, NeSyCat.negM_negM,
+NeSyCat.negM_ret_zero, NeSyCat.negM_parrM, NeSyCat.negM_andM}
+\leanok
 For a commutative semiring $S$, the lifted family
 $(\MS{S}\BoolS, \parr, \Ret(0))$ and $(\MS{S}\BoolS, \AndC, \Ret(1))$ of
 Definition~\ref{def:lifted-connective} are commutative monoids, and
@@ -1202,6 +1217,7 @@ $\neg(w \AndC v) = \neg v \parr \neg w$.
 \end{lemma}
 
 \begin{proof}
+\leanok
 Directly from Lemma~\ref{lem:lifted-mass}
 (equivalently~\ref{lem:lifted-log}): associativity, commutativity and
 the unit laws of $\parr,\AndC$ each involve every variable exactly
@@ -1229,6 +1245,9 @@ schema-level meta-theorem.
 
 \begin{lemma}[Copying laws do not lift]
 \label{lem:copying-fails}
+\lean{NeSyCat.fairCoin, NeSyCat.distReadout_fairCoin, NeSyCat.andD_fairCoin_ne,
+NeSyCat.exists_andC_ne_self}
+\leanok
 Equations that duplicate a variable --- idempotence, absorption,
 lattice distributivity --- fail for the lifted family in general.
 Witness: in $\Dmon\,\BoolS \cong \ProbS$
@@ -1239,6 +1258,7 @@ $p \in (0,1)$, so $\AndC$ is not idempotent.
 \end{lemma}
 
 \begin{proof}
+\leanok
 The displayed computation; $p^2=p$ iff $p\in\{0,1\}$.
 \end{proof}
 
@@ -1256,6 +1276,10 @@ makes truth graded rather than classical.
 
 \begin{theorem}[Three layers of lattice semirings]
 \label{thm:three-layers}
+\lean{NeSyCat.latCSRngBoolWSq, NeSyCat.latCSRngNNRealSq, NeSyCat.latCSRngLogSSq,
+NeSyCat.order_iff_inf_eq_left, NeSyCat.BoolW.parr_eq_sup, NeSyCat.BoolW.andC_eq_inf,
+NeSyCat.unitInterval.instUnitBounds, NeSyCat.not_isBot_orderedTwoSlot_ret_zero}
+\leanok
 Let $S$ be a lattice-semiring and apply $\MS{S}$ to the lattice-semiring
 $\BoolS$. Then $\MS{S}\BoolS$ decomposes into three independent
 contributions:
@@ -1284,6 +1308,7 @@ normalized (mass-one) rows.
 \end{theorem}
 
 \begin{proof}
+\leanok
 (i) is Lemma~\ref{lem:pointwise}; (ii) is
 Lemmas~\ref{lem:linear-lift} and \ref{lem:copying-fails}; (iii) is the
 construction of Definition~\ref{def:order-family}.

@@ -361,6 +361,10 @@ def cmd_emit_lean(groups_path):
           "\"regular\"")
     print("    pure s!\"{kind}|{redStr}\"")
     print()
+    # The flat do-block's elaboration depth grows linearly with the name
+    # count; the default maxRecDepth (512) tops out near ~123 names
+    # (hit at 163 names during C2-T4). Raised with ample headroom.
+    print("set_option maxRecDepth 8000 in")
     print("#eval show MetaM Unit from do")
     for nm in names:
         print(f"  IO.println (s!\"KIND\\t{nm}\\t\" ++ "
