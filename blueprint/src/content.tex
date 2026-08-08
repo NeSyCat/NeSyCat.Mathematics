@@ -829,9 +829,12 @@ $r \le q$ (slot 1: $0 \le 10$; slot 0 reversed: $5 \ge 0$), but
 $p \AndC r = (5, 0)$ and $p \AndC q = (10, 0)$, and
 $(5,0) \le (10,0)$ fails in the reversed slot ($5 \ge 10$ is false).
 The mechanism is the cross term $w_0v_1$ in slot 0 of $\AndC$: raising
-the FOR-weight $v_1$ raises the AGAINST-slot of the output. (By
-contrast $\parr$ IS monotone: its slot 0 is the pure product
-$w_0 v_0$.) The counterexample persists unchanged in the bounded
+the \emph{for}-weight $v_1$ raises the \emph{against}-slot of the
+output. Neither operation is monotone: $\parr$ fails dually, via the
+cross term $w_1v_0$ in its slot 1 --- as it must, since an antitone
+involution exchanging the two operations
+(Lemma~\ref{lem:dm-dual-law}) makes $\parr$ monotone if and only if
+$\AndC$ is. The counterexample persists unchanged in the bounded
 completion $[0,\infty]^2$, so no bounded extension of this order
 family is Lin either.
 \end{proof}
@@ -845,7 +848,7 @@ conjunction $\otimes$; our $\parr$ is linear logic's $\parr$. Units:
 $\dzero$ is linear logic's $\bot$ (the $\parr$-unit), $\done$ is
 linear logic's $1$ (the $\otimes$-unit), our $\bot$ is linear logic's
 $0$, our $\top$ is linear logic's $\top$. This library's $\AndC$ is
-deliberately a MULTIPLICATIVE connective despite linear logic using
+deliberately a \emph{multiplicative} connective despite linear logic using
 the same ampersand glyph for its additive one: the library keeps
 [NeSy26]'s notation throughout, per
 Remark~\ref{rem:connective-conventions}. Definition~\ref{def:lin-blat2mon}
