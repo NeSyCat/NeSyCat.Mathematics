@@ -34,6 +34,7 @@ import NeSyCat.GrammaticalLayer.GrammaticalLayer
 import NeSyCat.GrammaticalLayer.Context
 import NeSyCat.GrammaticalLayer.Grammar
 import NeSyCat.GrammaticalLayer.WireAdapters
+import NeSyCat.GrammaticalLayer.Kleisli
 
 -- Statistical layer (blueprint §6)
 import NeSyCat.StatisticalLayer.StatisticalLayer
