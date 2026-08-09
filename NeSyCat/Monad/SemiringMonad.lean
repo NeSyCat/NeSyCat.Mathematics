@@ -57,12 +57,14 @@ commutative: see the module doc comment above and
 `thm:semiring-monad-commutative` for exactly where `⊗`-commutativity
 becomes relevant (the monad's own commutativity, not its underlying monad
 laws). -/
+-- blueprint: internal (A1 bijection-law companion of `bind`, content.tex def:semiring-monad)
 abbrev MS (S : Type*) [Semiring S] (X : Type*) := X →₀ S
 
 variable {S : Type*} [Semiring S] {X Y Z : Type*}
 
 /-- Blueprint `def:semiring-monad` (Semiring monad, unit): `ret x := δ_x`,
 the indicator function that is `1` at `x` and `0` elsewhere. -/
+-- blueprint: internal (A1 bijection-law companion of `bind`, content.tex def:semiring-monad)
 noncomputable def ret (x : X) : MS S X := Finsupp.single x 1
 
 /-- Blueprint `def:semiring-monad` (Semiring monad, bind): `(f bind k)(y) :=
@@ -77,6 +79,7 @@ noncomputable def bind (f : MS S X) (k : X → MS S Y) : MS S Y :=
 the blueprint's matrix-multiplication formula `(f bind k)(y) = Σ_x f(x) ⊗
 k(x)(y)` (a finite sum over `f`'s support, `⊗` being `S`'s multiplication,
 in this left-to-right order — no step needs `⊗` to commute). -/
+-- blueprint: internal (A1 bijection-law companion of `bind`, content.tex def:semiring-monad)
 theorem bind_apply (f : MS S X) (k : X → MS S Y) (y : Y) :
     bind f k y = f.sum fun x w => w * k x y := by
   simp [bind, Finsupp.sum_apply, Finsupp.smul_apply, smul_eq_mul]
@@ -135,6 +138,8 @@ vanishes at `0`, collapses unconditionally to the value at `a` (whether or
 not `a` is in the support — Mathlib's `Finsupp.sum_ite_eq'` leaves this
 guarded by `a ∈ f.support`, which `hb` removes). Used twice in
 `dstL_apply`/`dstR_apply` below, once for each nested `Finsupp.sum`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 private theorem sum_ite_eq_of_apply_zero {α M N : Type*} [Zero M] [AddCommMonoid N]
     [DecidableEq α] (h : α →₀ M) (a : α) (b : α → M → N) (hb : b a 0 = 0) :
     (h.sum fun x v => if x = a then b x v else 0) = b a (h a) := by
@@ -146,17 +151,23 @@ private theorem sum_ite_eq_of_apply_zero {α M N : Type*} [Zero M] [AddCommMonoi
 /-- Blueprint `thm:semiring-monad-commutative` (dstL): the left-to-right
 double strength / interchange map on `MS S` — bind `f` before `g` — with
 pointwise weight `f x * g y` (`dstL_apply` below). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `dst_comm_iff`, content.tex thm:semiring-monad-commutative)
 noncomputable def dstL (f : MS S X) (g : MS S Y) : MS S (X × Y) :=
   bind f (fun x => bind g (fun y => ret (x, y)))
 
 /-- Blueprint `thm:semiring-monad-commutative` (dstR): the right-to-left
 double strength / interchange map on `MS S` — bind `g` before `f` — with
 pointwise weight `g y * f x` (`dstR_apply` below). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `dst_comm_iff`, content.tex thm:semiring-monad-commutative)
 noncomputable def dstR (f : MS S X) (g : MS S Y) : MS S (X × Y) :=
   bind g (fun y => bind f (fun x => ret (x, y)))
 
 /-- Blueprint `thm:semiring-monad-commutative` (dstL_apply): `dstL` unfolds
 pointwise to `f x * g y`, `⊗` in the order "first bound, first multiplied". -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `dst_comm_iff`, content.tex thm:semiring-monad-commutative)
 theorem dstL_apply (f : MS S X) (g : MS S Y) (x : X) (y : Y) :
     dstL f g (x, y) = f x * g y := by
   classical
@@ -178,6 +189,8 @@ theorem dstL_apply (f : MS S X) (g : MS S Y) (x : X) (y : Y) :
 
 /-- Blueprint `thm:semiring-monad-commutative` (dstR_apply): `dstR` unfolds
 pointwise to `g y * f x`, `⊗` in the order "first bound, first multiplied". -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `dst_comm_iff`, content.tex thm:semiring-monad-commutative)
 theorem dstR_apply (f : MS S X) (g : MS S Y) (x : X) (y : Y) :
     dstR f g (x, y) = g y * f x := by
   classical
@@ -243,6 +256,8 @@ direction of `dst_comm_iff`, specialized via a `CommSemiring` instance for
 direct use (e.g. on `Tens := MS ℝ≥0`, whose weight semiring `ℝ≥0` is
 commutative, or `LatCSRng`'s derived `CommSemiring` instances from
 `NeSyCat/Monad/LatticeSemiring.lean`). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `dst_comm_iff`, content.tex thm:semiring-monad-commutative)
 theorem dst_comm {S : Type*} [CommSemiring S] {X Y : Type*} (f : MS S X) (g : MS S Y) :
     dstL f g = dstR f g :=
   dst_comm_iff.mp mul_comm X Y f g

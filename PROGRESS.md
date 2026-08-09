@@ -42,6 +42,91 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 ## Notes
 
 - See `FORMALIZE.md` for the resume protocol and work loop.
+- **C2-E4a (full Lean-kind sync + bijection/completeness laws,
+  2026-08-09; supersedes C2-E3/A1's proposition/corollary-only kind
+  sync):** (1) **Full env inventory**: `example`/`conjecture` join
+  `remark`/`proposition`/`corollary` as abolished; new `class`/
+  `instance` envs introduced, one-for-one with Lean's own keywords;
+  `ex:lattice-semiring-rows` split into three `instance` envs
+  (`inst:boolw-latcsrng`/`inst:massS-latcsrng`/`inst:logS-latcsrng`);
+  `cnj:chain-bound` promoted to `thm:chain-bound` with a proof body of
+  exactly "Open." (never `\leanok`); the dice/tilt-failure/MNIST
+  narrative examples dissolved into plain prose. Twelve former
+  `definition` envs re-kinded to `class` (BLat2Mon family, LatSRng
+  family, DMStructure, the unit-bound mixins). Independent per-kind
+  counters (`common.tex`), verified restarting at 1 in BOTH engines
+  (pdf via `pdftotext`, web via the rendered `_thmlabel` spans).
+  (2) **The bijection law (addendum A1, mid-ticket)**: every marked env
+  now carries exactly one `\lean{}` name; 28 formerly multi-name envs
+  (out of an original 80 marked envs, 195 names) processed --
+  `thm:semiring-monad-laws` split into three per-law lemmas
+  (`lem:bind-left-unit`/`lem:bind-right-unit`/`lem:bind-assoc`) plus an
+  unmarked summary theorem; `thm:chain-lin` split into part (i) (kept
+  the label, a `theorem`) and part (ii) (new label
+  `def:chain-lin-unitbounds`, re-kinded to `definition` since its
+  principal `LinBLat2Mon.ofChain` is `def`-valued); `lem:log-iso`
+  re-kinded `lemma` -> `definition` for the same def-valued-witness
+  reason (principal `logTensEquiv`); `lem:truth-space-instances` split
+  into `def:two-slot`/`def:dist-readout`; the remaining 24 envs trimmed
+  to a single principal name each (companions demoted). Final mark
+  count: 56 (down from 195, expected per the decree). ~135 demoted
+  Lean declarations tagged `-- blueprint: internal (A1 bijection-law
+  companion of ..., content.tex LABEL)` across 9 files.
+  (3) **Completeness census (addendum A2)**: every top-level
+  declaration in a fixed 12-file `CENSUS_FILES` list (the
+  Truth-value-structures + semiring-monad chapters; NOT yet the whole
+  library -- disclosed scope reduction, future work) is now either
+  cited or tagged internal -- 303 declarations, 56 cited, 247 internal,
+  0 unclassified. `pSum` (`NeSyCat/Monad/LatticeSemiring.lean`) was the
+  one genuine audit find (real, uncited mathematics, not plumbing) and
+  got its own `def:psum` Definition env. ~106 further pre-existing
+  declarations (routing-engine unfolding lemmas, the `LogS` `WithBot`
+  construction scaffold, truth tables, etc.) tagged
+  `-- blueprint: internal (C2-E4a/A2 completeness census: ...)`.
+  Known limitation (disclosed, not fixed this ticket): the census's
+  name-matching regex truncates at Lean's unicode subscript characters
+  (e.g. `twoSlot_lift₂`/`twoSlot_lift₁` both truncate to `twoSlot_lift`,
+  and `lift₂_apply`/`lift₁_apply` truncate to `lift`, which then
+  false-passes as "cited" via the unrelated bare name `lift`) --
+  affects only the pragmatic scanner's precision, not its soundness
+  against the real gate risk (an uncited real math item going
+  unnoticed), since every name it *does* flag is genuinely a top-level
+  declaration. (4) **Lean notation swap REVERTED (empirical fallback,
+  same shape as the standing `¬`-episode)**: the decreed scoped
+  `" ⊕ " => BLat2Mon.parr`/`" ⊗ " => BLat2Mon.andC` was probed exactly
+  per the pin's protocol. `⊗` alone is clean. `⊕` alone reproducibly
+  poisons elaboration: Lean core's global (always-open, non-`scoped`)
+  `Sum` notation wins the no-expected-type case (a bare
+  `theorem foo ... : p ⊕ q = p ⊕ q := rfl`, the ordinary shape of
+  essentially every existing lemma statement in this library) before
+  our scoped alternative is even tried, producing a "expected Type,
+  got α" elaboration failure with zero interaction from `⊗` or `Sum`
+  usage anywhere else in the file. Per the fallback protocol: **no
+  swap shipped**; the existing `⅋`/`&` scoped notation in
+  `NeSyCat/Notation.lean` is untouched; a new "The `⊕`/`⊗` swap was
+  tried and reverted" section (mirroring the `¬`-episode) documents the
+  reproduction transcript. Flagged for LEAD/user adjudication.
+  E4b's macros.sty-side work (`\llparr`, box tensor, deleting
+  `\parr`/`\AndC`) is independent and unaffected.
+  (5) **F1/F2/F3 remediations** (V-C2E3 findings) all applied: ~17
+  stale Lean doc-comment label citations fixed (plus further ones this
+  ticket's own re-kinding/splitting introduced, e.g. `lem:log-iso` ->
+  `Definition~\ref`, `ex:lattice-semiring-rows` -> the three new
+  `inst:*` labels, part (ii) -> `def:chain-lin-unitbounds`); F2's
+  seven purity-polish moves (mechanism clauses, "one-sided suffices",
+  the DM commutative parenthetical, no-dm-mass's "hence", lifted-mass's
+  ∞-bounds sentence, batch-transformer's gloss, `cnj:chain-bound`'s
+  meta-commentary) confirmed already resolved by the prior in-progress
+  work this ticket completed; F3's "retired" wording confirmed already
+  reworded. Gates: `scripts/blueprint.sh` GREEN (88 environments,
+  56 kind-checked names, census 0 unclassified, registry sync OK, both
+  pdf/web builds clean, independent per-kind numbering verified both
+  engines); `scripts/check.sh` GREEN (0 warnings after wrapping ~210
+  tag-comment lines that first overran the 100-char style limit);
+  `scripts/sorry-report.sh` 0 sorries. See `FORMALIZE.md`'s "Blueprint
+  structural laws" for the law text (final environment inventory, the
+  open-theorem convention, the bijection law, the internal-tag
+  convention, the three-shape witness doctrine).
 - **C2-E3 (editorial constitution pass, 2026-08-09):** a full-document
   editorial sweep of `blueprint/src/content.tex`, zero Lean changes.
   (1) **Remarks abolished**: all 24 `\begin{remark}` environments

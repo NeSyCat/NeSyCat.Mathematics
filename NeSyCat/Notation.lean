@@ -42,6 +42,49 @@ everywhere (as already used throughout `NeSyCat/Truth/BLat2Mon.lean` and
 `NeSyCat/Truth/BoolInstance.lean`). Flagged for LEAD/user adjudication,
 not an invented alternative glyph.
 
+## The `⊕`/`⊗` swap was tried and reverted (C2-E4a, empirical fallback)
+
+The C2-E4a decree asked for scoped `" ⊕ " => BLat2Mon.parr` / `" ⊗ " =>
+BLat2Mon.andC` (⊗ tighter, precedences 70/65 mirroring the pin), matching
+the semiring-scalar `⊕`/`⊗` already live via `NeSyCat.LatSRng`. Tested
+against the same conflict candidates the pin named: Lean core's `Sum`
+type notation (`α ⊕ β`, a GLOBAL, always-open infixr, unlike our
+`scoped` one) and Mathlib's scoped `TensorProduct` `⊗`. `⊗` alone is
+clean (Mathlib's own `⊗` is itself `scoped`, so it is never active
+without its own `open scoped`, and no conflict surfaces even with the
+same style of test below). `⊕` is **not** clean:
+
+```
+scoped infixl:65 " ⊕ " => BLat2Mon.parr
+theorem foo {α : Type*} [Lattice α] [BoundedOrder α] [BLat2Mon α] (p q : α) :
+    p ⊕ q = p ⊕ q := rfl
+-- error: Application type mismatch: The argument
+--   p
+-- has type
+--   α
+-- of sort `Type u_1` but is expected to have type
+--   Type ?u.12
+-- of sort `Type (?u.12 + 1)` in the application
+--   Sum p
+```
+
+With no expected type available to anchor elaboration (the ordinary
+shape of a bare equation in a `theorem`/`lemma` statement -- exactly
+how essentially every existing lemma in `NeSyCat/Truth/*.lean` is
+written, e.g. `dneg (dneg p) = p` with no type ascription), Lean tries
+Sum's global `⊕` notation for `p ⊕ q` before our scoped one, reads `p`
+as a *type* argument to `Sum`, and the whole elaboration poisons --
+reproducible with `⊕` alone, independent of whether `⊗` is even in
+scope. An explicit type ascription (`(p ⊕ q : α) = ...`) works around
+it, but requiring that on every ordinary lemma statement is not a
+notation this library can ship. Per the pin's own fallback protocol
+(same shape as the `¬`-episode below): **no `⊕`/`⊗` swap is shipped**;
+the existing `⅋`/`&` scoped notation (below) remains live and
+unchanged. Flagged for LEAD/user adjudication, not an invented
+alternative glyph; E4b's macros.sty-side work (`\llparr`, the box
+tensor, deleting the LaTeX-only `\parr`/`\AndC` macros) is independent
+of this Lean-side finding and unaffected by it.
+
 ## `&` conflict test (empirical, no conflict found)
 
 Tested `&` (our `andC`) against `∧` (`Prop` and), `&&` (`Bool` and),
@@ -72,7 +115,8 @@ counterpart, or an honest `PLANNED` status naming where it lands.
 -- \done  ↔ NeSyCat.BLat2Mon.done (live field; the "1̇" glyph itself is
 --          not notation-shipped by this ticket, only the bare name)
 -- \impc  ↔ PLANNED (connective-indexed implication, S/R-implication /
---          residuation chapter, per Remark rem:ll-dictionary)
+--          residuation chapter, per the linear-logic dictionary table in
+--          blueprint/src/content.tex, §"Truth-value structures")
 -- \negc  ↔ PLANNED (connective-indexed negation, same later chapter;
 --          note the *primitive* involution `DMStructure.dneg` is live
 --          now, but the indexed family `negc[c]` is not)

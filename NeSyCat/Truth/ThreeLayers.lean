@@ -117,6 +117,8 @@ monotonicity fields (absent from a bare `Semiring`/`Lattice` bundle) need
 proving, each componentwise from the corresponding fact in `S`/`T` (`≤` on
 `S × T` is *definitionally* the conjunction of the two componentwise `≤`s,
 `Prod.le_def`, so the anonymous constructor suffices). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 instance instLatSRngProd [LatSRng S] [LatSRng T] : LatSRng (S × T) where
   add_le_add_left h c := ⟨LatSRng.add_le_add_left h.1 c.1, LatSRng.add_le_add_left h.2 c.2⟩
   add_le_add_right h c := ⟨LatSRng.add_le_add_right h.1 c.1, LatSRng.add_le_add_right h.2 c.2⟩
@@ -125,6 +127,8 @@ instance instLatSRngProd [LatSRng S] [LatSRng T] : LatSRng (S × T) where
 
 /-- Blueprint `lem:pointwise` (Product commutative lattice-semiring): the
 commutative refinement, adding `mul_comm` componentwise. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 instance instLatCSRngProd [LatCSRng S] [LatCSRng T] : LatCSRng (S × T) where
   __ := (inferInstance : LatSRng (S × T))
   mul_comm p q := Prod.ext (LatCSRng.mul_comm p.1 q.1) (LatCSRng.mul_comm p.2 q.2)
@@ -132,12 +136,16 @@ instance instLatCSRngProd [LatCSRng S] [LatCSRng T] : LatCSRng (S × T) where
 /-- Blueprint `lem:pointwise` (Product bounded lattice-semiring): where both
 factors are bounded, so is the product (`Prod.instBoundedOrder`), giving a
 `BLatSRng` on `S × T`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 instance instBLatSRngProd [BLatSRng S] [BLatSRng T] : BLatSRng (S × T) where
   __ := (inferInstance : LatSRng (S × T))
   __ := (inferInstance : BoundedOrder (S × T))
 
 /-- Blueprint `lem:pointwise` (Product bounded commutative lattice-semiring):
 the commutative refinement of `instBLatSRngProd`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 instance instBLatCSRngProd [BLatCSRng S] [BLatCSRng T] : BLatCSRng (S × T) where
   __ := (inferInstance : BLatSRng (S × T))
   mul_comm p q := Prod.ext (BLatCSRng.mul_comm p.1 q.1) (BLatCSRng.mul_comm p.2 q.2)
@@ -151,6 +159,8 @@ clause a fortiori (the chapter-1 precedent for a Lean-more-general
 instance: `Pi.semiring`/`Pi.instLattice` already hold at this generality in
 Mathlib, so the monotonicity fields, proved pointwise via `S`'s own, cost
 nothing extra). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 instance instLatSRngPi [LatSRng S] : LatSRng (ι → S) where
   add_le_add_left h c i := LatSRng.add_le_add_left (h i) (c i)
   add_le_add_right h c i := LatSRng.add_le_add_right (h i) (c i)
@@ -159,6 +169,8 @@ instance instLatSRngPi [LatSRng S] : LatSRng (ι → S) where
 
 /-- Blueprint `lem:pointwise` (Pointwise-power commutative lattice-semiring):
 the commutative refinement, `mul_comm` pointwise. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 instance instLatCSRngPi [LatCSRng S] : LatCSRng (ι → S) where
   __ := (inferInstance : LatSRng (ι → S))
   mul_comm f g := funext fun i => LatCSRng.mul_comm (f i) (g i)
@@ -175,12 +187,16 @@ variable {S : Type*} [Semiring S]
 `MS S BoolW`'s own (genuine, unambiguous) `+` — `Finsupp.add_apply` is
 already pointwise, so this is the real content of the `⊕`-clause, needing
 no auxiliary `def`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 theorem twoSlot_add (w v : MS S BoolW) : twoSlot (w + v) = twoSlot w + twoSlot v := by
   ext <;> simp [twoSlot_apply, Finsupp.add_apply]
 
 /-- `twoSlot` sends `MS S BoolW`'s `0` to `S × S`'s `(0, 0)` — the trivial
 half of the `⊕`-clause (the identity element matching the additive unit
 transported by `twoSlot_add`). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 theorem twoSlot_zero : twoSlot (0 : MS S BoolW) = (0, 0) := by
   ext <;> simp [twoSlot_apply]
 
@@ -189,6 +205,8 @@ instance on `MS S BoolW`): the pointwise product of two truth-space values,
 defined by pulling `S × S`'s own multiplication back through `twoSlot` —
 mirrors `NeSyCat/Truth/Lifted.lean`'s `orderMeet`/`orderJoin` pattern
 exactly, just via the plain (non-dualized) `twoSlot`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 noncomputable def pointwiseMul (w v : MS S BoolW) : MS S BoolW :=
   twoSlot.symm (twoSlot w * twoSlot v)
 
@@ -205,8 +223,12 @@ a genuinely new value (distinct from both `Ret(0) = (1,0)` and
 `Ret(1) = (0,1)`, `NeSyCat/Truth/Lifted.lean`'s `twoSlot_ret_zero`/
 `twoSlot_ret_one`), matching the blueprint's `1` clause for the pointwise
 structure specifically. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 noncomputable def pointwiseOne : MS S BoolW := twoSlot.symm (1, 1)
 
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 theorem twoSlot_pointwiseOne : twoSlot (pointwiseOne : MS S BoolW) = (1, 1) :=
   Equiv.apply_symm_apply _ _
 
@@ -218,17 +240,25 @@ counterpart of `NeSyCat/Truth/Lifted.lean`'s `orderMeet` (which dualizes
 slot `0` for the different `def:order-family` purpose, `thm:three-layers`
 item (iii)); this is the plain `S^𝔹` lattice order used for item (i)'s
 closure/iteration clause. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 noncomputable def pointwiseMeet (w v : MS S BoolW) : MS S BoolW :=
   twoSlot.symm (twoSlot w ⊓ twoSlot v)
 
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 theorem twoSlot_pointwiseMeet (w v : MS S BoolW) :
     twoSlot (pointwiseMeet w v) = twoSlot w ⊓ twoSlot v :=
   Equiv.apply_symm_apply _ _
 
 /-- Blueprint `lem:pointwise` (`∨` componentwise, transported value), dually. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 noncomputable def pointwiseJoin (w v : MS S BoolW) : MS S BoolW :=
   twoSlot.symm (twoSlot w ⊔ twoSlot v)
 
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 theorem twoSlot_pointwiseJoin (w v : MS S BoolW) :
     twoSlot (pointwiseJoin w v) = twoSlot w ⊔ twoSlot v :=
   Equiv.apply_symm_apply _ _
@@ -236,14 +266,22 @@ theorem twoSlot_pointwiseJoin (w v : MS S BoolW) :
 variable [BoundedOrder S]
 
 /-- Blueprint `lem:pointwise` (`⊥` componentwise, transported value). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 noncomputable def pointwiseBot : MS S BoolW := twoSlot.symm ⊥
 
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 theorem twoSlot_pointwiseBot : twoSlot (pointwiseBot : MS S BoolW) = (⊥, ⊥) :=
   Equiv.apply_symm_apply _ _
 
 /-- Blueprint `lem:pointwise` (`⊤` componentwise, transported value). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 noncomputable def pointwiseTop : MS S BoolW := twoSlot.symm ⊤
 
+-- blueprint: internal (A1 bijection-law companion of
+-- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
 theorem twoSlot_pointwiseTop : twoSlot (pointwiseTop : MS S BoolW) = (⊤, ⊤) :=
   Equiv.apply_symm_apply _ _
 
@@ -259,35 +297,55 @@ variable {S : Type*} [Semiring S]
 engine specialized to a single coordinate — used throughout the equational
 package below. -/
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem andM_apply_zero (w v : MS S BoolW) :
     andM w v 0 = w 0 * v 0 + w 0 * v 1 + w 1 * v 0 :=
   congrArg Prod.fst (twoSlot_andM w v)
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem andM_apply_one (w v : MS S BoolW) : andM w v 1 = w 1 * v 1 :=
   congrArg Prod.snd (twoSlot_andM w v)
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem parrM_apply_zero (w v : MS S BoolW) : parrM w v 0 = w 0 * v 0 :=
   congrArg Prod.fst (twoSlot_parrM w v)
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem parrM_apply_one (w v : MS S BoolW) :
     parrM w v 1 = w 0 * v 1 + w 1 * v 0 + w 1 * v 1 :=
   congrArg Prod.snd (twoSlot_parrM w v)
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem negM_apply_zero (w : MS S BoolW) : negM w 0 = w 1 :=
   congrArg Prod.fst (twoSlot_negM w)
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem negM_apply_one (w : MS S BoolW) : negM w 1 = w 0 :=
   congrArg Prod.snd (twoSlot_negM w)
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem ret_zero_apply_zero : (ret (0 : BoolW) : MS S BoolW) 0 = 1 :=
   congrArg Prod.fst twoSlot_ret_zero
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem ret_zero_apply_one : (ret (0 : BoolW) : MS S BoolW) 1 = 0 :=
   congrArg Prod.snd twoSlot_ret_zero
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem ret_one_apply_zero : (ret (1 : BoolW) : MS S BoolW) 0 = 0 :=
   congrArg Prod.fst twoSlot_ret_one
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem ret_one_apply_one : (ret (1 : BoolW) : MS S BoolW) 1 = 1 :=
   congrArg Prod.snd twoSlot_ret_one
 
@@ -313,24 +371,28 @@ shadow of `thm:semiring-monad-commutative`'s `dstL = dstR ↔ S` commutative
 (`NeSyCat/Monad/SemiringMonad.lean`'s `dst_comm`): the two independent
 binds building `andM` from its arguments agree in either order exactly
 because `*` does on `S`. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem andM_comm (a b : MS R BoolW) : andM a b = andM b a := by
   apply twoSlot.injective
   rw [twoSlot_andM, twoSlot_andM]
   ext <;> ring
 
 /-- Blueprint `lem:linear-lift` (`\&` left unit): `Ret(1) \& w = w`. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem ret_one_andM (w : MS R BoolW) : andM (ret 1) w = w := by
   apply twoSlot.injective
   rw [twoSlot_andM, ret_one_apply_zero, ret_one_apply_one]
   ext <;> simp
 
 /-- Blueprint `lem:linear-lift` (`\&` right unit): `w \& Ret(1) = w`. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem andM_ret_one (w : MS R BoolW) : andM w (ret 1) = w := by
   apply twoSlot.injective
   rw [twoSlot_andM, ret_one_apply_zero, ret_one_apply_one]
   ext <;> simp
 
 /-- Blueprint `lem:linear-lift` (`⅋` associativity), dual to `andM_assoc`. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem parrM_assoc (a b c : MS R BoolW) : parrM (parrM a b) c = parrM a (parrM b c) := by
   apply twoSlot.injective
   rw [twoSlot_parrM, twoSlot_parrM, parrM_apply_zero, parrM_apply_one, parrM_apply_zero,
@@ -340,18 +402,21 @@ theorem parrM_assoc (a b c : MS R BoolW) : parrM (parrM a b) c = parrM a (parrM 
 /-- Blueprint `lem:linear-lift` (`⅋` commutativity), dual to `andM_comm` —
 again the one place `S`'s commutativity enters, matching the blueprint's
 "commutativity of `⅋, \&` specifically needs … `dstL = dstR`" proof note. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem parrM_comm (a b : MS R BoolW) : parrM a b = parrM b a := by
   apply twoSlot.injective
   rw [twoSlot_parrM, twoSlot_parrM]
   ext <;> ring
 
 /-- Blueprint `lem:linear-lift` (`⅋` left unit): `Ret(0) ⅋ w = w`. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem ret_zero_parrM (w : MS R BoolW) : parrM (ret 0) w = w := by
   apply twoSlot.injective
   rw [twoSlot_parrM, ret_zero_apply_zero, ret_zero_apply_one]
   ext <;> simp
 
 /-- Blueprint `lem:linear-lift` (`⅋` right unit): `w ⅋ Ret(0) = w`. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem parrM_ret_zero (w : MS R BoolW) : parrM w (ret 0) = w := by
   apply twoSlot.injective
   rw [twoSlot_parrM, ret_zero_apply_zero, ret_zero_apply_one]
@@ -361,11 +426,13 @@ theorem parrM_ret_zero (w : MS R BoolW) : parrM w (ret 0) = w := by
 no commutativity needed) -/
 
 /-- Blueprint `lem:linear-lift` (De Morgan involution): `¬¬w = w`. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem negM_negM (w : MS S BoolW) : negM (negM w) = w := by
   apply twoSlot.injective
   rw [twoSlot_negM, negM_apply_zero, negM_apply_one, twoSlot_apply]
 
 /-- Blueprint `lem:linear-lift` (De Morgan, unit swap): `¬ Ret(0) = Ret(1)`. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem negM_ret_zero : (negM (ret 0) : MS S BoolW) = ret 1 := by
   apply twoSlot.injective
   rw [twoSlot_negM, ret_zero_apply_zero, ret_zero_apply_one, twoSlot_ret_one]
@@ -377,6 +444,7 @@ holds at any `[Semiring S]` — but it is stated under `[CommSemiring R]`
 alongside `negM_andM` (which does need `mul_comm`) to keep
 `lem:linear-lift`'s De Morgan package at one uniform hypothesis, matching
 the blueprint's own single-item bundling. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem negM_parrM (w v : MS R BoolW) : negM (parrM w v) = andM (negM w) (negM v) := by
   apply twoSlot.injective
   rw [twoSlot_negM, twoSlot_andM, parrM_apply_zero, parrM_apply_one, negM_apply_zero,
@@ -387,6 +455,7 @@ theorem negM_parrM (w v : MS R BoolW) : negM (parrM w v) = andM (negM w) (negM v
 ¬v ⅋ ¬w`. This one genuinely needs `R`'s `mul_comm` (`w1*v1 = v1*w1` in the
 first coordinate), the De Morgan identity where `S`'s commutativity is
 load-bearing, not merely convenient. -/
+-- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
 theorem negM_andM (w v : MS R BoolW) : negM (andM w v) = parrM (negM v) (negM w) := by
   apply twoSlot.injective
   rw [twoSlot_negM, twoSlot_parrM, andM_apply_zero, andM_apply_one, negM_apply_zero,
@@ -403,8 +472,12 @@ open scoped unitInterval
 
 /-- The fair-coin witness: the `Dist BoolW` value with mass `½`/`½`,
 constructed directly as `distReadout.symm` of the readout point `½`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `exists_andC_ne_self`, content.tex lem:copying-fails)
 noncomputable def fairCoin : Dist BoolW := distReadout.symm ⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩
 
+-- blueprint: internal (A1 bijection-law companion of
+-- `exists_andC_ne_self`, content.tex lem:copying-fails)
 theorem distReadout_fairCoin :
     distReadout fairCoin = (⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩ : _root_.unitInterval) :=
   Equiv.apply_symm_apply _ _
@@ -413,6 +486,8 @@ theorem distReadout_fairCoin :
 `\&`-lift is not idempotent at the fair coin — `andD ρ ρ ≠ ρ`. Proved via
 the readout homomorphism `distReadout_andD`: `readout (ρ andD ρ) = ½ * ½ =
 ¼ ≠ ½ = readout ρ`, `norm_num` on the real/`unitInterval` coercions. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `exists_andC_ne_self`, content.tex lem:copying-fails)
 theorem andD_fairCoin_ne : andD fairCoin fairCoin ≠ fairCoin := by
   intro h
   have hread : distReadout (andD fairCoin fairCoin) = distReadout fairCoin := by rw [h]
@@ -452,6 +527,8 @@ section ThreeLayers
 resolves a `LatCSRng` instance purely from `lem:pointwise`'s `instLatCSRngProd`
 plus `BoolW`'s own `BLatCSRng` (hence `LatCSRng`, via `BLatCSRng.toLatCSRng`)
 instance — `MS BoolW (BoolW)` can serve as a next layer's weight semiring. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `order_iff_inf_eq_left`, content.tex thm:three-layers)
 @[reducible] def latCSRngBoolWSq : LatCSRng (BoolW × BoolW) := inferInstance
 
 /-- Blueprint `thm:three-layers` (i), mass square: `ℝ≥0 × ℝ≥0` resolves a
@@ -459,11 +536,15 @@ instance — `MS BoolW (BoolW)` can serve as a next layer's weight semiring. -/
 own `instLatCSRngNNReal`. The excluded row, `ProbS = [0,1]` with `⊕ := p ⊕
 q = p+q-pq`, is `lem:prob-not-semiring` (`prob_not_semiring`, cited, nothing
 new to prove here). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `order_iff_inf_eq_left`, content.tex thm:three-layers)
 @[reducible] noncomputable def latCSRngNNRealSq : LatCSRng (ℝ≥0 × ℝ≥0) := inferInstance
 
 /-- Blueprint `thm:three-layers` (i), log square: `LogS × LogS` resolves a
 `LatCSRng` instance from `lem:pointwise`'s `instLatCSRngProd` plus `LogS`'s
 own `instLatCSRngLogS` (`NeSyCat/Monad/LogIso.lean`). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `order_iff_inf_eq_left`, content.tex thm:three-layers)
 @[reducible] noncomputable def latCSRngLogSSq : LatCSRng (LogS × LogS) := inferInstance
 
 /-! ### (ii) linear/lifted: no additional Lean needed
@@ -502,6 +583,8 @@ agree with `⊥,⊤` on the normalized (mass-one) row — cited, not reproved. -
 mass order family (`Sᵒᵈ × S` at `S := ℝ≥0`), the `⅋`-unit's image under
 `orderedTwoSlot` is not a bottom — exhibited via the point
 `(toDual 2, 0)`, since `toDual 1 ≤ toDual 2` would force `2 ≤ 1` in `ℝ≥0`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `order_iff_inf_eq_left`, content.tex thm:three-layers)
 theorem not_isBot_orderedTwoSlot_ret_zero :
     ¬ IsBot (orderedTwoSlot (ret (0 : BoolW) : MS ℝ≥0 BoolW)) := by
   intro hbot

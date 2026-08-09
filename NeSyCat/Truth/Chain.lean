@@ -9,11 +9,15 @@ import NeSyCat.Truth.BLat2Mon
 /-!
 # Chains are linear, unit-bound decompositions, and MIX
 
-Blueprint items `thm:chain-lin`, `lem:dualabsorb-decomposition`, `lem:mix`
-(`blueprint/src/content.tex`, §"Truth-value structures") — the library's
-own development; the MIX vocabulary is from linear logic (Girard 1987),
-and `[NeSy26, App. A]` is cited by the blueprint only on the concrete
-row lemmas, not on these.
+Blueprint items `thm:chain-lin`, `def:chain-lin-unitbounds` (C2-E4a/A1
+peer-split of the former single `thm:chain-lin` env: part (i) keeps that
+label as a `theorem`, part (ii) is the new `definition`-kind label, its
+principal declaration `LinBLat2Mon.ofChain` being a `def`-valued
+constructor, not a Prop-valued theorem), `lem:dualabsorb-decomposition`,
+`lem:mix` (`blueprint/src/content.tex`, §"Truth-value structures") — the
+library's own development; the MIX vocabulary is from linear logic
+(Girard 1987), and `[NeSy26, App. A]` is cited by the blueprint only on
+the concrete row lemmas, not on these.
 
 ## `thm:chain-lin`
 
@@ -30,10 +34,10 @@ bounded" clause is *for* (`ℝ≥0`, `LogS`, ...), which have no
 `BoundedOrder` instance at all. The `BLat2Mon`-context lemmas
 (`chain_andC_sup`, `chain_sup_andC`, `chain_parr_inf`, `chain_inf_parr`)
 are one-line corollaries specializing the raw operation `f` to `andC`/
-`parr`; they exist only because `LinBLat2Mon.ofChain` (part (ii), which
-*does* need the bound and `UnitBounds`) wants its four binary fields
-already in `BLat2Mon`-native shape, not to add anything past the raw
-lemmas.
+`parr`; they exist only because `LinBLat2Mon.ofChain`
+(`def:chain-lin-unitbounds`, which *does* need the bound and
+`UnitBounds`) wants its four binary fields already in `BLat2Mon`-native
+shape, not to add anything past the raw lemmas.
 
 The monotonicity hypotheses ("suppose `andC` and `parr` are monotone in each
 argument") are taken as plain function arguments to each lemma, not as a new
@@ -92,6 +96,7 @@ necessarily bounded, ... whose order is a chain", for any binary operation
 right argument. Proof: on a chain `q ⊔ r ∈ {q, r}`; say `q ≤ r`, so
 `q ⊔ r = r` and monotonicity gives `f p q ≤ f p r`, hence
 `f p q ⊔ f p r = f p r` too. -/
+-- blueprint: internal (A1 bijection-law companion of `chain_andC_sup`, content.tex thm:chain-lin)
 theorem chain_binop_sup_right (f : α → α → α)
     (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f r x ≤ f r y)
     (p q r : α) : f p (q ⊔ r) = f p q ⊔ f p r := by
@@ -102,6 +107,7 @@ theorem chain_binop_sup_right (f : α → α → α)
 /-- Blueprint `thm:chain-lin` (i, raw join, left argument): dually, for any
 binary operation `f` monotone with a fixed right element, `f` preserves
 finite joins in its left argument. -/
+-- blueprint: internal (A1 bijection-law companion of `chain_andC_sup`, content.tex thm:chain-lin)
 theorem chain_binop_sup_left (f : α → α → α)
     (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f x r ≤ f y r)
     (p q r : α) : f (p ⊔ q) r = f p r ⊔ f q r := by
@@ -112,6 +118,7 @@ theorem chain_binop_sup_left (f : α → α → α)
 /-- Blueprint `thm:chain-lin` (i, raw meet, right argument): dually to
 `chain_binop_sup_right`, for any binary operation `f` monotone with a fixed
 left element, `f` preserves finite meets in its right argument. -/
+-- blueprint: internal (A1 bijection-law companion of `chain_andC_sup`, content.tex thm:chain-lin)
 theorem chain_binop_inf_right (f : α → α → α)
     (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f r x ≤ f r y)
     (p q r : α) : f p (q ⊓ r) = f p q ⊓ f p r := by
@@ -122,6 +129,7 @@ theorem chain_binop_inf_right (f : α → α → α)
 /-- Blueprint `thm:chain-lin` (i, raw meet, left argument): dually to
 `chain_binop_sup_left`, for any binary operation `f` monotone with a fixed
 right element, `f` preserves finite meets in its left argument. -/
+-- blueprint: internal (A1 bijection-law companion of `chain_andC_sup`, content.tex thm:chain-lin)
 theorem chain_binop_inf_left (f : α → α → α)
     (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f x r ≤ f y r)
     (p q r : α) : f (p ⊓ q) r = f p r ⊓ f q r := by
@@ -151,6 +159,7 @@ theorem chain_andC_sup
 
 /-- Blueprint `thm:chain-lin` (i, `andC`-join, left argument): a corollary
 of `chain_binop_sup_left` at `f := andC`. -/
+-- blueprint: internal (A1 bijection-law companion of `chain_andC_sup`, content.tex thm:chain-lin)
 theorem chain_sup_andC
     (andC_mono_right : ∀ {x y : α}, x ≤ y → ∀ r : α, andC x r ≤ andC y r)
     (p q r : α) : andC (p ⊔ q) r = andC p r ⊔ andC q r :=
@@ -158,6 +167,7 @@ theorem chain_sup_andC
 
 /-- Blueprint `thm:chain-lin` (i, `parr`-meet, right argument): a corollary
 of `chain_binop_inf_right` at `f := parr`. -/
+-- blueprint: internal (A1 bijection-law companion of `chain_andC_sup`, content.tex thm:chain-lin)
 theorem chain_parr_inf
     (parr_mono_left : ∀ {x y : α}, x ≤ y → ∀ r : α, parr r x ≤ parr r y)
     (p q r : α) : parr p (q ⊓ r) = parr p q ⊓ parr p r :=
@@ -165,17 +175,19 @@ theorem chain_parr_inf
 
 /-- Blueprint `thm:chain-lin` (i, `parr`-meet, left argument): a corollary
 of `chain_binop_inf_left` at `f := parr`. -/
+-- blueprint: internal (A1 bijection-law companion of `chain_andC_sup`, content.tex thm:chain-lin)
 theorem chain_inf_parr
     (parr_mono_right : ∀ {x y : α}, x ≤ y → ∀ r : α, parr x r ≤ parr y r)
     (p q r : α) : parr (p ⊓ q) r = parr p r ⊓ parr q r :=
   chain_binop_inf_left parr parr_mono_right p q r
 
-/-- Blueprint `thm:chain-lin`: on a chain (`[LinearOrder α]`) whose `andC`
-and `parr` are monotone in each argument, and which is bounded with
-`UnitBounds` (Definition~`def:unit-bounds`), the full `LinBLat2Mon`
-structure is present — part (i)'s four binary laws are `chain_andC_sup`,
-`chain_sup_andC`, `chain_parr_inf`, `chain_inf_parr`; part (ii)'s nullary
-laws follow from the unit bounds by the same monotonicity: annihilation
+/-- Blueprint `def:chain-lin-unitbounds`: on a chain (`[LinearOrder α]`)
+whose `andC` and `parr` are monotone in each argument (`thm:chain-lin`),
+and which is bounded with `UnitBounds` (Definition~`def:unit-bounds`),
+the full `LinBLat2Mon` structure is present — `thm:chain-lin`'s four
+binary laws are `chain_andC_sup`, `chain_sup_andC`, `chain_parr_inf`,
+`chain_inf_parr`; this definition's own nullary laws follow from the
+unit bounds by the same monotonicity: annihilation
 `andC p ⊥ = ⊥` from `p ≤ ⊤ = done` and `andC_done`/`bot_le`, and dually for
 `bot_andC`; absorption `parr p ⊤ = ⊤` from `⊥ = dzero ≤ p` and
 `dzero_parr`/`le_top`, and dually for `top_parr`. -/
@@ -246,6 +258,8 @@ iff the mixed absorption `p ⊔ (andC p q) = p` holds for all `p, q`. Forward
 via `done_eq_top_iff_andC_le_inf`; backward, taking `p := done` gives
 `done ⊔ q = done` for all `q` (via `done_andC`), so `q ≤ done`, hence
 `⊤ ≤ done`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `done_eq_top_iff_andC_le_inf`, content.tex lem:dualabsorb-decomposition)
 theorem done_eq_top_iff_sup_andC_absorb :
     (done : α) = ⊤ ↔ ∀ p q : α, p ⊔ andC p q = p := by
   constructor
@@ -260,6 +274,8 @@ theorem done_eq_top_iff_sup_andC_absorb :
 
 /-- Blueprint `lem:dualabsorb-decomposition` (ii, inequality form): dually,
 `dzero = ⊥` iff `parr` is everywhere above the join. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `done_eq_top_iff_andC_le_inf`, content.tex lem:dualabsorb-decomposition)
 theorem dzero_eq_bot_iff_sup_le_parr :
     (dzero : α) = ⊥ ↔ ∀ p q : α, p ⊔ q ≤ parr p q := by
   constructor
@@ -280,6 +296,8 @@ theorem dzero_eq_bot_iff_sup_le_parr :
 
 /-- Blueprint `lem:dualabsorb-decomposition` (ii, absorption form): dually,
 `dzero = ⊥` iff the mixed absorption `p ⊓ (parr p q) = p` holds. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `done_eq_top_iff_andC_le_inf`, content.tex lem:dualabsorb-decomposition)
 theorem dzero_eq_bot_iff_inf_parr_absorb :
     (dzero : α) = ⊥ ↔ ∀ p q : α, p ⊓ parr p q = p := by
   constructor
@@ -302,11 +320,13 @@ variable {α : Type*} [Lattice α] [BoundedOrder α] [LinBLat2Mon α] [UnitBound
 
 /-- Blueprint `lem:mix` (outer-left inequality): `andC p q ≤ p ⊓ q`, from
 `done_eq_top_iff_andC_le_inf` applied to `UnitBounds`' `done = ⊤`. -/
+-- blueprint: internal (A1 bijection-law companion of `mix_chain`, content.tex lem:mix)
 theorem andC_le_inf (p q : α) : andC p q ≤ p ⊓ q :=
   done_eq_top_iff_andC_le_inf.mp OneTop.done_eq_top p q
 
 /-- Blueprint `lem:mix` (outer-right inequality): `p ⊔ q ≤ parr p q`, from
 `dzero_eq_bot_iff_sup_le_parr` applied to `UnitBounds`' `dzero = ⊥`. -/
+-- blueprint: internal (A1 bijection-law companion of `mix_chain`, content.tex lem:mix)
 theorem sup_le_parr (p q : α) : p ⊔ q ≤ parr p q :=
   dzero_eq_bot_iff_sup_le_parr.mp ZeroBot.dzero_eq_bot p q
 
@@ -321,6 +341,7 @@ theorem mix_chain (p q : α) :
 
 /-- Blueprint `lem:mix` (MIX, the named corollary [Girard 1987]): `andC p q ≤
 parr p q`, factoring through the lattice as `mix_chain`. -/
+-- blueprint: internal (A1 bijection-law companion of `mix_chain`, content.tex lem:mix)
 theorem andC_le_parr (p q : α) : andC p q ≤ parr p q :=
   (andC_le_inf p q).trans (inf_le_sup.trans (sup_le_parr p q))
 

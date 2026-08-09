@@ -78,7 +78,7 @@ the campaign ledger.
 Two families of binary connective recur throughout, kept visually and
 notationally apart. The \textbf{lattice connectives} $\vee,\wedge$
 carry the bounds $\bot,\top$
-(Definition~\ref{def:bounded-lattice-semiring},
+(Class~\ref{def:bounded-lattice-semiring},
 Definition~\ref{def:order-family}). The \textbf{monoid connectives on
 truth values} $\oplus$ (unit $\dzero$) and $\otimes$ (unit $\done$) live
 at the logical/truth-value level only, naming the \emph{lifted} family
@@ -110,36 +110,47 @@ semiring's operations carried to the truth-value level, the bold face
 distinguishing the unit from a plain carrier numeral. The four stay
 distinct constants nonetheless: a coincidence between a bound and a
 unit (e.g.\ on a normalized, mass-one row) is recorded as a named
-axiom, UnitBounds (Definition~\ref{def:unit-bounds}), asserting
+axiom, UnitBounds (Class~\ref{def:unit-bounds}), asserting
 $\dzero=\bot$ and $\done=\top$ where they hold --- never folded into
 the notation itself, so the coincidence always reads as a substantive
 fact about a particular instance, not a definitional identification.
 
-\paragraph{Blueprint-to-Lean correspondence.} Environment kind fixes
-the correspondence to Lean declaration kind:
+\paragraph{Blueprint-to-Lean correspondence.} Environment kind is
+exactly Lean declaration kind, one for one:
 \begin{itemize}
-\item \texttt{definition} $\leftrightarrow$ Lean
-  \texttt{def}/\texttt{class}/\texttt{structure}/\texttt{instance}: new
-  mathematical content.
+\item \texttt{definition} $\leftrightarrow$ Lean \texttt{def} (or a
+  bare \texttt{structure} not registered as a type class): new
+  mathematical content that is not itself a class.
+\item \texttt{class} $\leftrightarrow$ Lean \texttt{class}: new
+  mathematical content that is a type class (a bounded lattice, a
+  semiring refinement, a mixin such as \texttt{ZeroBot}).
+\item \texttt{instance} $\leftrightarrow$ Lean \texttt{instance}: a
+  witness that a concrete carrier inhabits a class.
 \item \texttt{abbreviation} $\leftrightarrow$ Lean \texttt{abbrev}: a
   block that introduces a \emph{name} for existing content (e.g.\
   ``we write $\Tmon$ for $\MS{\MassS}$''). \emph{Invariant:} every
   \texttt{abbreviation} environment carries a
   \texttt{\textbackslash lean\{\}} mark pointing at that
-  \texttt{abbrev} --- no exceptions (a future gate may enforce mark
-  presence and kind); two \texttt{abbreviation} blocks exist in this
-  document, \ref{abbr:tensor-monad} and \ref{abbr:log-tensor-monad}.
-\item \texttt{theorem}, \texttt{proposition}, \texttt{lemma}, and
-  \texttt{corollary} $\leftrightarrow$ Lean \texttt{theorem} alike:
-  Lean ranks nothing among these, the rank --- theorem vs.\ lemma
-  vs.\ corollary --- lives only in this document.
+  \texttt{abbrev} --- no exceptions; two \texttt{abbreviation} blocks
+  exist in this document, \ref{abbr:tensor-monad} and
+  \ref{abbr:log-tensor-monad}.
+\item \texttt{lemma} and \texttt{theorem} $\leftrightarrow$ Lean
+  \texttt{theorem} alike (Lean ranks nothing between the two keywords;
+  the rank --- cited-as-infrastructure vs.\ chapter-payoff --- lives
+  only in this document). An open \texttt{theorem} (no known proof) is
+  the one exception: its \texttt{proof} environment's body is the
+  single word ``Open.'' and it never carries \texttt{\textbackslash
+  leanok} --- there is nothing formalized to mark.
 \item Plain narrative prose, outside any environment, carries
   everything with no Lean counterpart: provenance credits, notational
   and usage conventions, dictionary glosses, contrasts, and forward
   pointers. Nothing in Lean corresponds to it, and it is never wrapped
-  in its own citable environment --- the \texttt{remark} environment
-  is retired; the document reads as formal environments floating in
-  continuous prose.
+  in its own citable environment --- the document reads as formal
+  environments floating in continuous prose, with no
+  \texttt{remark}/\texttt{example}/\texttt{conjecture} kind of its
+  own; a worked instance either witnesses a \texttt{class} (and is
+  itself an \texttt{instance} environment) or, when purely narrative,
+  lives in the surrounding prose.
 \item A LaTeX \texttt{\textbackslash newcommand} in the symbol
   registry of \texttt{blueprint/src/macros/common.tex}
   $\leftrightarrow$ Lean \texttt{notation}: glyphs are macros, never
@@ -148,7 +159,7 @@ the correspondence to Lean declaration kind:
 \end{itemize}
 In every case, the \texttt{\textbackslash lean\{\}} marks remain the
 authoritative name-level cross-reference; this environment/kind
-agreement, together with the zero-remark-environment law and the
+agreement, together with the open-proof convention and the
 Lean-mirror-purity law on every environment's body, is enforced by
 \texttt{scripts/blueprint.sh}'s \texttt{CORRESPONDENCE} section
 (structural checks plus a Lean-kind assertion per
@@ -171,7 +182,7 @@ except the commutativity direction of
 Theorem~\ref{thm:semiring-monad-commutative}, credited below also to
 Coumans--Jacobs, Lem.~23.
 
-\begin{definition}[Lattice-semiring]
+\begin{class}[Lattice-semiring]
 \label{def:lattice-semiring}
 \lean{NeSyCat.LatSRng}
 \leanok
@@ -180,38 +191,38 @@ $(S, \oplus, \otimes, 0, 1)$ equipped
 with a lattice order $\le$ on the carrier $S$: a meet $\wedge$ and join
 $\vee$ exist for every pair of elements, and $\oplus$, $\otimes$ are
 each monotone in \emph{both} arguments with respect to $\le$.
-\end{definition}
+\end{class}
 
-\begin{definition}[Commutative lattice-semiring]
+\begin{class}[Commutative lattice-semiring]
 \label{def:comm-lattice-semiring}
 \lean{NeSyCat.LatCSRng}
 \leanok
 A \textbf{commutative lattice-semiring} ($\mathrm{LatCSRng}$) is a
-lattice-semiring (Definition~\ref{def:lattice-semiring}) whose $\otimes$
+lattice-semiring (Class~\ref{def:lattice-semiring}) whose $\otimes$
 is commutative.
 \uses{def:lattice-semiring}
-\end{definition}
+\end{class}
 
-\begin{definition}[Bounded lattice-semiring]
+\begin{class}[Bounded lattice-semiring]
 \label{def:bounded-lattice-semiring}
 \lean{NeSyCat.BLatSRng}
 \leanok
 A \textbf{bounded lattice-semiring} ($\mathrm{BLatSRng}$) is a
-lattice-semiring (Definition~\ref{def:lattice-semiring}) that
+lattice-semiring (Class~\ref{def:lattice-semiring}) that
 additionally carries an in-carrier $\bot$ and $\top$.
 \uses{def:lattice-semiring}
-\end{definition}
+\end{class}
 
-\begin{definition}[Bounded commutative lattice-semiring]
+\begin{class}[Bounded commutative lattice-semiring]
 \label{def:bounded-comm-lattice-semiring}
 \lean{NeSyCat.BLatCSRng}
 \leanok
 A \textbf{bounded commutative lattice-semiring} ($\mathrm{BLatCSRng}$)
 is the commutative refinement of a bounded lattice-semiring
-(Definition~\ref{def:bounded-lattice-semiring}): a bounded
+(Class~\ref{def:bounded-lattice-semiring}): a bounded
 lattice-semiring whose $\otimes$ is commutative.
 \uses{def:bounded-lattice-semiring, def:comm-lattice-semiring}
-\end{definition}
+\end{class}
 
 Plain (possibly noncommutative, unbounded) semirings need no separate
 name of their own above --- they are just semirings. On the general
@@ -224,18 +235,29 @@ commutative refinement $\mathrm{LatCSRng}$. This library states the
 lattice-semiring notion at this natural level of generality, splitting
 it the way Mathlib splits \texttt{Semiring}/\texttt{CommSemiring}.
 Equivalently, $\mathrm{BLatCSRng}$ is also the bounded refinement of a
-commutative lattice-semiring (Definition~\ref{def:comm-lattice-semiring});
+commutative lattice-semiring (Class~\ref{def:comm-lattice-semiring});
 [NeSy26, App.~A] states the commutative case throughout, matching the
 library's three running instances.
 
+% C2-E4a/A2 audit fruit (LEAD-identified): `pSum` was real, uncited
+% mathematics with neither an env nor an internal tag -- the
+% probabilistic sum used by the probability row's $\oplus$ below.
+\begin{definition}[Probabilistic sum]
+\label{def:psum}
+\lean{NeSyCat.pSum}
+\leanok
+For $p,q \in \ProbS = [0,1]$, the \textbf{probabilistic sum}
+$\mathrm{pSum}(p,q) := p+q-pq$.
+\end{definition}
+
 \begin{lemma}[Probability is not a semiring]
 \label{lem:prob-not-semiring}
-$(\ProbS, {+}{-}\cdot, \cdot, 0, 1)$, with $p \oplus q := p+q-pq$ and
-$p \otimes q := pq$, is \emph{not} a semiring: there exist
-$p,q,r \in \ProbS$ with $p \otimes (q \oplus r) \ne (p\otimes q) \oplus
-(p \otimes r)$, so $\otimes$ does not distribute over $\oplus$ in
-general.
-\uses{def:lattice-semiring}
+$(\ProbS, \mathrm{pSum}, \cdot, 0, 1)$ (Definition~\ref{def:psum}), with
+$p \oplus q := \mathrm{pSum}(p,q)$ and $p \otimes q := pq$, is
+\emph{not} a semiring: there exist $p,q,r \in \ProbS$ with $p \otimes
+(q \oplus r) \ne (p\otimes q) \oplus (p \otimes r)$, so $\otimes$ does
+not distribute over $\oplus$ in general.
+\uses{def:lattice-semiring, def:psum}
 \lean{NeSyCat.prob_not_semiring}
 \leanok
 \end{lemma}
@@ -255,34 +277,47 @@ and $\tfrac38 \ne \tfrac{7}{16}$.
 \end{proof}
 
 Consequently $\ProbS$ with this $(\oplus,\otimes)$ is not a row of
-Definition~\ref{def:lattice-semiring}: it is the mass-one slice of the
+Class~\ref{def:lattice-semiring}: it is the mass-one slice of the
 \emph{lifted} Boolean De~Morgan family of
 Definition~\ref{def:lifted-connective} (a pair of commutative monoids,
 not a semiring), read out as in
 Lemma~\ref{lem:lifted-prob-readout}, not a semiring in its own right.
 
-\begin{example}[Lattice-semiring rows]
-\label{ex:lattice-semiring-rows}
-\lean{NeSyCat.BoolW.instBLatCSRng, NeSyCat.instLatCSRngNNReal, NeSyCat.instLatCSRngLogS}
-\leanok
 The library's three running instances are all commutative
-($\mathrm{LatCSRng}$, Definition~\ref{def:comm-lattice-semiring}), shown
-here in their computational (finite-weight) form, the carrier on which
+($\mathrm{LatCSRng}$, Class~\ref{def:comm-lattice-semiring}), shown
+below in their computational (finite-weight) form, the carrier on which
 the semiring monad runs; in this form only the Boolean row is bounded
-($\mathrm{BLatCSRng}$, Definition~\ref{def:bounded-comm-lattice-semiring}).
-\begin{itemize}
-\item \emph{Boolean} (bounded): carrier $\BoolS = \{0,1\}$, $\bot{=}0$,
-  $\top{=}1$, $\vee{=}\mathtt{or}$, $\wedge{=}\mathtt{and}$, $0{=}0$,
-  $1{=}1$, $\oplus{=}\mathtt{or}$, $\otimes{=}\mathtt{and}$;
-\item \emph{mass} (unbounded above): carrier $\MassS$, $\bot{=}0$,
-  $\vee{=}\max$, $\wedge{=}\min$, $0{=}0$, $1{=}1$, $\oplus{=}{+}$,
-  $\otimes{=}\cdot$;
-\item \emph{log} (unbounded above): carrier $\LogS$, $\bot{=}{-\infty}$,
-  $\vee{=}\max$, $\wedge{=}\min$, $0{=}{-\infty}$,
-  $1{=}0$, $\oplus{=}\lse$, $\otimes{=}{+}$.
-\end{itemize}
-\uses{def:lattice-semiring, def:comm-lattice-semiring, def:bounded-lattice-semiring, def:bounded-comm-lattice-semiring, lem:prob-not-semiring}
-\end{example}
+($\mathrm{BLatCSRng}$, Class~\ref{def:bounded-comm-lattice-semiring}).
+
+\begin{instance}[Boolean row]
+\label{inst:boolw-latcsrng}
+\lean{NeSyCat.BoolW.instBLatCSRng}
+\leanok
+Carrier $\BoolS = \{0,1\}$, $\bot{=}0$, $\top{=}1$,
+$\vee{=}\mathtt{or}$, $\wedge{=}\mathtt{and}$, $0{=}0$, $1{=}1$,
+$\oplus{=}\mathtt{or}$, $\otimes{=}\mathtt{and}$ --- the only bounded
+row of the three.
+\uses{def:bounded-comm-lattice-semiring, lem:prob-not-semiring}
+\end{instance}
+
+\begin{instance}[Mass row]
+\label{inst:massS-latcsrng}
+\lean{NeSyCat.instLatCSRngNNReal}
+\leanok
+Carrier $\MassS$ (unbounded above), $\bot{=}0$, $\vee{=}\max$,
+$\wedge{=}\min$, $0{=}0$, $1{=}1$, $\oplus{=}{+}$, $\otimes{=}\cdot$.
+\uses{def:comm-lattice-semiring, lem:prob-not-semiring}
+\end{instance}
+
+\begin{instance}[Log row]
+\label{inst:logS-latcsrng}
+\lean{NeSyCat.instLatCSRngLogS}
+\leanok
+Carrier $\LogS$ (unbounded above), $\bot{=}{-\infty}$, $\vee{=}\max$,
+$\wedge{=}\min$, $0{=}{-\infty}$, $1{=}0$, $\oplus{=}\lse$,
+$\otimes{=}{+}$.
+\uses{def:comm-lattice-semiring, lem:prob-not-semiring}
+\end{instance}
 
 The log row already carries $-\infty$ in-carrier as both its $\bot$ and
 its $0$ ($=\log 0$); mass and log acquire their $\top$ --- and with it
@@ -294,7 +329,7 @@ Lemma~\ref{lem:prob-not-semiring} shows is not a semiring at all.
 
 \begin{definition}[Semiring monad $\MS{S}$]
 \label{def:semiring-monad}
-\lean{NeSyCat.MS, NeSyCat.ret, NeSyCat.bind, NeSyCat.bind_apply}
+\lean{NeSyCat.bind}
 \leanok
 Let $S = (S,\oplus,\otimes,0,1)$ be a semiring. The \textbf{semiring
 monad} $\MS{S}$ sends a set $X$ to the set $\MS{S}X$ of finitely
@@ -337,35 +372,80 @@ $(fK)(y) = \bigoplus_x f(x)\otimes K(x,y)$ at $K(x,y) := k(x)(y)$.
 % as the monad-laws statement proper (what C1-T2 states and proves in
 % Lean); the algebras clause is recorded as a stretch target, not
 % proved by this or any prior ticket.
-\begin{theorem}[Semiring monad laws]
-\label{thm:semiring-monad-laws}
-\lean{NeSyCat.ret_bind, NeSyCat.bind_ret, NeSyCat.bind_assoc}
+\begin{lemma}[Left unit law]
+\label{lem:bind-left-unit}
+\lean{NeSyCat.ret_bind}
 \leanok
-For every semiring $S$, $(\MS{S}, \Ret, \bind)$ of
-Definition~\ref{def:semiring-monad} is a monad on $\mathrm{Set}$:
-commutativity and associativity of $\oplus$ give associativity and
-commutativity of independent binds, associativity of $\otimes$ gives
-associativity of chained binds, and distributivity of $\otimes$ over
-$\oplus$ gives associativity of $\bind$ itself.
+$\delta_x \bind k = k(x)$: binding a point mass at $x$ into $k$
+returns $k(x)$.
 \uses{def:semiring-monad}
-\end{theorem}
+\end{lemma}
 
 \begin{proof}
 \leanok
-Unfolding $\bind$ from Definition~\ref{def:semiring-monad}, the
-left and right unit laws are the two distributivity-free identities
-$\delta_x \bind k = k(x)$ and $f \bind \Ret = f$ (each uses only a unit
-law of $S$), and associativity of $\bind$ expands, on both sides, to a
-double sum over $S$ that is rearranged into the other order by
-associativity and commutativity of $\oplus$ together with
-associativity of $\otimes$ and distributivity of $\otimes$ over
-$\oplus$ --- commutativity of $\otimes$ is never invoked.
+Unfolding $\bind$ from Definition~\ref{def:semiring-monad}, the sum
+$\bigoplus_{x'}\delta_x(x')\otimes k(x')(y)$ collapses to its single
+nonzero term at $x'=x$ by the unit laws of $S$.
 \end{proof}
 
-Informally: commutativity and associativity of $\oplus$ is ``addition
-marginalises'' (independent binds commute and associate), and
-associativity of $\otimes$ is ``multiplication chains'' (chained binds
-associate); none of this needs $\otimes$ to commute.
+\begin{lemma}[Right unit law]
+\label{lem:bind-right-unit}
+\lean{NeSyCat.bind_ret}
+\leanok
+$f \bind \Ret = f$.
+\uses{def:semiring-monad}
+\end{lemma}
+
+\begin{proof}
+\leanok
+Unfolding $\bind$ from Definition~\ref{def:semiring-monad}, the sum
+$\bigoplus_x f(x)\otimes\delta_x(y)$ collapses to $f(y)$ by the unit
+laws of $S$ (a distributivity-free identity, same shape as the left
+unit law).
+\end{proof}
+
+\begin{lemma}[Associativity of bind]
+\label{lem:bind-assoc}
+\lean{NeSyCat.bind_assoc}
+\leanok
+$(f \bind k) \bind l = f \bind (\lambda x.\, k(x) \bind l)$.
+\uses{def:semiring-monad}
+\end{lemma}
+
+\begin{proof}
+\leanok
+Both sides expand, by unfolding $\bind$ twice, to a double sum over
+$S$ that is rearranged into the other order by associativity and
+commutativity of $\oplus$ together with associativity of $\otimes$
+and distributivity of $\otimes$ over $\oplus$ --- commutativity of
+$\otimes$ is never invoked.
+\end{proof}
+
+\begin{theorem}[Semiring monad laws]
+\label{thm:semiring-monad-laws}
+For every semiring $S$, $(\MS{S}, \Ret, \bind)$ of
+Definition~\ref{def:semiring-monad} is a monad on $\mathrm{Set}$: the
+left/right unit laws and associativity of $\bind$
+(Lemmas~\ref{lem:bind-left-unit}, \ref{lem:bind-right-unit},
+\ref{lem:bind-assoc}) hold for every, possibly noncommutative, $S$.
+\uses{def:semiring-monad, lem:bind-left-unit, lem:bind-right-unit, lem:bind-assoc}
+\end{theorem}
+
+\begin{proof}
+Immediate from Lemmas~\ref{lem:bind-left-unit} (left unit),
+\ref{lem:bind-right-unit} (right unit), and \ref{lem:bind-assoc}
+(associativity).
+\end{proof}
+
+Mechanism: commutativity and associativity of $\oplus$ give
+associativity and commutativity of independent binds, associativity of
+$\otimes$ gives associativity of chained binds, and distributivity of
+$\otimes$ over $\oplus$ gives associativity of $\bind$ itself ---
+exactly the proof above, restated informally: commutativity and
+associativity of $\oplus$ is ``addition marginalises'' (independent
+binds commute and associate), and associativity of $\otimes$ is
+``multiplication chains'' (chained binds associate); none of this
+needs $\otimes$ to commute.
 
 \begin{abbreviation}[Tensor monad]
 \label{abbr:tensor-monad}
@@ -383,13 +463,13 @@ Theorem~\ref{thm:semiring-monad-laws} at $S = \MassS$.
 Write $\LTmon := \MS{\LogS}$, the instance of
 Theorem~\ref{thm:semiring-monad-laws} at $S = \LogS$, available once
 $\LogS$ carries a semiring structure, carried over by the log
-isomorphism of Lemma~\ref{lem:log-iso}.
+isomorphism of Definition~\ref{lem:log-iso}.
 \uses{thm:semiring-monad-laws, lem:log-iso}
 \end{abbreviation}
 
 \begin{theorem}[Semiring monad commutativity]
 \label{thm:semiring-monad-commutative}
-\lean{NeSyCat.dstL, NeSyCat.dstR, NeSyCat.dstL_apply, NeSyCat.dstR_apply, NeSyCat.dst_comm_iff, NeSyCat.dst_comm}
+\lean{NeSyCat.dst_comm_iff}
 \leanok
 For a semiring $S$, define the two double-strength (interchange) maps
 $\dstL, \dstR \colon \MS{S}X \times \MS{S}Y \to \MS{S}(X\times Y)$,
@@ -439,7 +519,7 @@ the algebras of $\MS{S}$ is claimed by this or any prior ticket.
 
 \begin{lemma}[Mass-one closure]
 \label{lem:dist-closure}
-\lean{NeSyCat.ret_mass_one, NeSyCat.bind_mass_one}
+\lean{NeSyCat.bind_mass_one}
 \leanok
 For the mass semiring monad $\Tmon = \MS{\MassS}$
 (Definition~\ref{def:semiring-monad}), $\Ret$ has mass one, and
@@ -461,7 +541,7 @@ $\sum_y k(x)(y)=1$ for every $x$ then
 
 \begin{definition}[Distribution monad]
 \label{def:dist-monad}
-\lean{NeSyCat.Dist, NeSyCat.Dist.pure, NeSyCat.Dist.bind}
+\lean{NeSyCat.Dist}
 \leanok
 The \textbf{distribution monad} is the mass-one submonad of the mass
 semiring monad,
@@ -477,9 +557,14 @@ $\Dmon$ is not $\MS{\ProbS}$: $\ProbS$ is not a semiring
 (Lemma~\ref{lem:prob-not-semiring}), so $\MS{\ProbS}$ is not even
 defined by Definition~\ref{def:semiring-monad}.
 
-\begin{lemma}[Log isomorphism]
+% C2-E4a/A1 re-kind: the principal Lean declaration is `logTensEquiv`,
+% a `def`-valued monad isomorphism (an `Equiv`), not a Prop-valued
+% theorem -- same encoding-choice shape as `lift`/`twoSlot`/`distReadout`
+% elsewhere in this document, so this item is a `definition` env, not a
+% `lemma`, though its correctness still earns the proof below.
+\begin{definition}[Log isomorphism]
 \label{lem:log-iso}
-\lean{NeSyCat.LogS, NeSyCat.logEquiv, NeSyCat.logRingEquiv, NeSyCat.logTensEquiv, NeSyCat.toLogTens_ret, NeSyCat.toLogTens_bind}
+\lean{NeSyCat.logTensEquiv}
 \leanok
 $\log \colon (\MassS, +, \cdot, 0, 1) \to (\LogS, \lse, +, -\infty, 0)$
 is a semiring isomorphism ($e^{\lse(u,v)} = e^u+e^v$), and it
@@ -487,14 +572,14 @@ transports the monad $\MS{\MassS} = \Tmon$ pointwise (applying $\log$
 to every weight) to an isomorphism of monads
 $\Tmon \cong \LTmon = \MS{\LogS}$.
 \uses{def:semiring-monad, thm:semiring-monad-laws}
-\end{lemma}
+\end{definition}
 
 \begin{proof}
 \leanok
 $\log$ is a bijection $\MassS \to \LogS$ carrying $+
 \mapsto \lse$ (definition of $\lse$) and $\cdot \mapsto +$ (log of a
 product), hence a semiring isomorphism by
-Definition~\ref{def:lattice-semiring}; applying it coordinatewise to a
+Class~\ref{def:lattice-semiring}; applying it coordinatewise to a
 finitely supported weight function commutes with $\Ret$ (both are the
 indicator/point mass) and with $\bind$ (a monad-law computation as in
 Theorem~\ref{thm:semiring-monad-laws}, carried through the semiring
@@ -592,7 +677,7 @@ The BLat2Mon family below is distilled from [NeSy26, App.~A]'s
 lifted-connective family, with vocabulary borrowed from linear logic
 [Girard 1987].
 
-\begin{definition}[Two-monoid bounded lattice]
+\begin{class}[Two-monoid bounded lattice]
 \label{def:blat2mon}
 \lean{NeSyCat.BLat2Mon}
 \leanok
@@ -600,25 +685,25 @@ A \textbf{BLat2Mon} is a set carrying a bounded lattice
 $(\wedge,\vee,\bot,\top)$ together with two monoid structures
 $(\oplus,\dzero)$ and $(\otimes,\done)$.
 \uses{def:lattice-semiring}
-\end{definition}
+\end{class}
 
-Unlike a lattice-semiring (Definition~\ref{def:lattice-semiring}), no
+Unlike a lattice-semiring (Class~\ref{def:lattice-semiring}), no
 distributivity of any kind is assumed between the three structures.
 
-\begin{definition}[Commutative two-monoid bounded lattice]
+\begin{class}[Commutative two-monoid bounded lattice]
 \label{def:blat2cmon}
 \lean{NeSyCat.BLat2CMon}
 \leanok
-A \textbf{BLat2CMon} is a BLat2Mon (Definition~\ref{def:blat2mon}) whose
+A \textbf{BLat2CMon} is a BLat2Mon (Class~\ref{def:blat2mon}) whose
 two monoids $(\oplus,\dzero)$ and $(\otimes,\done)$ are both commutative.
 \uses{def:blat2mon}
-\end{definition}
+\end{class}
 
-\begin{definition}[Linear two-monoid lattice]
+\begin{class}[Linear two-monoid lattice]
 \label{def:lin-blat2mon}
 \lean{NeSyCat.LinBLat2Mon}
 \leanok
-A \textbf{LinBLat2Mon} is a BLat2Mon (Definition~\ref{def:blat2mon}) in
+A \textbf{LinBLat2Mon} is a BLat2Mon (Class~\ref{def:blat2mon}) in
 which $\otimes$ preserves finite joins in each argument and $\oplus$
 preserves finite meets in each argument:
 \begin{itemize}
@@ -630,19 +715,21 @@ preserves finite meets in each argument:
   $p \oplus \top = \top = \top \oplus p$ (absorption).
 \end{itemize}
 \uses{def:blat2mon}
-\end{definition}
+\end{class}
 
-\begin{definition}[Commutative linear two-monoid lattice]
+\begin{class}[Commutative linear two-monoid lattice]
 \label{def:lin-blat2cmon}
 \lean{NeSyCat.LinBLat2CMon}
 \leanok
-A \textbf{LinBLat2CMon} is a BLat2CMon (Definition~\ref{def:blat2cmon})
-satisfying the linear laws of Definition~\ref{def:lin-blat2mon}, in
-which case the one-sided version of each law suffices.
+A \textbf{LinBLat2CMon} is a BLat2CMon (Class~\ref{def:blat2cmon})
+satisfying the linear laws of Class~\ref{def:lin-blat2mon}.
 \uses{def:blat2cmon, def:lin-blat2mon}
-\end{definition}
+\end{class}
 
-Definitions~\ref{def:lin-blat2mon} and~\ref{def:lin-blat2cmon} are
+In the commutative case the one-sided version of each linear law
+suffices, the other side following from commutativity.
+
+Classes~\ref{def:lin-blat2mon} and~\ref{def:lin-blat2cmon} are
 exactly linear logic's four linear distributions ($\otimes$ over
 $\oplus$, and linear logic's own multiplicative disjunction over its
 own additive conjunction, together with their units) [Girard 1987];
@@ -651,10 +738,9 @@ correspondence with linear logic's own vocabulary in full.
 
 \begin{lemma}[Linearity gives monotonicity]
 \label{lem:lin-monotone}
-\lean{NeSyCat.andC_le_andC_left, NeSyCat.andC_le_andC_right,
-NeSyCat.parr_le_parr_left, NeSyCat.parr_le_parr_right}
+\lean{NeSyCat.andC_le_andC_left}
 \leanok
-In a LinBLat2Mon (Definition~\ref{def:lin-blat2mon}), $\otimes$ and
+In a LinBLat2Mon (Class~\ref{def:lin-blat2mon}), $\otimes$ and
 $\oplus$ are monotone in each argument.
 \uses{def:lin-blat2mon}
 \end{lemma}
@@ -669,8 +755,7 @@ meet-preservation), are dual.
 
 \begin{lemma}[Lax dual preservations]
 \label{lem:lin-lax-duals}
-\lean{NeSyCat.andC_inf_le, NeSyCat.inf_andC_le, NeSyCat.le_parr_sup,
-NeSyCat.le_sup_parr}
+\lean{NeSyCat.andC_inf_le}
 \leanok
 In a LinBLat2Mon, the dual preservations hold laxly:
 $p \otimes (q \wedge r) \le (p \otimes q) \wedge (p \otimes r)$ and
@@ -686,26 +771,26 @@ $q \wedge r \le q$ and $q \wedge r \le r$, so monotonicity
 and $\le p \otimes r$, hence $\le$ their meet; dually for $\oplus$.
 \end{proof}
 
-\begin{definition}[De Morgan structure]
+\begin{class}[De Morgan structure]
 \label{def:dm-structure}
 \lean{NeSyCat.DMStructure}
 \leanok
-A \textbf{DM structure} on a BLat2Mon (Definition~\ref{def:blat2mon})
+A \textbf{DM structure} on a BLat2Mon (Class~\ref{def:blat2mon})
 is a map $\neg$ satisfying (i) $\neg\neg p = p$; (ii)
 $p \le q \Rightarrow \neg q \le \neg p$; (iii)
-$\neg(p \otimes q) = \neg q \oplus \neg p$ (in the commutative case, (iii)
-reads $\neg p \oplus \neg q$).
+$\neg(p \otimes q) = \neg q \oplus \neg p$.
 \uses{def:blat2mon}
-\end{definition}
+\end{class}
 
-This is linear negation [Girard 1987], axiomatized minimally;
+In the commutative case, (iii) reads $\neg p \oplus \neg q$. This is
+linear negation [Girard 1987], axiomatized minimally;
 Theorem~\ref{thm:dm-presentations} below compares the presentations.
 
 \begin{lemma}[Negation is an order anti-automorphism]
 \label{lem:dm-lattice-laws}
-\lean{NeSyCat.dneg_inf, NeSyCat.dneg_sup, NeSyCat.dneg_bot, NeSyCat.dneg_top}
+\lean{NeSyCat.dneg_inf}
 \leanok
-For a DM structure (Definition~\ref{def:dm-structure}),
+For a DM structure (Class~\ref{def:dm-structure}),
 $\neg(p \wedge q) = \neg p \vee \neg q$,
 $\neg(p \vee q) = \neg p \wedge \neg q$, $\neg\bot = \top$,
 $\neg\top = \bot$.
@@ -736,7 +821,7 @@ applying $\neg$ to both sides and using (i) again gives the claim.
 
 \begin{lemma}[Negation swaps the monoid units]
 \label{lem:dm-unit-swap}
-\lean{NeSyCat.dneg_done, NeSyCat.dneg_dzero}
+\lean{NeSyCat.dneg_done}
 \leanok
 For a DM structure, $\neg\done = \dzero$ and $\neg\dzero = \done$.
 \uses{def:dm-structure}
@@ -755,7 +840,7 @@ $\neg\done = \dzero$. Applying (i): $\neg\dzero = \neg\neg\done =
 
 \begin{theorem}[Presentations of De Morgan structure]
 \label{thm:dm-presentations}
-\lean{NeSyCat.DMFullCalculus, NeSyCat.dm_presentations}
+\lean{NeSyCat.dm_presentations}
 \leanok
 On a BLat2Mon, let $\neg$ satisfy (i) $\neg\neg p = p$ and (iii)
 $\neg(p \otimes q) = \neg q \oplus \neg p$. Then the following are
@@ -796,45 +881,42 @@ Lemma~\ref{lem:dm-unit-swap}, $\neg p \oplus \neg q = \dzero$, so
 $\neg q$ is a two-sided $\oplus$-inverse of $\neg p$.
 \end{proof}
 
-\begin{definition}[ZeroBot]
+\begin{class}[ZeroBot]
 \label{def:zero-bot}
 \lean{NeSyCat.ZeroBot}
 \leanok
-For a BLat2Mon (Definition~\ref{def:blat2mon}), \textbf{ZeroBot}
+For a BLat2Mon (Class~\ref{def:blat2mon}), \textbf{ZeroBot}
 demands $\dzero = \bot$.
 \uses{def:blat2mon}
-\end{definition}
+\end{class}
 
-\begin{definition}[OneTop]
+\begin{class}[OneTop]
 \label{def:one-top}
 \lean{NeSyCat.OneTop}
 \leanok
-For a BLat2Mon (Definition~\ref{def:blat2mon}), \textbf{OneTop}
+For a BLat2Mon (Class~\ref{def:blat2mon}), \textbf{OneTop}
 demands $\done = \top$.
 \uses{def:blat2mon}
-\end{definition}
+\end{class}
 
-\begin{definition}[UnitBounds]
+\begin{class}[UnitBounds]
 \label{def:unit-bounds}
 \lean{NeSyCat.UnitBounds}
 \leanok
-For a BLat2Mon (Definition~\ref{def:blat2mon}), \textbf{UnitBounds}
-demands both ZeroBot (Definition~\ref{def:zero-bot}) and OneTop
-(Definition~\ref{def:one-top}).
+For a BLat2Mon (Class~\ref{def:blat2mon}), \textbf{UnitBounds}
+demands both ZeroBot (Class~\ref{def:zero-bot}) and OneTop
+(Class~\ref{def:one-top}).
 \uses{def:zero-bot, def:one-top}
-\end{definition}
+\end{class}
 
 Together these collapse the four constants of the logical/truth-value
 level to two.
 
 \begin{lemma}[Unit bounds via mixed absorption]
 \label{lem:dualabsorb-decomposition}
-\lean{NeSyCat.done_eq_top_iff_andC_le_inf,
-NeSyCat.done_eq_top_iff_sup_andC_absorb,
-NeSyCat.dzero_eq_bot_iff_sup_le_parr,
-NeSyCat.dzero_eq_bot_iff_inf_parr_absorb}
+\lean{NeSyCat.done_eq_top_iff_andC_le_inf}
 \leanok
-In a LinBLat2Mon (Definition~\ref{def:lin-blat2mon}):
+In a LinBLat2Mon (Class~\ref{def:lin-blat2mon}):
 \begin{enumerate}
 \item[(i)] $\done = \top$ iff $p \otimes q \le p \wedge q$ for all
   $p,q$ iff the mixed absorption $p \vee (p \otimes q) = p$ holds;
@@ -859,10 +941,9 @@ $p \vee \dzero \le p$, so $\dzero \le p$ for all $p$.
 
 \begin{lemma}[The four-connective chain (MIX)]
 \label{lem:mix}
-\lean{NeSyCat.andC_le_inf, NeSyCat.sup_le_parr, NeSyCat.mix_chain,
-NeSyCat.andC_le_parr}
+\lean{NeSyCat.mix_chain}
 \leanok
-In a LinBLat2Mon with UnitBounds (Definition~\ref{def:unit-bounds}),
+In a LinBLat2Mon with UnitBounds (Class~\ref{def:unit-bounds}),
 the four binary connectives form a chain:
 $p \otimes q \le p \wedge q \le p \vee q \le p \oplus q$. In particular
 MIX holds: $p \otimes q \le p \oplus q$.
@@ -877,51 +958,60 @@ and (ii); the middle one is the lattice.
 
 This is the MIX rule [Girard 1987].
 
+% C2-E4a/A1 peer-split: the former single env bundled two genuinely
+% distinct claims (part (i), a lemma about the four binary linear laws;
+% part (ii), a definition-shaped construction of a LinBLat2Mon witness)
+% under nine Lean names. Split: thm:chain-lin keeps part (i) (a
+% `theorem`, one principal name); def:chain-lin-unitbounds is the new
+% label for part (ii) (a `definition`, since its principal Lean
+% declaration `LinBLat2Mon.ofChain` is a `def`-valued constructor, not
+% a Prop-valued theorem).
 \begin{theorem}[Chains are linear]
 \label{thm:chain-lin}
-\lean{NeSyCat.chain_binop_sup_right, NeSyCat.chain_binop_sup_left,
-NeSyCat.chain_binop_inf_right, NeSyCat.chain_binop_inf_left,
-NeSyCat.chain_andC_sup, NeSyCat.chain_sup_andC,
-NeSyCat.chain_parr_inf, NeSyCat.chain_inf_parr,
-NeSyCat.LinBLat2Mon.ofChain}
+\lean{NeSyCat.chain_andC_sup}
 \leanok
 Let $L$ be a lattice, not necessarily bounded, carrying two monoid
 structures $(\oplus,\dzero)$ and $(\otimes,\done)$ (a Lat2Mon), whose
 order is a chain (total order), and suppose $\otimes$ and $\oplus$ are
-monotone in each argument. Then: (i) the four binary linear laws of
-Definition~\ref{def:lin-blat2mon} hold; (ii) if $L$ is bounded and
-UnitBounds (Definition~\ref{def:unit-bounds}) holds, the nullary laws
-hold too, so the structure is a LinBLat2Mon.
-\uses{def:lin-blat2mon, def:unit-bounds}
+monotone in each argument. Then the four binary linear laws of
+Class~\ref{def:lin-blat2mon} hold.
+\uses{def:lin-blat2mon}
 \end{theorem}
 
 \begin{proof}
 \leanok
-(i) On a chain, $q \vee r \in \{q, r\}$; say $q \le r$, so
+On a chain, $q \vee r \in \{q, r\}$; say $q \le r$, so
 $q \vee r = r$. Then $p \otimes (q \vee r) = p \otimes r$, while
 monotonicity gives $p \otimes q \le p \otimes r$, so
 $(p \otimes q) \vee (p \otimes r) = p \otimes r$ as well; the other argument
-and the $\oplus/\wedge$ laws are dual. (ii) Annihilation from OneTop:
-$p \otimes \bot \le \top \otimes \bot = \done \otimes \bot = \bot$;
-absorption from ZeroBot: $\top = \dzero \oplus \top \le p \oplus \top$.
+and the $\oplus/\wedge$ laws are dual.
 \end{proof}
+
+\begin{definition}[Chain construction of a LinBLat2Mon]
+\label{def:chain-lin-unitbounds}
+\lean{NeSyCat.LinBLat2Mon.ofChain}
+\leanok
+For $L$ as in Theorem~\ref{thm:chain-lin}, if $L$ is additionally
+bounded and UnitBounds (Class~\ref{def:unit-bounds}) holds, the
+nullary laws hold too (annihilation from OneTop: $p \otimes \bot \le
+\top \otimes \bot = \done \otimes \bot = \bot$; absorption from
+ZeroBot: $\top = \dzero \oplus \top \le p \oplus \top$), so the
+structure packages into a LinBLat2Mon witness.
+\uses{thm:chain-lin, def:unit-bounds}
+\end{definition}
 
 The lemmas below realize the BLat2Mon hierarchy on the library's
 running rows, all due to [NeSy26, App.~A].
 
 \begin{lemma}[The Boolean row]
 \label{lem:bool-truth-structure}
-\lean{NeSyCat.BoolW.instBLat2Mon, NeSyCat.BoolW.instBLat2CMon,
-NeSyCat.BoolW.instLinBLat2Mon, NeSyCat.BoolW.instLinBLat2CMon,
-NeSyCat.BoolW.instDMStructure, NeSyCat.BoolW.instZeroBot,
-NeSyCat.BoolW.instOneTop, NeSyCat.BoolW.parr_eq_sup,
-NeSyCat.BoolW.andC_eq_inf}
+\lean{NeSyCat.BoolW.parr_eq_sup}
 \leanok
 $\BoolS$ with its lattice $(\wedge,\vee,0,1)$, monoids
 $(\oplus,\dzero) = (\vee,0)$ and $(\otimes,\done) = (\wedge,1)$, and
-$\neg$ is a LinBLat2CMon (Definition~\ref{def:lin-blat2cmon}) with DM
-structure (Definition~\ref{def:dm-structure}) and UnitBounds
-(Definition~\ref{def:unit-bounds}); the connective pairs collapse,
+$\neg$ is a LinBLat2CMon (Class~\ref{def:lin-blat2cmon}) with DM
+structure (Class~\ref{def:dm-structure}) and UnitBounds
+(Class~\ref{def:unit-bounds}); the connective pairs collapse,
 $\otimes = \wedge$ and $\oplus = \vee$ --- the idempotent case.
 \uses{def:lin-blat2cmon, def:dm-structure, def:unit-bounds,
 thm:chain-lin}
@@ -935,11 +1025,7 @@ Theorem~\ref{thm:chain-lin} on the two-element chain.
 
 \begin{lemma}[The probability row]
 \label{lem:unit-interval-truth-structure}
-\lean{NeSyCat.unitInterval.instBLat2Mon, NeSyCat.unitInterval.instBLat2CMon,
-NeSyCat.unitInterval.instZeroBot, NeSyCat.unitInterval.instOneTop,
-NeSyCat.unitInterval.instUnitBounds, NeSyCat.unitInterval.instLinBLat2Mon,
-NeSyCat.unitInterval.instLinBLat2CMon, NeSyCat.unitInterval.instDMStructure,
-NeSyCat.unitInterval.coe_parr}
+\lean{NeSyCat.unitInterval.coe_parr}
 \leanok
 $\ProbS = [0,1]$ with lattice $(\min,\max,0,1)$, monoids
 $(\oplus,\dzero) = (p+q-pq,\ 0)$ and $(\otimes,\done) = (pq,\ 1)$, and
@@ -970,8 +1056,7 @@ Lemma~\ref{lem:prob-not-semiring} does carry.
 \lean{NeSyCat.no_antitone_involution_nnreal}
 \leanok
 On $\MassS = \mathbb{R}_{\ge 0}$ with its usual order there is no
-involutive antitone map; hence no two-monoid structure over the mass
-row carries a DM structure.
+involutive antitone map.
 \uses{def:dm-structure}
 \end{theorem}
 
@@ -982,6 +1067,9 @@ $\neg p \ge 0$, so applying $\neg$: $p = \neg\neg p \le \neg 0$. Thus
 $\neg 0$ is a top element, but $\MassS$ has none
 ($\neg 0 + 1 > \neg 0$).
 \end{proof}
+
+Hence no two-monoid structure over the mass row carries a DM structure
+(Class~\ref{def:dm-structure}).
 
 \begin{theorem}[No De Morgan structure on the log row]
 \label{thm:no-dm-log}
@@ -1006,19 +1094,13 @@ instances in a later section.
 
 \begin{theorem}[The mass square is not linear]
 \label{thm:square-not-lin}
-\lean{NeSyCat.andSq, NeSyCat.parrSq, NeSyCat.swapSq, NeSyCat.swapSq_swapSq,
-NeSyCat.swapSq_antitone, NeSyCat.andSq_comm, NeSyCat.andSq_assoc,
-NeSyCat.parrSq_comm, NeSyCat.parrSq_assoc, NeSyCat.parrUnitSq,
-NeSyCat.andUnitSq, NeSyCat.parrUnitSq_parrSq, NeSyCat.parrSq_parrUnitSq,
-NeSyCat.andUnitSq_andSq, NeSyCat.andSq_andUnitSq, NeSyCat.swapSq_dm,
-NeSyCat.andSq_not_monotone_right, NeSyCat.monotone_of_distrib_sup,
-NeSyCat.andSq_not_lin, NeSyCat.andSqENN_not_monotone_right}
+\lean{NeSyCat.andSq_not_lin}
 \leanok
 On $\MassS^2$ with the order family (slot $0$ reversed,
 Definition~\ref{def:order-family}) and the lifted operations of
 Lemma~\ref{lem:lifted-mass}, the slot swap
 $\neg(w_0,w_1) = (w_1,w_0)$ is a DM structure
-(Definition~\ref{def:dm-structure}) and both monoids are commutative,
+(Class~\ref{def:dm-structure}) and both monoids are commutative,
 but $\otimes$ is not monotone; hence, by Lemma~\ref{lem:lin-monotone},
 the linear laws fail --- the square rows are BLat2CMon-with-DM
 territory, not Lin.
@@ -1063,9 +1145,9 @@ $\vee$ & $\oplus$ & additive disjunction (join) & $\bot$ & $0$ & order family (D
 $\wedge$ & \& & additive conjunction (meet) & $\top$ & $\top$ & order family (meet) \\
 $\otimes$ & $\otimes$ & multiplicative conjunction & $\done$ & $1$ & lifted connective (Definition~\ref{def:lifted-connective}) \\
 $\oplus$ & $\parr$ & multiplicative disjunction & $\dzero$ & $\bot$ & lifted connective \\
-$\neg$ & $(\cdot)^\bot$ & linear negation & --- & --- & DM structure (Definition~\ref{def:dm-structure}) \\
+$\neg$ & $(\cdot)^\bot$ & linear negation & --- & --- & DM structure (Class~\ref{def:dm-structure}) \\
 $\impc{\cdot}$ & $\multimap$ & linear implication & --- & --- & deferred (residuation section) \\
-$!,?$ & $!,?$ & exponentials & --- & --- & exp/log bridge (Lemma~\ref{lem:log-iso}; completions) \\
+$!,?$ & $!,?$ & exponentials & --- & --- & exp/log bridge (Definition~\ref{lem:log-iso}; completions) \\
 \hline
 \end{tabular}
 }
@@ -1082,7 +1164,7 @@ $!,?$ & $!,?$ & exponentials & --- & --- & exp/log bridge (Lemma~\ref{lem:log-is
 % macros.sty adds a dedicated LL-par command, swap this cell to it and
 % delete the old par macro from macros.sty entirely (E4).
 
-Definition~\ref{def:lin-blat2mon} is exactly linear logic's four
+Class~\ref{def:lin-blat2mon} is exactly linear logic's four
 linear distributions; Lemma~\ref{lem:mix} is the MIX rule; linear
 implication and $*$-autonomy sit at the S/R-implication boundary,
 deferred to the residuation section [Girard 1987]. The mixed pairs
@@ -1091,10 +1173,10 @@ idempotent semiring (dioid) --- on $[0,1]$ the Viterbi semiring ---
 and $(\wedge, \oplus)$ is its dual; the pair $(\oplus, \otimes)$ fails
 distributivity in general (linear logic's refusal to distribute
 $\otimes$ over $\oplus$: only the four laws of
-Definition~\ref{def:lin-blat2mon} survive), of which
+Class~\ref{def:lin-blat2mon} survive), of which
 Lemma~\ref{lem:prob-not-semiring} is the concrete probability-row
 instance. Linear logic's exponentials $!/?$ are mirrored here by the
-exp/log bridge between the mass and log rows; Lemma~\ref{lem:log-iso}
+exp/log bridge between the mass and log rows; Definition~\ref{lem:log-iso}
 is the first ingredient, and the matter is taken up together with the
 completion instances.
 
@@ -1119,35 +1201,40 @@ Definition~\ref{def:truth-space} is stated for a general semiring
 monad $\MS{S}$; [NeSy26, App.~A] only tabulates the four instances
 $\Idmon, \Dmon, \Tmon, \LTmon$ used in the paper.
 
-\begin{lemma}[Truth-space instances]
-\label{lem:truth-space-instances}
-\lean{NeSyCat.twoSlot, NeSyCat.twoSlot_apply, NeSyCat.distReadout,
-NeSyCat.distReadout_apply_coe}
+% C2-E4a/A1 re-kind (USER-DECIDED specific): both Lean counterparts are
+% `def`-valued readout equivalences, not theorems, so this splits into
+% two `definition` envs (twoSlot, distReadout); the four-truth-spaces
+% itemization is prose around them; twoSlot_apply/distReadout_apply_coe
+% (the equivalences' raw unfolding lemmas) become unmarked companions.
+\begin{definition}[Boolean two-slot readout]
+\label{def:two-slot}
+\lean{NeSyCat.twoSlot}
 \leanok
-The four truth spaces and their readouts:
-\begin{itemize}
-\item $\Idmon\,\BoolS = \BoolS$, readout $=\BoolS$ itself;
-\item $\Dmon\,\BoolS \cong \ProbS$ via $p \mapsto p(1)$, forgetting the
-  redundant coefficient $p(0) = 1 - p(1)$ (the constraint
-  $p(0)+p(1)=1$ of Definition~\ref{def:dist-monad});
-\item $\Tmon\,\BoolS \cong \MassS^2$ via $w \mapsto (w(0), w(1))$,
-  nothing forgotten (no mass-one constraint);
-\item $\LTmon\,\BoolS \cong \LogS^2$ via $a \mapsto (a(0), a(1))$, the
-  image of the $\Tmon$ readout under Lemma~\ref{lem:log-iso}.
-\end{itemize}
-\uses{def:truth-space, def:dist-monad, lem:log-iso}
-\end{lemma}
+For $\Idmon,\Tmon,\LTmon$ (any semiring monad $\MS{S}$ applied to
+$\BoolS$), the \textbf{two-slot readout} is the equivalence $\MS{S}
+\BoolS \cong S^2$, $w \mapsto (w(0), w(1))$: $\Idmon\,\BoolS = \BoolS$
+reads out as itself; $\Tmon\,\BoolS \cong \MassS^2$ and
+$\LTmon\,\BoolS \cong \LogS^2$ forget nothing (no mass-one
+constraint), the log case the image of the mass case under
+Definition~\ref{lem:log-iso}.
+\uses{def:truth-space, lem:log-iso}
+\end{definition}
 
-\begin{proof}
+\begin{definition}[Distribution readout]
+\label{def:dist-readout}
+\lean{NeSyCat.distReadout}
 \leanok
-$\Idmon$ and $\Tmon,\LTmon$ readouts are immediate from
-finite support; the $\Dmon$ readout uses the mass-one constraint of
-Definition~\ref{def:dist-monad} to eliminate $p(0)$.
-\end{proof}
+For $\Dmon\,\BoolS$, the \textbf{distribution readout} is the
+equivalence $\Dmon\,\BoolS \cong \ProbS$, $p \mapsto p(1)$, forgetting
+the redundant coefficient $p(0) = 1 - p(1)$ (the constraint
+$p(0)+p(1)=1$ of Definition~\ref{def:dist-monad}); immediate from that
+constraint eliminating $p(0)$.
+\uses{def:truth-space, def:dist-monad}
+\end{definition}
 
 \begin{definition}[Lifted connective]
 \label{def:lifted-connective}
-\lean{NeSyCat.dstN, NeSyCat.lift, NeSyCat.lift_zero, NeSyCat.lift_one, NeSyCat.lift_two}
+\lean{NeSyCat.lift}
 \leanok
 Let $* \colon \BoolS^n \to \BoolS$ be an $n$-ary Boolean operation and
 $\MS{S}$ a semiring monad. The \textbf{lifted connective}
@@ -1187,10 +1274,7 @@ description.
 
 \begin{lemma}[Lifted connectives, mass coordinates]
 \label{lem:lifted-mass}
-\lean{NeSyCat.twoSlot_andM, NeSyCat.twoSlot_parrM, NeSyCat.twoSlot_negM,
-NeSyCat.twoSlot_ret_zero, NeSyCat.twoSlot_ret_one, NeSyCat.twoSlot_orderMeet,
-NeSyCat.twoSlot_orderJoin, NeSyCat.twoSlot_andM_mass, NeSyCat.twoSlot_parrM_mass,
-NeSyCat.twoSlot_negM_mass, NeSyCat.twoSlot_ret_zero_mass, NeSyCat.twoSlot_ret_one_mass}
+\lean{NeSyCat.twoSlot_andM_mass}
 \leanok
 On $\Tmon\,\BoolS \cong \MassS^2$ (coordinates $(w_0,w_1)$, slot $0$
 the weight against, slot $1$ the weight for), the lifted family of
@@ -1205,8 +1289,7 @@ False) and $\Ret(1) = (0,1)$ (the $\otimes$-identity, i.e.\ certain
 True). The order family
 (Definition~\ref{def:order-family}) gives
 $w \wedge v = (\max(w_0,v_0), \min(w_1,v_1))$,
-$w \vee v = (\min(w_0,v_0), \max(w_1,v_1))$, with bounds
-$\bot=(\infty,0)$, $\top=(0,\infty)$.
+$w \vee v = (\min(w_0,v_0), \max(w_1,v_1))$.
 \uses{def:lifted-connective, def:order-family}
 \end{lemma}
 
@@ -1221,6 +1304,10 @@ values are the (unique) identities of $\oplus,\otimes$ found by solving
 $e\oplus w = w$, resp.\ $e\otimes w = w$, for all $w$.
 \end{proof}
 
+On the (unbounded) carrier $\MassS$ itself, $\MassS^2$ acquires bounds
+$\bot=(\infty,0)$, $\top=(0,\infty)$ only after adjoining $\infty$; the
+bounded completion is taken up together with the completion instances.
+
 \textbf{Erratum, corrected upstream.} The source's summary table
 (revisions up to 2026-08-07) listed the two unit cells of
 Lemma~\ref{lem:lifted-mass}'s row transposed; the units
@@ -1231,13 +1318,11 @@ corrected upstream in the source paper.
 
 \begin{lemma}[Lifted connectives, log coordinates]
 \label{lem:lifted-log}
-\lean{NeSyCat.twoSlot_andM_log, NeSyCat.twoSlot_parrM_log, NeSyCat.twoSlot_negM_log,
-NeSyCat.twoSlot_ret_zero_log, NeSyCat.twoSlot_ret_one_log, NeSyCat.twoSlot_orderMeet,
-NeSyCat.twoSlot_orderJoin}
+\lean{NeSyCat.twoSlot_andM_log}
 \leanok
 On $\LTmon\,\BoolS \cong \LogS^2$ (coordinates $(a_0,a_1)$, the
 $\log$-image of Lemma~\ref{lem:lifted-mass} under
-Lemma~\ref{lem:log-iso}, products becoming sums and sums becoming
+Definition~\ref{lem:log-iso}, products becoming sums and sums becoming
 $\lse$):
 \[
   a \otimes b = \bigl(\lse(a_0{+}b_0,\,a_0{+}b_1,\,a_1{+}b_0),\ a_1{+}b_1\bigr),
@@ -1258,7 +1343,7 @@ $\lse$):
 
 \begin{proof}
 \leanok
-Apply Lemma~\ref{lem:log-iso} coordinatewise to
+Apply Definition~\ref{lem:log-iso} coordinatewise to
 Lemma~\ref{lem:lifted-mass}: $\log$ of a product is a sum, $\log$ of a
 sum is $\lse$ of the logs, and $\log$ is order-preserving so
 $\max,\min$ pass through unchanged.
@@ -1266,8 +1351,7 @@ $\max,\min$ pass through unchanged.
 
 \begin{lemma}[Lifted connectives, the {$[0,1]$} readout is derived]
 \label{lem:lifted-prob-readout}
-\lean{NeSyCat.andD, NeSyCat.parrD, NeSyCat.negD, NeSyCat.distReadout_andD,
-NeSyCat.distReadout_parrD, NeSyCat.distReadout_negD}
+\lean{NeSyCat.distReadout_andD}
 \leanok
 Under the $\Dmon$ readout $p := w_1$ (so $w_0 = 1-p$, the mass-one
 slice $Z(w) = w_0+w_1=1$ of Lemma~\ref{lem:lifted-mass}), the lifted
@@ -1294,12 +1378,11 @@ operation, not stipulated.
 
 \begin{definition}[Order family]
 \label{def:order-family}
-\lean{NeSyCat.orderedTwoSlot, NeSyCat.twoSlot_orderMeet, NeSyCat.twoSlot_orderJoin,
-NeSyCat.twoSlot_orderBot, NeSyCat.twoSlot_orderTop}
+\lean{NeSyCat.orderedTwoSlot}
 \leanok
-For a lattice-semiring $S$ (Definition~\ref{def:lattice-semiring}), the
+For a lattice-semiring $S$ (Class~\ref{def:lattice-semiring}), the
 \textbf{order family} on $\MS{S}\BoolS \cong S^2$ (coordinates
-$(w_0,w_1)$ as in Lemma~\ref{lem:truth-space-instances}) is the order
+$(w_0,w_1)$ as in Definition~\ref{def:two-slot}) is the order
 \[
   w \le v \quad :\iff \quad w_1 \le_S v_1 \ \text{and}\ w_0 \ge_S v_0
 \]
@@ -1324,13 +1407,7 @@ This section is due to [NeSy26, App.~A] throughout.
 
 \begin{lemma}[Pointwise]
 \label{lem:pointwise}
-\lean{NeSyCat.instLatSRngProd, NeSyCat.instLatCSRngProd, NeSyCat.instBLatSRngProd,
-NeSyCat.instBLatCSRngProd, NeSyCat.instLatSRngPi, NeSyCat.instLatCSRngPi,
-NeSyCat.twoSlot_add, NeSyCat.twoSlot_zero, NeSyCat.pointwiseMul,
-NeSyCat.twoSlot_pointwiseMul, NeSyCat.pointwiseOne, NeSyCat.twoSlot_pointwiseOne,
-NeSyCat.pointwiseMeet, NeSyCat.twoSlot_pointwiseMeet, NeSyCat.pointwiseJoin,
-NeSyCat.twoSlot_pointwiseJoin, NeSyCat.pointwiseBot, NeSyCat.twoSlot_pointwiseBot,
-NeSyCat.pointwiseTop, NeSyCat.twoSlot_pointwiseTop}
+\lean{NeSyCat.twoSlot_pointwiseMul}
 \leanok
 For a lattice-semiring $S$, $\MS{S}(\BoolS) = S^{\BoolS} \cong S\times
 S$ carries all scalar operations ($\oplus,\otimes,0,1$) and the order
@@ -1344,16 +1421,13 @@ lattice-semiring is again a lattice-semiring.
 $S^{\BoolS}$ is the product of two copies of $S$ in the
 variety of lattice-semirings (a variety defined by the semiring
 equations plus the monotonicity axioms of
-Definition~\ref{def:lattice-semiring}, all of which are preserved by
+Class~\ref{def:lattice-semiring}, all of which are preserved by
 products); all structure is inherited componentwise.
 \end{proof}
 
 \begin{lemma}[Linear laws lift]
 \label{lem:linear-lift}
-\lean{NeSyCat.andM_assoc, NeSyCat.andM_comm, NeSyCat.ret_one_andM,
-NeSyCat.andM_ret_one, NeSyCat.parrM_assoc, NeSyCat.parrM_comm,
-NeSyCat.ret_zero_parrM, NeSyCat.parrM_ret_zero, NeSyCat.negM_negM,
-NeSyCat.negM_ret_zero, NeSyCat.negM_parrM, NeSyCat.negM_andM}
+\lean{NeSyCat.andM_assoc}
 \leanok
 For a commutative semiring $S$, the lifted family
 $(\MS{S}\BoolS, \oplus, \Ret(0))$ and $(\MS{S}\BoolS, \otimes, \Ret(1))$ of
@@ -1390,8 +1464,7 @@ schema-level meta-theorem.
 
 \begin{lemma}[Copying laws do not lift]
 \label{lem:copying-fails}
-\lean{NeSyCat.fairCoin, NeSyCat.distReadout_fairCoin, NeSyCat.andD_fairCoin_ne,
-NeSyCat.exists_andC_ne_self}
+\lean{NeSyCat.exists_andC_ne_self}
 \leanok
 Equations that duplicate a variable --- idempotence, absorption,
 lattice distributivity --- fail for the lifted family in general: in
@@ -1413,9 +1486,7 @@ makes truth graded rather than classical.
 
 \begin{theorem}[Three layers of lattice semirings]
 \label{thm:three-layers}
-\lean{NeSyCat.latCSRngBoolWSq, NeSyCat.latCSRngNNRealSq, NeSyCat.latCSRngLogSSq,
-NeSyCat.order_iff_inf_eq_left, NeSyCat.BoolW.parr_eq_sup, NeSyCat.BoolW.andC_eq_inf,
-NeSyCat.unitInterval.instUnitBounds, NeSyCat.not_isBot_orderedTwoSlot_ret_zero}
+\lean{NeSyCat.order_iff_inf_eq_left}
 \leanok
 Let $S$ be a lattice-semiring and apply $\MS{S}$ to the lattice-semiring
 $\BoolS$. Then $\MS{S}\BoolS$ decomposes into three independent
@@ -1797,7 +1868,7 @@ $\inn(\xi)$ via list concatenation,
 $[y_1,\ldots,y_{p-1}] + \inn(\xi) + [y_{p+1},\ldots,y_m]$: the
 substituted formula binds \emph{one} computation and copies its
 \emph{value} into every occurrence of $x$, in contrast with repeating
-the term itself (Example~\ref{ex:dice-scoping}).
+the term itself (the dice-or-die example below).
 \uses{def:grammatical-signature, def:feed-forward, def:domain-interpretation, def:logical-interpretation, def:cd-category}
 \end{definition}
 
@@ -1853,9 +1924,7 @@ pair, and their log-column twins --- all satisfy both hypotheses of
 Lemma~\ref{lem:quantifier-nestable}; this too draws on \emph{NeSyCat
 Theory v2} beyond the pinned lines 1--396.
 
-\begin{example}[Dice or die]
-\label{ex:dice-scoping}
-Let $\mathsf{dice} \colon [\,] \to \bigcirc\mathrm{Nat}$,
+\textbf{Dice or die.} Let $\mathsf{dice} \colon [\,] \to \bigcirc\mathrm{Nat}$,
 $6 \colon [\,] \to \mathrm{Nat}$, ${=} \colon \mathrm{Nat}^2 \to \tau$,
 $\mathsf{even} \colon \mathrm{Nat} \to \tau$, and
 $\otimes \colon \tau^2 \to \tau$ (van Krieken et al.'s scoping example),
@@ -1885,8 +1954,6 @@ before the atomic formulas,
 For a fair die these give probability $\tfrac16$ versus
 $\tfrac16\cdot\tfrac12=\tfrac1{12}$: the substituted formula copies the
 \emph{value}, the repeated term copies the \emph{computation}.
-\uses{def:kleisli-interpretation, def:feed-forward}
-\end{example}
 
 
 % ============================================================
@@ -1937,9 +2004,6 @@ $\mathcal M$ --- and there are two canonical monad morphisms into it:
   \mathrm{lift}_{\Bmon} \colon \Bmon X \to \Bmon\mathcal M X,\
   \mathrm{lift}_{\Bmon}(m) := \Ret_{\mathcal M} \circ m.
 \]
-$\mathrm{lift}_{\mathcal M}$ embeds a batch-constant effect;
-$\mathrm{lift}_{\Bmon}$ embeds a batched but \emph{certain} value (an
-observation).
 \uses{def:batch-monad, thm:semiring-monad-laws}
 \end{theorem}
 
@@ -1954,6 +2018,10 @@ diagonal bind; $\mathrm{lift}_{\Bmon}$ is a monad morphism since
 $\Ret_{\mathcal M}$ is natural and $\Ret_{\mathcal M}(m(b)) \bind_{\mathcal M} \Ret_{\mathcal M}\circ f = \Ret_{\mathcal M}(f(m(b)))$
 by the unit laws of $\mathcal M$.
 \end{proof}
+
+$\mathrm{lift}_{\mathcal M}$ embeds a batch-constant effect;
+$\mathrm{lift}_{\Bmon}$ embeds a batched but \emph{certain} value (an
+observation).
 
 \begin{theorem}[Pointwise evaluation]
 \label{thm:pointwise-eval}
@@ -2073,7 +2141,7 @@ $Z(\Ret_{\Tmon}(x)) = e^0 + \sum_{x'\ne x}e^{-\infty} = 1$.
 
 \textbf{Scope disclosure.} The identities of Lemma~\ref{lem:units} are
 exact only over the true log semiring $\LogS = \mathbb R \cup
-\{-\infty\}$ of Definition~\ref{def:lattice-semiring}; the numerical
+\{-\infty\}$ of Class~\ref{def:lattice-semiring}; the numerical
 $\epsilon$-floor implementation, which substitutes a large negative
 finite number for $-\infty$, satisfies them only up to $O(\epsilon)$
 error, because $\Ret_{\Tmon}(x)$ genuinely needs a $-\infty$ (not
@@ -2203,36 +2271,40 @@ $\dec$ by Lemmas~\ref{lem:pure-maps}, \ref{lem:tensor},
 $\dec$ exactly when $\tilt_{Z\circ k_i} = \mathrm{id}$, which by
 Lemma~\ref{lem:tilt} holds precisely when $Z\circ k_i$ is constant,
 i.e.\ $k_i$ is mass preserving; the converse direction (some $k_i$ not
-mass preserving forces a genuine discrepancy) is witnessed by
-Example~\ref{ex:tilt-failure}.
+mass preserving forces a genuine discrepancy) is witnessed by the
+tilt-failure example below.
 \end{proof}
 
-% OPEN: one-bind case provable from lem:tilt; the chain version is
-% unproved in the source ("still to do") --- standing research target
-% of this library. Environment kind `conjecture` (M4 addendum #2)
-% already says "open, unproved" --- no ad-hoc "-- OPEN"/"Status: open"
-% phrasing needed in the title or body; a conjecture environment never
-% carries a \begin{proof} or a proof-side \leanok.
-\begin{conjecture}[How wrong can it get]
-\label{cnj:chain-bound}
+% OPEN: one-bind case provable from lem:tilt; the chain version has no
+% known proof -- a standing research target of this library. The
+% open-theorem convention (proof env body exactly "Open.", never
+% \leanok) says this without ad-hoc "-- OPEN"/"Status: open" phrasing
+% in the title or body.
+\begin{theorem}[How wrong can it get]
+\label{thm:chain-bound}
 If $m_i \le Z(k_i(x)) \le M_i$ for all $x$ and
-every bind $k_i$ in the chain $\Phi$ of Theorem~\ref{thm:pullout}, the
-conjectured statement is that the two log-truth values satisfy
+every bind $k_i$ in the chain $\Phi$ of Theorem~\ref{thm:pullout}, then
+the two log-truth values satisfy
 \[
   \bigl|\log t_{\Tmon} - \log t_{\Dmon}\bigr| \;\le\; \sum_i \log(M_i/m_i),
 \]
-with equality (the identity) exactly when every $M_i = m_i$. The
-\emph{one-bind} case of this bound is provable directly from
+with equality (the identity) exactly when every $M_i = m_i$.
+\uses{lem:tilt, thm:pullout}
+\end{theorem}
+
+\begin{proof}
+Open.
+\end{proof}
+
+The \emph{one-bind} case of this bound is provable directly from
 Lemma~\ref{lem:tilt} (both sides average the same values under
 densities that differ pointwise by at most a factor $M/m$, giving the
 single-term bound $\bigl|\log t_{\Tmon} - \log t_{\Dmon}\bigr| \le
 \log(M/m)$). The \emph{chain} (multi-bind) version stated above is
-\emph{not} established by any known proof and is recorded here
-as a standing research target of this library, not as a theorem; no
-proof or proof sketch below may cite this conjecture as if it were
-proved for $r > 1$ binds.
-\uses{lem:tilt, thm:pullout}
-\end{conjecture}
+\emph{not} established by any known proof and is recorded here as a
+standing research target of this library; no proof or proof sketch
+elsewhere in this document may cite it as if it were proved for
+$r > 1$ binds.
 
 \begin{definition}[Normalizer]
 \label{def:normalizer}
@@ -2293,9 +2365,7 @@ predicted distribution is unchanged by inserting $\nrm$.
 
 This subsection's examples are due to [NeSy26, App.~B draft/T3].
 
-\begin{example}[Tilt failure, exact numbers]
-\label{ex:tilt-failure}
-Let $X = Y = \{0,1\}$, $a = (0,0)$, $k(0) = (0,0)$,
+\textbf{Tilt failure, exact numbers.} Let $X = Y = \{0,1\}$, $a = (0,0)$, $k(0) = (0,0)$,
 $k(1) = (\ln 100,\, 0)$ (coordinates $(\cdot_0,\cdot_1)$ as in
 Lemma~\ref{lem:lifted-mass}/\ref{lem:lifted-log}). Then $Z(k(0)) = 2$,
 $Z(k(1)) = 101$, so $k$ is far from mass preserving
@@ -2315,12 +2385,8 @@ would give \emph{if} $k$ were (wrongly assumed) mass preserving is
 visibly different: one bind with non-constant mass, one tilt, one
 clearly wrong naive answer. This instantiates the converse direction
 of Theorem~\ref{thm:pullout}.
-\uses{lem:tilt, thm:pullout}
-\end{example}
 
-\begin{example}[The MNIST chains commute]
-\label{ex:mnist-commute}
-In the two-digit MNIST-addition axiom's $\Tmon$-chain and
+\textbf{The MNIST chains commute.} In the two-digit MNIST-addition axiom's $\Tmon$-chain and
 $\Dmon$-chain (Section~\ref{sec:syntax-semantics}'s running example),
 the leaves are neural digit classifiers and every subsequent bind
 binds either a strength, or a pure comparison $\Ret\circ({+})$, or a
@@ -2335,8 +2401,5 @@ specializes on the addition step to the convolution identity
 (discrete convolution of the two digit distributions), an instance of
 Theorem~\ref{thm:pullout} at the bind $({-}\bind \Ret\circ({+}))$,
 which is mass preserving by Lemma~\ref{lem:mass-preserving-closure}
-since $\Ret\circ h$ is mass preserving for every pure $h$.
-\uses{thm:pullout, lem:mass-preserving-closure}
-\end{example}
-
-This example is due to [NeSy26, App.~B draft/T3; \S 5].
+since $\Ret\circ h$ is mass preserving for every pure $h$. This example
+is due to [NeSy26, App.~B draft/T3; \S 5].

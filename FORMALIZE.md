@@ -134,60 +134,140 @@ step below.
 
 ## Blueprint structural laws
 
-- **Final environment inventory.** The blueprint's only environment
-  kinds are: `definition`, `abbreviation`, `lemma`, `theorem`,
-  `example`, `conjecture`, `proof` — nothing else. `remark` is
-  abolished (see below); `proposition` and `corollary` are abolished
-  (C2-E3/A1 kind-sync decree — full LaTeX↔Lean kind synchronization:
-  Lean has no `proposition`/`corollary` keyword and treats `lemma` as a
-  synonym of `theorem`, so the blueprint's theorem-family narrows to
-  exactly `lemma`/`theorem`). Retriage rule for a claim that used to be
-  a proposition or corollary: cited-as-infrastructure by later items →
-  `lemma`; a section/chapter-payoff statement in its own right →
-  `theorem`. `scripts/blueprint.sh`'s CORRESPONDENCE STRUCTURE check
-  rejects any surviving `remark`/`proposition`/`corollary` environment
-  (hard, gate-red); the lint hooks advise on one the moment it is
-  typed.
+- **Final environment inventory (C2-E4a full Lean-kind sync, USER
+  DECREE 2026-08-09, supersedes every earlier version of this list).**
+  The blueprint's environments are EXACTLY Lean's own declaration
+  kinds — `def`, `class`, `instance`, `abbrev`, `lemma`, `theorem` (+
+  `Structure`/`Inductive` added lazily when first needed; `axiom`
+  excluded forever by the library's axiom-freedom law) — rendered as
+  the LaTeX env names `definition`/`class`/`instance`/`abbreviation`/
+  `lemma`/`theorem`/`proof`, heads printed as the WRITTEN-OUT English
+  words ("Definition 3", "Class 5", "Instance 2", "Abbreviation 1",
+  "Lemma 7", "Theorem 4"), each on its OWN independent counter
+  (restarting at 1, incrementing only within its own kind — not a
+  shared counter, not per-section). `remark`/`proposition`/
+  `corollary`/`example`/`conjecture` are ALL abolished — nothing else
+  exists. Retriage: a former proposition/corollary → `lemma`
+  (cited-as-infrastructure) or `theorem` (chapter-payoff); a former
+  example → an `instance` env (if it witnesses a class) or dissolves
+  into plain narrative prose (tables/diagrams allowed, no env, no
+  label); a former conjecture → a `theorem` env whose proof body is
+  the open marker (below). Re-kinding rule: every item's kind is fixed
+  by its PRINCIPAL Lean declaration — a `class`-kind declaration lives
+  in `class`; an `instance`-kind declaration lives in `instance`;
+  everything else with new mathematical content lives in `definition`
+  (internal env name `definition`, no TeX clash with `\def`, head
+  "Definition"); a reducible-def name-introduction lives in
+  `abbreviation`. `scripts/blueprint.sh`'s CORRESPONDENCE STRUCTURE
+  check rejects any surviving dead-kind environment (hard, gate-red);
+  the lint hooks advise on one the moment it is typed.
+- **The open-theorem convention.** A theorem with no known proof is a
+  `theorem` env like any other (never its own environment kind, per
+  the conjecture abolition above), paired with a `proof` env whose
+  ENTIRE body is the single sentence "Open." — no ad-hoc "-- OPEN"/
+  "Status: open" phrasing anywhere, and it never carries `\leanok` on
+  either the statement or the proof side (there is nothing formalized
+  to mark). `scripts/blueprint.sh` enforces this structurally: an
+  "Open."-body proof carrying `\leanok` is a hard violation, and so is
+  its paired statement carrying `\leanok`. Current instance:
+  `thm:chain-bound` ("How wrong can it get").
+- **The bijection law (C2-E4a/A1, USER DECREE 2026-08-09).** The
+  LaTeX↔Lean correspondence is one-to-one: every environment that
+  carries a `\lean{}` mark at all carries EXACTLY ONE name, its
+  principal declaration — never a multi-name list. The map is
+  injective envs→decls, NOT surjective: a Lean declaration that is a
+  technical companion of the cited principal (a `simp`/`_apply`
+  unfolding lemma, a round-trip half of an equivalence, a unit-law or
+  left/right-monotonicity twin, a raw/corollary doubling) simply
+  becomes an UNMARKED internal — it still exists in Lean, still
+  compiles under `scripts/check.sh`, it just is not blueprint-cited.
+  Deciding split vs. companion for a formerly multi-name env: if the
+  extra names are PEER CLAIMS the statement genuinely bundles (e.g.
+  distinct numbered parts, each with its own proof), split the env
+  into one per claim, distributing the statement's clauses
+  accordingly (purity + anatomy laws make the split well-defined); if
+  the extras are companions of one claim, keep the single principal
+  name and drop the rest. Bias: fewer envs, more unmarked companions —
+  split only genuine peer bundles. `scripts/blueprint.sh` enforces
+  this as a hard structural check (a `\lean{}` list of ≥2 names is a
+  gate violation, checked before the kind-check step, which then
+  checks THAT one name's kind exactly, not "at least one of several").
+- **The internal-tag convention (C2-E4a/A2).** Every public Lean
+  declaration deliberately left uncited by the bijection law above (a
+  demoted companion, or any other pre-existing library-internal
+  helper) carries a line comment `-- blueprint: internal (<short
+  reason>)` on, or immediately above, its declaration — `private`
+  declarations need no tag, since they cannot be cited by anything
+  outside their own file regardless. This is what lets a completeness
+  census tell "deliberately uncited plumbing" apart from "real
+  mathematics nobody wrote an env for": every top-level declaration in
+  the NeSyCat namespace is either (a) cited by exactly one env, or (b)
+  carries this tag — nothing may be neither.
+  `scripts/blueprint.sh`'s CENSUS subsection enforces this over a
+  fixed, disclosed file list (`CENSUS_FILES`, currently the
+  Truth-value-structures and semiring-monad chapters; extending it to
+  the rest of the library, file by file, is each new chapter's own
+  ticket's job) via a pragmatic text-based name matcher (not yet a
+  full `lake env lean` environment fold) — an unclassified declaration
+  is a hard gate violation. Audit fruit — a genuinely uncited,
+  genuinely real piece of mathematics the census turns up (not
+  plumbing) — gets its own env of the right kind, statement mirroring
+  the declaration, `\leanok` statement-side, proof env where
+  theorem-kind (example: `def:psum`, the probabilistic sum, found this
+  way and given a `definition` env).
+- **The three-shape witness doctrine.** A worked instance dissolved
+  out of the old `example` kind (per the retriage rule above) takes
+  one of three shapes, all via NAMED Lean declarations (never Lean's
+  anonymous `example` keyword, which cannot be cited or kind-checked):
+  *inhabitation* (an `instance`/`def`-kind witness that a concrete
+  carrier satisfies a class — cite the `instance`); *separation* (a
+  negative theorem with an explicit witness, e.g. a counterexample —
+  cite the `theorem`); *computation* (an equation lemma evaluating a
+  construction at concrete data — cite the `theorem`). Whichever shape
+  applies, the env is `instance` only for the inhabitation case;
+  separation and computation stay plain narrative prose (with a
+  `\lean{}`-marked `theorem`/`lemma` if the fact is itself citable
+  infrastructure, or no env at all if it is purely illustrative).
 - **Remarks are abolished.** The document reads as a STORY: formal
-  environments (`definition`, `abbreviation`, `lemma`/`theorem` +
-  `proof`, `example`, `conjecture`) floating in continuous narrative
-  prose. Anything with no Lean counterpart — provenance credits,
-  notational conventions, dictionary glosses, contrasts, forward
-  pointers — is plain untagged text immediately before or after the
-  formal environment it concerns, never its own `\begin{remark}`.
-  Condensation of this discourse prose is licensed (shorter is
-  better) as long as no mathematical claim is dropped or altered and
-  provenance is never silently deleted — it moves. Honesty records
-  (errata, scope/faithfulness disclosures) MUST survive as prose,
-  condensed but never deleted. `\uses`/`\lean`/`\label`/`\leanok`
-  always stay inside the environment they mark (leanblueprint needs
-  `\uses` inside the env for the dependency graph).
+  environments (`definition`, `class`, `instance`, `abbreviation`,
+  `lemma`/`theorem` + `proof`) floating in continuous narrative prose.
+  Anything with no Lean counterpart — provenance credits, notational
+  conventions, dictionary glosses, contrasts, forward pointers, worked
+  narrative examples — is plain untagged text immediately before or
+  after the formal environment it concerns, never its own
+  `\begin{remark}`/`\begin{example}`. Condensation of this discourse
+  prose is licensed (shorter is better) as long as no mathematical
+  claim is dropped or altered and provenance is never silently deleted
+  — it moves. Honesty records (errata, scope/faithfulness disclosures)
+  MUST survive as prose, condensed but never deleted.
+  `\uses`/`\lean`/`\label`/`\leanok` always stay inside the environment
+  they mark (leanblueprint needs `\uses` inside the env for the
+  dependency graph).
 - **Total Lean-mirror purity.** Every environment with a Lean
-  counterpart — `lemma`/`theorem` (statement), `definition`,
-  `abbreviation`, an `example` carrying a `\lean{}` mark, and `proof`
-  — contains ONLY the mathematical content its cited Lean
-  declaration/proof contains: structure fields, laws, hypotheses,
-  conclusion, carrier, or (for `proof`) the informal mirror of the
-  Lean proof's own steps. Provenance tags (bracketed source
-  citations), dictionary glosses, contrast commentary ("unlike a
-  ... no distributivity is assumed"), and forward/backward pointers
-  are OUT — they move to plain prose immediately before or after the
-  env, condensed and deduped across a run of items sharing the same
-  citation where that reads better as a story, never dropped.
-  Conjectures (no Lean yet) get the same commentary treatment for
-  uniformity, governed otherwise by statement-minimality. **Pinned
-  exemption:** `def:domain-signature-notation` ("Writing convention
-  for typed symbols", Domain layer) is the one definition environment
-  with no Lean counterpart, by explicit user decision predating and
-  surviving this law for this specific item — the sweep and the lint
-  advisory exempt it by label, and it is never dissolved into prose.
-  Enforced advisory-side by the lint hooks' commentary/provenance
-  marker scan (bracketed `[NeSy26`/`[Girard`/... tags, or phrases like
-  "Distilled from", "unlike a", "transported along", "see Remark",
-  "the source"); the hard structural gate lives in
-  `scripts/blueprint.sh`'s CORRESPONDENCE section (env/kind agreement)
-  together with the zero-remark/zero-proposition/corollary checks
-  above.
+  counterpart — `lemma`/`theorem` (statement), `definition`, `class`,
+  `instance`, `abbreviation`, and `proof` — contains ONLY the
+  mathematical content its cited Lean declaration/proof contains:
+  structure fields, laws, hypotheses, conclusion, carrier, or (for
+  `proof`) the informal mirror of the Lean proof's own steps.
+  Provenance tags (bracketed source citations), dictionary glosses,
+  contrast commentary ("unlike a ... no distributivity is assumed"),
+  and forward/backward pointers are OUT — they move to plain prose
+  immediately before or after the env, condensed and deduped across a
+  run of items sharing the same citation where that reads better as a
+  story, never dropped. An open theorem gets the same commentary
+  treatment for uniformity, governed otherwise by statement-
+  minimality. **Pinned exemption:** `def:domain-signature-notation`
+  ("Writing convention for typed symbols", Domain layer) is the one
+  `definition` environment with no Lean counterpart, by explicit user
+  decision predating and surviving this law for this specific item —
+  the sweep, the lint advisory, and the kind-check gate all exempt it
+  by label, and it is never dissolved into prose. Enforced
+  advisory-side by the lint hooks' commentary/provenance marker scan
+  (bracketed `[NeSy26`/`[Girard`/... tags, or phrases like "Distilled
+  from", "unlike a", "transported along", "see Remark", "the source");
+  the hard structural gate lives in `scripts/blueprint.sh`'s
+  CORRESPONDENCE section (env/kind agreement, the bijection law, and
+  the dead-kind checks above).
 - **Statement/proof anatomy.** A `lemma`/`theorem` statement env
   contains exactly what the Lean statement contains: for an
   existential or negative claim ("does not distribute", "is not
@@ -197,19 +277,19 @@ step below.
   `proof` env, matching the Lean proof's own `refine ⟨...⟩`/`norm_num`
   shape. "Concretely, at $p=q=r=\tfrac12$, ..." inside a statement is
   proof content in the wrong box — it always moves down into the
-  `\begin{proof}`. (`example` environments are exempt: showing a
-  concrete instance is their entire point.)
-- **Definition atomicity.** Every `definition` environment introduces
-  exactly one named structure. A family of variant refinements
-  (commutative / bounded / bounded-commutative; C-variants of a class)
-  each get their own `definition` environment, `\uses`-linked to the
+  `\begin{proof}`.
+- **Definition atomicity.** Every `definition`/`class` environment
+  introduces exactly one named structure. A family of variant
+  refinements (commutative / bounded / bounded-commutative;
+  C-variants of a class) each get their own env, `\uses`-linked to the
   atom(s) they refine — never bundled into one env with the base
   structure.
-- **No examples in definitions.** A `definition` environment states the
-  structure only: no worked instances, running-instance itemizations, or
-  anti-examples. That content moves to a `\begin{example}` environment
-  placed after the definition(s) it instantiates, `\uses`-linked back to
-  them.
+- **No worked instances in definitions.** A `definition`/`class`
+  environment states the structure only: no worked instances,
+  running-instance itemizations, or anti-examples. That content moves
+  to an `instance` env (per the three-shape witness doctrine above) or
+  plain prose placed after the definition(s)/class(es) it
+  instantiates, `\uses`-linked back to them.
 
 ## Work strategy
 

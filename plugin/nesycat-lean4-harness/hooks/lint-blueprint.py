@@ -14,16 +14,26 @@ import os
 import re
 import sys
 
-THEOREM_FAMILY_BEGIN_RE = re.compile(
-    r'\\begin\{(theorem|proposition|lemma|corollary)\}')
+THEOREM_FAMILY_BEGIN_RE = re.compile(r'\\begin\{(theorem|lemma)\}')
 ABBREV_BEGIN_RE = re.compile(r'\\begin\{abbreviation\}')
 ABBREV_END_RE = re.compile(r'\\end\{abbreviation\}')
 REMARK_BEGIN_RE = re.compile(r'\\begin\{remark\}')
 REMARK_END_RE = re.compile(r'\\end\{remark\}')
-PROP_COR_BEGIN_RE = re.compile(r'\\begin\{(proposition|corollary)\}')
+# C2-E4a full Lean-kind sync: the dead-kind list grows to match
+# scripts/blueprint.sh's DEAD_KINDS (remark handled separately above,
+# by its own paired begin/end scan; the rest share one generic advisory).
+DEAD_KIND_BEGIN_RE = re.compile(
+    r'\\begin\{(proposition|corollary|example|conjecture)\}')
+RETRIAGE = {
+    "proposition": "use lemma or theorem",
+    "corollary": "use lemma or theorem",
+    "example": "use an `instance` env (if it witnesses a class) or plain prose",
+    "conjecture": "use a `theorem` env with a proof body of exactly \"Open.\"",
+}
 END_ANY_RE = re.compile(r'\\end\{[a-zA-Z]+\}')
 BEGIN_PROOF_RE = re.compile(r'\\begin\{proof\}')
 LEAN_RE = re.compile(r'\\lean\{')
+LEAN_NAMES_RE = re.compile(r'\\lean\{([^}]*)\}')
 LABEL_RE = re.compile(r'\\label\{([^}]*)\}')
 USES_REM_RE = re.compile(r'\\uses\{[^}]*\brem:')
 
@@ -35,8 +45,7 @@ USES_REM_RE = re.compile(r'\\uses\{[^}]*\brem:')
 # reliably commentary/provenance rather than mathematical content in
 # this document's own voice.
 PURITY_BEGIN_RE = re.compile(
-    r'\\begin\{(theorem|proposition|lemma|corollary|definition|'
-    r'abbreviation|example|proof)\}')
+    r'\\begin\{(theorem|lemma|definition|class|instance|abbreviation|proof)\}')
 PURITY_MARKER_RE = re.compile(
     r'\[NeSy26|\[Girard|\[Coumans|\[NeSyCat Theory|'
     r'Distilled from|vocabulary from|axiomatized|compared in|'
@@ -132,6 +141,34 @@ def main():
     n = len(code_lines)
     warnings = []
 
+    # BIJECTION LAW (C2-E4a/A1): a \lean{} list with >=2 names -- strong
+    # warning, this is a hard structural violation (scripts/blueprint.sh
+    # rejects it). Multi-line \lean{...} calls are handled by joining
+    # continuation lines until the closing brace.
+    idx = 0
+    while idx < n:
+        if '\\lean{' in code_lines[idx] and '}' not in code_lines[idx].split('\\lean{', 1)[1]:
+            # multi-line \lean{...}; join forward until the closing brace.
+            joined = code_lines[idx]
+            j = idx + 1
+            while j < n and '}' not in code_lines[j]:
+                joined += " " + code_lines[j]
+                j += 1
+            if j < n:
+                joined += " " + code_lines[j]
+            m = LEAN_NAMES_RE.search(joined)
+        else:
+            m = LEAN_NAMES_RE.search(code_lines[idx])
+        if m:
+            names = [x.strip() for x in m.group(1).split(',') if x.strip()]
+            if len(names) > 1:
+                warnings.append(
+                    f"{rel_posix}:{idx + 1}: STRONG WARNING -- \\lean{{}} "
+                    f"names {names} violate the bijection law (exactly one "
+                    "principal name per env; demote the rest to unmarked "
+                    "internals, tagged in the .lean source)")
+        idx += 1
+
     # \uses{rem:...} -- strong warning, this is a hard structural violation.
     for idx, line in enumerate(code_lines):
         if USES_REM_RE.search(line):
@@ -175,11 +212,11 @@ def main():
                 "remarks are abolished, write plain prose")
             idx = end + 1
             continue
-        if PROP_COR_BEGIN_RE.search(code_lines[idx]):
-            kind = PROP_COR_BEGIN_RE.search(code_lines[idx]).group(1)
+        if DEAD_KIND_BEGIN_RE.search(code_lines[idx]):
+            kind = DEAD_KIND_BEGIN_RE.search(code_lines[idx]).group(1)
             warnings.append(
                 f"{rel_posix}:{idx + 1}: {kind} environment present -- "
-                f"{kind} is abolished, use lemma or theorem")
+                f"{kind} is abolished -- {RETRIAGE[kind]}")
             idx += 1
             continue
         if DEFINITION_BEGIN_RE.search(code_lines[idx]):

@@ -12,7 +12,7 @@ import NeSyCat.Monad.SemiringMonad
 
 Blueprint item `lem:log-iso` (`blueprint/src/content.tex`, §"Semiring weight
 monads", `[NeSy26, App. A]`), and the log instance of
-`ex:lattice-semiring-rows`
+`inst:logS-latcsrng`
 (`blueprint/src/content.tex`, same section) deferred from
 `NeSyCat/Monad/LatticeSemiring.lean`.
 
@@ -52,7 +52,7 @@ one level or the other.
 * the transported `CommSemiring LogS` instance, plus `logS_add_eq_lse` /
   `logS_mul_eq_logMul` bridging it to `lse`/`logMul`.
 * `logRingEquiv : ℝ≥0 ≃+* LogS` — the semiring isomorphism proper.
-* `instLatCSRngLogS : LatCSRng LogS` — completing `ex:lattice-semiring-rows`.
+* `instLatCSRngLogS : LatCSRng LogS` — completing `inst:logS-latcsrng`.
 * `logTensEquiv X : MS ℝ≥0 X ≃ MS LogS X` and `LogTens` — the monad
   isomorphism `Tmon ≅ LTmon`.
 -/
@@ -63,14 +63,18 @@ open scoped NNReal
 
 /-! ### The carrier `LogS` and its native lattice order -/
 
-/-- Blueprint `ex:lattice-semiring-rows` (log carrier): `LogS := ℝ ∪ {-∞}`,
+/-- Blueprint `inst:logS-latcsrng` (log carrier): `LogS := ℝ ∪ {-∞}`,
 realized as Mathlib's `WithBot ℝ`. See the module doc comment for why this
 is a plain `def`, not `abbrev`. -/
+-- blueprint: internal (A1 bijection-law companion of `logTensEquiv`,
+-- content.tex lem:log-iso)
 def LogS : Type := WithBot ℝ
 
 /-- `LogS` inherits `WithBot ℝ`'s lattice order (`⊓ = min`, `⊔ = max`)
 directly — the same "fresh carrier, inherited order" device `BoolW` uses in
 `LatticeSemiring.lean`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable instance instLatticeLogS : Lattice LogS :=
   inferInstanceAs (Lattice (WithBot ℝ))
 
@@ -78,33 +82,51 @@ noncomputable instance instLatticeLogS : Lattice LogS :=
 from `WithBot ℝ`; unlike the Boolean instance, there is **no** in-carrier
 `⊤` (log is unbounded above), so `LogS` is only ever a `LatCSRng`, never a
 `BLatCSRng` — matching the mass instance's own unboundedness. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable instance instOrderBotLogS : OrderBot LogS :=
   inferInstanceAs (OrderBot (WithBot ℝ))
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 instance instCoeRealLogS : Coe ℝ LogS := ⟨fun a => (a : WithBot ℝ)⟩
 
 /-! ### `logEquiv`, built at the `WithBot ℝ` level and cast once -/
 
 /-- `logEquiv`'s forward direction, at the `WithBot ℝ` level: `0 ↦ ⊥`,
 `x > 0 ↦ log x`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def logToFunWB (x : ℝ≥0) : WithBot ℝ :=
   if x = 0 then ⊥ else ((Real.log (x : ℝ) : ℝ) : WithBot ℝ)
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logToFunWB_zero : logToFunWB 0 = ⊥ := if_pos rfl
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logToFunWB_of_ne_zero {x : ℝ≥0} (hx : x ≠ 0) :
     logToFunWB x = ((Real.log (x : ℝ) : ℝ) : WithBot ℝ) := if_neg hx
 
 /-- `logEquiv`'s inverse direction, at the `WithBot ℝ` level: `⊥ ↦ 0`,
 `a ↦ exp a` (always positive, hence a genuine element of `ℝ≥0`). -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def logInvFunWB : WithBot ℝ → ℝ≥0 :=
   WithBot.recBotCoe (0 : ℝ≥0) (fun a => ⟨Real.exp a, (Real.exp_pos a).le⟩)
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logInvFunWB_bot : logInvFunWB ⊥ = 0 := rfl
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logInvFunWB_coe (a : ℝ) :
     logInvFunWB (a : WithBot ℝ) = ⟨Real.exp a, (Real.exp_pos a).le⟩ := rfl
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logLeftInvWB : Function.LeftInverse logInvFunWB logToFunWB := by
   intro x
   by_cases hx : x = 0
@@ -116,6 +138,8 @@ theorem logLeftInvWB : Function.LeftInverse logInvFunWB logToFunWB := by
       · exact absurd (NNReal.coe_eq_zero.mp h.symm) hx
     exact Subtype.ext (Real.exp_log hxpos)
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logRightInvWB : Function.RightInverse logInvFunWB logToFunWB := by
   intro a
   induction a using WithBot.recBotCoe with
@@ -129,22 +153,38 @@ theorem logRightInvWB : Function.RightInverse logInvFunWB logToFunWB := by
     congr 1
     exact Real.log_exp a'
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def logEquivWB : ℝ≥0 ≃ WithBot ℝ :=
   ⟨logToFunWB, logInvFunWB, logLeftInvWB, logRightInvWB⟩
 
 /-- Blueprint `lem:log-iso` (log bijection): `x = 0 ↦ -∞`; `x > 0 ↦ log x`;
 inverse `-∞ ↦ 0`, `a ↦ exp a` — a single top-level definitional cast of
 `logEquivWB` from `WithBot ℝ` to `LogS` (see the module doc comment). -/
+-- blueprint: internal (A1 bijection-law companion of `logTensEquiv`,
+-- content.tex lem:log-iso)
 noncomputable def logEquiv : ℝ≥0 ≃ LogS := logEquivWB
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def logToFun : ℝ≥0 → LogS := logToFunWB
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def logInvFun : LogS → ℝ≥0 := logInvFunWB
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logEquiv_apply (x : ℝ≥0) : logEquiv x = logToFun x := rfl
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logEquiv_symm_apply (a : LogS) : logEquiv.symm a = logInvFun a := rfl
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem logToFun_zero : logToFun 0 = (⊥ : LogS) := logToFunWB_zero
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logToFun_of_ne_zero {x : ℝ≥0} (hx : x ≠ 0) :
     logToFun x = ((Real.log (x : ℝ) : ℝ) : LogS) := logToFunWB_of_ne_zero hx
 
@@ -152,7 +192,9 @@ theorem logToFun_of_ne_zero {x : ℝ≥0} (hx : x ≠ 0) :
 `LogS`'s native `WithBot ℝ` order. Used below both to install the
 `LatCSRng LogS` monotonicity fields (transporting `ℝ≥0`'s) and, earlier in
 spirit, to justify that the transported algebra and the native lattice order
-of `ex:lattice-semiring-rows`'s log row genuinely agree. -/
+of `inst:logS-latcsrng`'s log row genuinely agree. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logEquiv_le_iff (x y : ℝ≥0) : logEquiv x ≤ logEquiv y ↔ x ≤ y := by
   by_cases hx : x = 0
   · subst hx
@@ -182,6 +224,8 @@ theorem logEquiv_le_iff (x y : ℝ≥0) : logEquiv x ≤ logEquiv y ↔ x ≤ y 
 /-- `lse`, at the `WithBot ℝ` level: `⊥` absorbed as the identity
 (`lse ⊥ b = b`, `lse a ⊥ = a`), two finite reals combining as
 `log(exp a + exp b)`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def lseWB (a b : WithBot ℝ) : WithBot ℝ :=
   WithBot.recBotCoe b
     (fun a' => WithBot.recBotCoe (a' : WithBot ℝ)
@@ -190,6 +234,8 @@ noncomputable def lseWB (a b : WithBot ℝ) : WithBot ℝ :=
 
 /-- `logMul`, at the `WithBot ℝ` level: `⊥` absorbing (`logMul ⊥ b = ⊥`,
 `logMul a ⊥ = ⊥`), two finite reals combining as ordinary real addition. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 def logMulWB (a b : WithBot ℝ) : WithBot ℝ :=
   WithBot.recBotCoe (⊥ : WithBot ℝ)
     (fun a' => WithBot.recBotCoe (⊥ : WithBot ℝ) (fun b' => ((a' + b' : ℝ) : WithBot ℝ)) b)
@@ -199,22 +245,38 @@ def logMulWB (a b : WithBot ℝ) : WithBot ℝ :=
 additive identity of `LogS`) is absorbed as the identity of `lse`
 (`lse ⊥ b = b`, `lse a ⊥ = a`, matching `log(0 + e^x) = x`); two finite
 reals combine as `lse(a, b) := log(e^a + e^b)`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def lse : LogS → LogS → LogS := lseWB
 
 /-- Blueprint `lem:log-iso` (`⊗`, log semiring multiplication): `⊗ := +`,
 lifted from `ℝ` to `LogS` with `⊥` absorbing (matching the semiring law
 `0 ⊗ x = 0` once `0 := ⊥`). -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 def logMul : LogS → LogS → LogS := logMulWB
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem lse_bot_left (b : LogS) : lse ⊥ b = b := rfl
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem lse_bot_right (a : ℝ) : lse (a : LogS) ⊥ = (a : LogS) := rfl
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem lse_coe_coe (a b : ℝ) :
     lse (a : LogS) (b : LogS) = ((Real.log (Real.exp a + Real.exp b) : ℝ) : LogS) := rfl
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem logMul_bot_left (b : LogS) : logMul ⊥ b = ⊥ := rfl
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem logMul_bot_right (a : ℝ) : logMul (a : LogS) ⊥ = ⊥ := rfl
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logMul_coe_coe (a b : ℝ) : logMul (a : LogS) (b : LogS) = ((a + b : ℝ) : LogS) := rfl
 
 /-! ### The mathematical heart: transported `+`/`*` equal `lse`/`logMul` -/
@@ -224,6 +286,8 @@ i.e. `e^{lse(u,v)} = e^u + e^v` unwound at `u := log x`, `v := log y` (the
 blueprint's displayed identity for `lem:log-iso`). Proved by case-splitting
 on `x = 0`/`y = 0` (where `lse`'s identity-absorption clauses apply
 directly) and, in the remaining case, by `Real.exp_log`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logEquiv_add (x y : ℝ≥0) : logEquiv (x + y) = lse (logEquiv x) (logEquiv y) := by
   by_cases hx : x = 0
   · subst hx; simp [logEquiv_apply]
@@ -244,6 +308,8 @@ theorem logEquiv_add (x y : ℝ≥0) : logEquiv (x + y) = lse (logEquiv x) (logE
 
 /-- `logEquiv` carries `ℝ≥0`'s `*` to `logMul`: `log(xy) = log x + log y`
 (`Real.log_mul`), the semiring-isomorphism half of `lem:log-iso` for `⊗`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logEquiv_mul (x y : ℝ≥0) : logEquiv (x * y) = logMul (logEquiv x) (logEquiv y) := by
   by_cases hx : x = 0
   · subst hx; simp [logEquiv_apply]
@@ -264,7 +330,7 @@ theorem logEquiv_mul (x y : ℝ≥0) : logEquiv (x * y) = logMul (logEquiv x) (l
 
 /-! ### The transported `CommSemiring LogS` -/
 
-/-- Blueprint `ex:lattice-semiring-rows` (log instance, semiring structure):
+/-- Blueprint `inst:logS-latcsrng` (log instance, semiring structure):
 `CommSemiring LogS` transported from `CommSemiring ℝ≥0` along `logEquiv`,
 via Mathlib's transfer machinery (`Equiv.commSemiring`,
 `Mathlib/Algebra/Ring/TransferInstance.lean`) rather than proved by hand.
@@ -272,60 +338,92 @@ Its `+`/`*`/`0`/`1` fields are, by construction, `logEquiv (logEquiv.symm a
 op logEquiv.symm b)` — opaque conjugations, not literally `lse`/`logMul`;
 `logS_add_eq_lse`/`logS_mul_eq_logMul`/`logS_zero_eq_bot`/`logS_one_eq_zero`
 below bridge them to the blueprint's explicit formulas. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable instance instCommSemiringLogS : CommSemiring LogS :=
   Equiv.commSemiring logEquiv.symm
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logS_add_def (a b : LogS) : a + b = logEquiv (logEquiv.symm a + logEquiv.symm b) := rfl
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logS_mul_def (a b : LogS) : a * b = logEquiv (logEquiv.symm a * logEquiv.symm b) := rfl
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logS_zero_def : (0 : LogS) = logEquiv 0 := rfl
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logS_one_def : (1 : LogS) = logEquiv 1 := rfl
 
 /-- The transported `+` equals `lse` — the mathematical heart of
 `lem:log-iso`'s `⊕` clause. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logS_add_eq_lse (a b : LogS) : a + b = lse a b := by
   rw [logS_add_def, logEquiv_add, Equiv.apply_symm_apply, Equiv.apply_symm_apply]
 
 /-- The transported `*` equals `logMul` — the mathematical heart of
 `lem:log-iso`'s `⊗` clause. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logS_mul_eq_logMul (a b : LogS) : a * b = logMul a b := by
   rw [logS_mul_def, logEquiv_mul, Equiv.apply_symm_apply, Equiv.apply_symm_apply]
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem logS_zero_eq_bot : (0 : LogS) = ⊥ := by
   rw [logS_zero_def, logEquiv_apply, logToFun_zero]
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem logS_one_eq_zero : (1 : LogS) = ((0 : ℝ) : LogS) := by
   rw [logS_one_def, logEquiv_apply, logToFun_of_ne_zero one_ne_zero, NNReal.coe_one,
     Real.log_one]
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logEquiv_zero : logEquiv 0 = (0 : LogS) := by
   rw [logEquiv_apply, logToFun_zero, ← logS_zero_eq_bot]
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logEquiv_one : logEquiv 1 = (1 : LogS) := by
   rw [logEquiv_apply, logToFun_of_ne_zero one_ne_zero, NNReal.coe_one, Real.log_one,
     ← logS_one_eq_zero]
 
 /-- `logEquiv` respects `+` using `LogS`'s own `+` (not `lse` bare) — the
 `map_add'` obligation for `logRingEquiv` below. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logEquiv_map_add (x y : ℝ≥0) : logEquiv (x + y) = logEquiv x + logEquiv y := by
   rw [logEquiv_add, ← logS_add_eq_lse]
 
 /-- `logEquiv` respects `*` using `LogS`'s own `*` — the `map_mul'`
 obligation for `logRingEquiv` below. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logEquiv_map_mul (x y : ℝ≥0) : logEquiv (x * y) = logEquiv x * logEquiv y := by
   rw [logEquiv_mul, ← logS_mul_eq_logMul]
 
 /-- Blueprint `lem:log-iso` (Log isomorphism): `log : (ℝ≥0, +, ·) →
 (LogS, lse, +)` is a semiring isomorphism, packaged as a bundled
 `RingEquiv`. -/
+-- blueprint: internal (A1 bijection-law companion of `logTensEquiv`,
+-- content.tex lem:log-iso)
 noncomputable def logRingEquiv : ℝ≥0 ≃+* LogS :=
   { logEquiv with
     map_add' := logEquiv_map_add
     map_mul' := logEquiv_map_mul }
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logRingEquiv_apply (x : ℝ≥0) : logRingEquiv x = logEquiv x := rfl
 
-/-! ### `LatCSRng LogS`, completing `ex:lattice-semiring-rows` -/
+/-! ### `LatCSRng LogS`, completing `inst:logS-latcsrng` -/
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logS_add_le_add_left {a b : LogS} (h : a ≤ b) (c : LogS) : c + a ≤ c + b := by
   rw [logS_add_eq_lse, logS_add_eq_lse, ← logEquiv.apply_symm_apply c,
     ← logEquiv.apply_symm_apply a, ← logEquiv.apply_symm_apply b, ← logEquiv_add, ← logEquiv_add,
@@ -334,9 +432,13 @@ theorem logS_add_le_add_left {a b : LogS} (h : a ≤ b) (c : LogS) : c + a ≤ c
     rwa [← logEquiv_le_iff, logEquiv.apply_symm_apply, logEquiv.apply_symm_apply]
   gcongr
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logS_add_le_add_right {a b : LogS} (h : a ≤ b) (c : LogS) : a + c ≤ b + c := by
   rw [add_comm a c, add_comm b c]; exact logS_add_le_add_left h c
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logS_mul_le_mul_left {a b : LogS} (h : a ≤ b) (c : LogS) : c * a ≤ c * b := by
   rw [logS_mul_eq_logMul, logS_mul_eq_logMul, ← logEquiv.apply_symm_apply c,
     ← logEquiv.apply_symm_apply a, ← logEquiv.apply_symm_apply b, ← logEquiv_mul, ← logEquiv_mul,
@@ -345,10 +447,12 @@ theorem logS_mul_le_mul_left {a b : LogS} (h : a ≤ b) (c : LogS) : c * a ≤ c
     rwa [← logEquiv_le_iff, logEquiv.apply_symm_apply, logEquiv.apply_symm_apply]
   gcongr
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem logS_mul_le_mul_right {a b : LogS} (h : a ≤ b) (c : LogS) : a * c ≤ b * c := by
   rw [mul_comm a c, mul_comm b c]; exact logS_mul_le_mul_left h c
 
-/-- Blueprint `ex:lattice-semiring-rows` (log instance): completes the log row
+/-- Blueprint `inst:logS-latcsrng` (log instance): completes the log row
 of the definition — `LogS` is a commutative lattice-semiring, its `+`/`*`
 (via `logS_add_eq_lse`/`logS_mul_eq_logMul`, i.e. `lse`/`logMul`) each
 monotone with respect to the native `WithBot ℝ` order, transported from
@@ -367,28 +471,42 @@ variable {X Y : Type*}
 
 /-- Blueprint `lem:log-iso` (monad transport, forward direction): apply
 `logEquiv` to every weight of an `MS ℝ≥0 X`-value. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def toLogTens (ρ : MS ℝ≥0 X) : MS LogS X :=
   Finsupp.mapRange logEquiv logEquiv_zero ρ
 
 /-- Blueprint `lem:log-iso` (monad transport, inverse direction): apply
 `logEquiv.symm` to every weight of an `MS LogS X`-value. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def ofLogTens (a : MS LogS X) : MS ℝ≥0 X :=
   Finsupp.mapRange logEquiv.symm (by rw [← logEquiv_zero, Equiv.symm_apply_apply]) a
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem toLogTens_apply (ρ : MS ℝ≥0 X) (x : X) : toLogTens ρ x = logEquiv (ρ x) :=
   Finsupp.mapRange_apply
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem ofLogTens_apply (a : MS LogS X) (x : X) : ofLogTens a x = logEquiv.symm (a x) :=
   Finsupp.mapRange_apply
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem ofLogTens_toLogTens (ρ : MS ℝ≥0 X) : ofLogTens (toLogTens ρ) = ρ := by
   ext x; simp
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem toLogTens_ofLogTens (a : MS LogS X) : toLogTens (ofLogTens a) = a := by
   ext x; simp
 
 /-- Blueprint `lem:log-iso` (`ret` commutes with the transport): applying
 `logEquiv` to a point mass is again a point mass, since `logEquiv 1 = 1`. -/
+-- blueprint: internal (A1 bijection-law companion of `logTensEquiv`,
+-- content.tex lem:log-iso)
 theorem toLogTens_ret (x : X) : toLogTens (ret x : MS ℝ≥0 X) = ret x := by
   classical
   ext y
@@ -404,6 +522,8 @@ theorem toLogTens_ret (x : X) : toLogTens (ret x : MS ℝ≥0 X) = ret x := by
 each output value `y`, both sides unfold (`bind_apply`) to a `Finsupp.sum`
 over `ℝ≥0`/`LogS` matched up by `logRingEquiv`'s ring-homomorphism
 properties (`map_add`, `map_mul`), summed via the generic `map_sum`. -/
+-- blueprint: internal (A1 bijection-law companion of `logTensEquiv`,
+-- content.tex lem:log-iso)
 theorem toLogTens_bind (ρ : MS ℝ≥0 X) (k : X → MS ℝ≥0 Y) :
     toLogTens (bind ρ k) = bind (toLogTens ρ) (fun x => toLogTens (k x)) := by
   ext y

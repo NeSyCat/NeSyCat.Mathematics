@@ -17,67 +17,74 @@
 
 % The theorem-like environments defined below are those that appear by default
 % in the dependency graph. See the README of leanblueprint if you need help to
-% customize this. 
-% The configuration below use the theorem counter for all those environments
-% (this is what the [theorem] arguments mean) and never resets it.
-% If you want for instance to number them within chapters then you can add
-% [chapter] at the end of the next line.
-% Final style grid (user decree, M4 addenda #1+#3): ITALIC body for every
-% content/claim environment --- theorem, proposition, lemma, corollary,
-% conjecture, definition, abbreviation (amsthm's "plain" style: bold/bold
-% heading, italic body) --- and UPRIGHT body for every discourse
-% environment --- proof (amsthm's built-in default, unaffected by
-% \theoremstyle), example, remark. "plain" is amsthm's own default before
-% any \theoremstyle call, but it is set explicitly here for clarity.
-\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{corollary}[theorem]{Corollary}
-% `conjecture` (M4 addendum #2): a claim, not yet a theorem --- same
-% italic style and numbering family as the rest of this group, but NEVER
-% followed by a \begin{proof}: a conjecture environment never carries a
-% proof, and never carries a proof-side \leanok (there is nothing to mark
-% formalized). Its one current use is \label{cnj:chain-bound} in
-% content.tex (reclassified from the former corollary
-% \label{cor:chain-bound}, per that addendum).
-\newtheorem{conjecture}[theorem]{Conjecture}
-\newtheorem{definition}[theorem]{Definition}
-
-% `example` and `remark` use amsthm's "definition" style (bold heading,
-% UPRIGHT/roman body) instead: discourse, not a claim or a definition ---
-% user decree (M4 addendum #1). `remark` is not one of the numbered
-% theorem-like environments above; it lives here alongside them so every
-% environment declaration for this document is in one place (moved from
-% content.tex, M1).
-\theoremstyle{definition}
-\newtheorem{example}[theorem]{Example}
-\newtheorem{remark}[theorem]{Remark}
-
-% `abbreviation` is a bold "Abbreviation N." block, ITALIC body like the
-% rest of the content/claim group above (M4 addendum #3; amsthm's "plain"
-% style): reserved for a block that introduces a *name* for existing
-% content (a Lean `abbrev` twin) --- see the Blueprint-to-Lean
-% correspondence paragraph in content.tex (M1), which also states this
-% environment's invariant. In use since a later ticket re-homed
-% `Tens`/`LogTens` into it: \label{abbr:tensor-monad} and
-% \label{abbr:log-tensor-monad} in content.tex.
+% customize this.
 %
-% M5 Part B.4: switched from the starred form
-% (\newtheorem*{abbreviation}{Abbreviation}, no counter of its own) to
-% this numbered fallback that the comment above used to flag as a
-% contingency. The starred form's web anchors were confirmed broken, not
-% just theoretically risky: plasTeX assigned `id="abbr:log-tensor-monad"`
-% to the *wrong* node (the preceding remark, "Semiring monad laws,
-% informally") and gave the actual "Tensor monad"/"Log-tensor monad"
-% blocks only auto-generated ids, with no `abbr:tensor-monad` id anywhere
-% in index.html --- a starred (uncounted) amsthm environment's \label
-% does not attach to its own node reliably under this plasTeX version.
-% Joining the shared `theorem` counter (numbered, like the rest of the
-% content/claim family) gives both abbreviations correct, distinct,
-% directly \ref'able anchors.
+% FINAL ENVIRONMENT INVENTORY (C2-E4a full Lean-kind sync, USER DECREE
+% 2026-08-09, supersedes every earlier \newtheorem block in this file's
+% history): the blueprint's environments are EXACTLY Lean's own
+% declaration kinds --- def, class, instance, abbrev, lemma, theorem (+
+% proof per the proof-presence law) --- rendered below as the LaTeX env
+% names definition/class/instance/abbreviation/lemma/theorem/proof, with
+% WRITTEN-OUT English heads: "Definition 3" (def-kind), "Class 5",
+% "Instance 2", "Abbreviation 1" (abbrev-kind), "Lemma 7", "Theorem 4".
+% `definition` keeps its spelled-out internal name rather than a bare
+% `def` specifically to dodge a TeX-level clash: LaTeX's environment
+% mechanism expands `\begin{def}`/`\end{def}` to `\def`/`\enddef`
+% internally, colliding with TeX's own `\def` primitive --- naming the
+% environment `definition` sidesteps that clash entirely while still
+% being kind-restricted to Lean `def`/bare-`structure` declarations (see
+% scripts/blueprint.sh's kind-check). `abbreviation` likewise keeps its
+% spelled-out name (no clash risk, but consistent with `definition`).
+% `class` and `instance` are brand-new environments introduced by this
+% ticket, one-for-one with Lean's `class`/`instance` keywords.
+% remark/proposition/corollary/example/conjecture are ABOLISHED (C2-E3 +
+% C2-E4a) and have NO \newtheorem declaration at all here --- a stray
+% occurrence in content.tex is a raw "Environment ... undefined" LaTeX
+% error at build time, backstopped by scripts/blueprint.sh's
+% CORRESPONDENCE section catching it mechanically as a named violation
+% (not merely a build crash) whenever the gate runs. Re-kinding rule
+% (from content.tex's own "Blueprint-to-Lean correspondence" paragraph):
+% every environment's kind is fixed by its item's PRINCIPAL Lean
+% declaration --- a class-kind declaration (BLat2Mon, the LatSRng family,
+% DMStructure, the unit-bound mixins, ...) lives in a `class` env; an
+% instance-kind declaration (a concrete carrier's witness) lives in an
+% `instance` env; everything else with new mathematical content and no
+% class/instance kind lives in `definition`; a former `example`
+% environment either promotes to `instance` (if it witnesses a class,
+% e.g.\ the library's three running lattice-semiring instances) or
+% dissolves into plain narrative prose; a former `conjecture` promotes to
+% `theorem` with a proof environment whose body is exactly the sentence
+% "Open." and which never carries \leanok --- the open-theorem
+% convention, replacing the old conjecture-never-has-a-proof rule now
+% that conjecture no longer exists as a kind of its own.
+%
+% INDEPENDENT PER-KIND COUNTERS (USER DECREE 2026-08-09, C2-E4a
+% supersedes the former shared `[theorem]`-argument mechanism below):
+% each kind now numbers on its OWN counter (no `[theorem]` argument to
+% any \newtheorem call), restarting at 1 and incrementing only within its
+% own kind --- Lemma 1..n, Definition 1..m, Theorem 1..k, Class 1..j,
+% etc., all independently; plain global per-kind numbering, not
+% per-section (no `[section]`/`[chapter]` argument either). Cross-refs
+% stay safe by house style: prose always names the kind before \ref
+% (`Definition~\ref{...}`, never a bare `Item~\ref{...}`), so two
+% different kinds sharing a bare number (e.g.\ a "Definition 3" and a
+% "Theorem 3" coexisting) never reads as ambiguous.
+%
+% Typography grid (user decree, M4 addenda #1+#3, remapped onto the new
+% kinds): ITALIC body for every definitional/claim environment ---
+% definition, class, instance, abbreviation, lemma, theorem (amsthm's
+% "plain" style: bold heading, italic body) --- and UPRIGHT body for
+% proof (amsthm's own built-in environment, unaffected by
+% \theoremstyle, never redeclared here). "plain" is amsthm's own default
+% before any \theoremstyle call, but it is set explicitly here for
+% clarity.
 \theoremstyle{plain}
-\newtheorem{abbreviation}[theorem]{Abbreviation}
+\newtheorem{definition}{Definition}
+\newtheorem{class}{Class}
+\newtheorem{instance}{Instance}
+\newtheorem{abbreviation}{Abbreviation}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
 
 % ----------------------------------------------------------------------
 % Shorthands for the NeSyCat library content (blueprint/src/content.tex).

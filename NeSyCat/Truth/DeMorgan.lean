@@ -10,7 +10,7 @@ import NeSyCat.Truth.BLat2Mon
 # The De Morgan calculus and its presentations
 
 Blueprint items `lem:dm-lattice-laws`, `lem:dm-dual-law`, `lem:dm-unit-swap`,
-`prop:dm-presentations`, `lem:dm-maps-units` (`blueprint/src/content.tex`,
+`thm:dm-presentations`, `lem:dm-maps-units` (`blueprint/src/content.tex`,
 §"Truth-value structures", per `.foreman/C2-T5-spec.md`).
 
 ## The DM lemma family (`[DMStructure α]`)
@@ -42,7 +42,7 @@ kept as parameters to match the blueprint's own "two-sided" framing (the
 proof site below supplies both, exactly mirroring its two displayed
 computations `¬done ⅋ p = p` and `p ⅋ ¬done = p`).
 
-## `prop:dm-presentations` (encoding choice: `List.TFAE`)
+## `thm:dm-presentations` (encoding choice: `List.TFAE`)
 
 Stated as `List.TFAE [Antitone n, (lattice DM law), DMFullCalculus n]` over
 raw data `[BLat2Mon α]`, `n : α → α`, `hinv : ∀ p, n (n p) = p`,
@@ -87,6 +87,7 @@ theorem dneg_inf (p q : α) : dneg (p ⊓ q) = dneg p ⊔ dneg q := by
 
 /-- Blueprint `lem:dm-lattice-laws` (De Morgan, join to meet), dually:
 `dneg (p ⊔ q) = dneg p ⊓ dneg q`. -/
+-- blueprint: internal (A1 bijection-law companion of `dneg_inf`, content.tex lem:dm-lattice-laws)
 theorem dneg_sup (p q : α) : dneg (p ⊔ q) = dneg p ⊓ dneg q := by
   apply le_antisymm
   · exact le_inf (dneg_antitone p (p ⊔ q) le_sup_left) (dneg_antitone q (p ⊔ q) le_sup_right)
@@ -103,6 +104,7 @@ theorem dneg_sup (p q : α) : dneg (p ⊔ q) = dneg p ⊓ dneg q := by
 /-- Blueprint `lem:dm-lattice-laws` (bound swap, bottom to top):
 `dneg ⊥ = ⊤`. Proof: for every `p`, `⊥ ≤ dneg p`, so antitonicity gives
 `p = dneg (dneg p) ≤ dneg ⊥`; taking `p := ⊤` gives `⊤ ≤ dneg ⊥`. -/
+-- blueprint: internal (A1 bijection-law companion of `dneg_inf`, content.tex lem:dm-lattice-laws)
 theorem dneg_bot : dneg (⊥ : α) = ⊤ := by
   apply le_antisymm le_top
   have h := dneg_antitone (⊥ : α) (dneg (⊤ : α)) bot_le
@@ -110,6 +112,7 @@ theorem dneg_bot : dneg (⊥ : α) = ⊤ := by
 
 /-- Blueprint `lem:dm-lattice-laws` (bound swap, top to bottom), dually:
 `dneg ⊤ = ⊥`. -/
+-- blueprint: internal (A1 bijection-law companion of `dneg_inf`, content.tex lem:dm-lattice-laws)
 theorem dneg_top : dneg (⊤ : α) = ⊥ := by
   apply le_antisymm _ bot_le
   have h := dneg_antitone (dneg (⊥ : α)) (⊤ : α) le_top
@@ -133,6 +136,8 @@ first `=` from `dzero`'s own right-unit law, the second from `e`'s
 left-unit hypothesis instantiated at `dzero`. Both hypotheses are kept
 (matching the blueprint's "two-sided" framing at the call site below),
 though only the left one is consumed here. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 private theorem parr_unit_eq_dzero {e : α}
     (hl : ∀ p, parr e p = p) (_hr : ∀ p, parr p e = p) : e = dzero :=
   (BLat2Mon.parr_dzero e).symm.trans (hl dzero)
@@ -156,6 +161,7 @@ theorem dneg_done : dneg (done : α) = dzero := by
 
 /-- Blueprint `lem:dm-unit-swap` (negation swaps `dzero` to `done`), the
 converse: `dneg dzero = done`, from `dneg_done` and involution. -/
+-- blueprint: internal (A1 bijection-law companion of `dneg_done`, content.tex lem:dm-unit-swap)
 theorem dneg_dzero : dneg (dzero : α) = done := by
   have h : dneg (dneg (done : α)) = dneg dzero := by rw [dneg_done]
   rw [dneg_dneg] at h
@@ -178,18 +184,20 @@ theorem dneg_maps_units {p : α} (h : ∃ q, andC p q = done ∧ andC q p = done
 
 end DMFamily
 
-/-! ### `prop:dm-presentations` -/
+/-! ### `thm:dm-presentations` -/
 
 section Presentations
 
 variable {α : Type*} [Lattice α] [BoundedOrder α] [BLat2Mon α]
 
-/-- Blueprint `prop:dm-presentations` (presentation (c), "the full list"):
+/-- Blueprint `thm:dm-presentations` (presentation (c), "the full list"):
 both lattice De Morgan pairs, the dual monoid law (matching the standing
 hypothesis `hand`), the bound swap, the unit swap, and antitonicity —
 exactly the calculus of `lem:dm-lattice-laws`, `lem:dm-dual-law`, and
 `lem:dm-unit-swap`, packaged as one `Prop` so `dm_presentations` below can
 name it as a single TFAE member. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `dm_presentations`, content.tex thm:dm-presentations)
 def DMFullCalculus (n : α → α) : Prop :=
   (∀ p q : α, n (p ⊓ q) = n p ⊔ n q) ∧
   (∀ p q : α, n (p ⊔ q) = n p ⊓ n q) ∧
@@ -201,7 +209,7 @@ def DMFullCalculus (n : α → α) : Prop :=
   (n (dzero : α) = done) ∧
   Antitone n
 
-/-- Blueprint `prop:dm-presentations` (Presentations of De Morgan
+/-- Blueprint `thm:dm-presentations` (Presentations of De Morgan
 structure): over a BLat2Mon, given `n` satisfying the DM axioms (i)
 `n (n p) = p` and (iii) `n (andC p q) = parr (n q) (n p)`, the following
 are equivalent: (a) `n` is antitone; (b) `n (p ⊓ q) = n p ⊔ n q` for all

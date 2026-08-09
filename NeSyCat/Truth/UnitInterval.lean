@@ -54,6 +54,8 @@ for `andC` are inherited from `Icc.instMonoidWithZero`'s multiplication
 cancels in the associativity chain, and `σ 0 = 1` gives the right unit,
 `σ 1 = 0` mirrored on the left (`dzero_parr`/`parr_dzero`, from
 `symm_symm`/`symm_zero`/`symm_one`). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `unitInterval.coe_parr`, content.tex lem:unit-interval-truth-structure)
 noncomputable instance instBLat2Mon : BLat2Mon (_root_.unitInterval) where
   parr p q := σ (σ p * σ q)
   dzero := 0
@@ -70,6 +72,8 @@ noncomputable instance instBLat2Mon : BLat2Mon (_root_.unitInterval) where
 both monoids are commutative — `andC` since real multiplication is, `parr`
 since its `σ`-conjugated multiplication is (`mul_comm` transports through
 `σ`). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `unitInterval.coe_parr`, content.tex lem:unit-interval-truth-structure)
 noncomputable instance instBLat2CMon : BLat2CMon (_root_.unitInterval) where
   __ := instBLat2Mon
   parr_comm p q := by
@@ -81,28 +85,38 @@ noncomputable instance instBLat2CMon : BLat2CMon (_root_.unitInterval) where
 /-- Blueprint `lem:unit-interval-truth-structure` (`ZeroBot unitInterval`):
 `dzero = 0 = ⊥` by construction (`Set.Icc`'s `⊥` and `0` coincide, both the
 left endpoint). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `unitInterval.coe_parr`, content.tex lem:unit-interval-truth-structure)
 instance instZeroBot : ZeroBot (_root_.unitInterval) where
   dzero_eq_bot := rfl
 
 /-- Blueprint `lem:unit-interval-truth-structure` (`OneTop unitInterval`):
 `done = 1 = ⊤` by construction (`Set.Icc`'s `⊤` and `1` coincide, both the
 right endpoint). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `unitInterval.coe_parr`, content.tex lem:unit-interval-truth-structure)
 instance instOneTop : OneTop (_root_.unitInterval) where
   done_eq_top := rfl
 
 /-- Blueprint `lem:unit-interval-truth-structure` (`UnitBounds unitInterval`):
 the packaged `ZeroBot`/`OneTop` conjunction (Definition `def:unit-bounds`). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `unitInterval.coe_parr`, content.tex lem:unit-interval-truth-structure)
 instance instUnitBounds : UnitBounds (_root_.unitInterval) where
 
 /-- Blueprint `lem:unit-interval-truth-structure` (monotonicity of `andC`,
 right argument): `p ≤ q → r * p ≤ r * q`, `mul_le_mul_of_nonneg_left` on the
 real coercions. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 private theorem andC_mono_left {p q : _root_.unitInterval} (h : p ≤ q)
     (r : _root_.unitInterval) : andC r p ≤ andC r q :=
   mul_le_mul_of_nonneg_left h r.2.1
 
 /-- Blueprint `lem:unit-interval-truth-structure` (monotonicity of `andC`,
 left argument): dually, `p ≤ q → p * r ≤ q * r`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 private theorem andC_mono_right {p q : _root_.unitInterval} (h : p ≤ q)
     (r : _root_.unitInterval) : andC p r ≤ andC q r :=
   mul_le_mul_of_nonneg_right h r.2.1
@@ -112,6 +126,8 @@ right argument): `σ` is antitone (`symm_le_symm`), so `p ≤ q` gives
 `σ q ≤ σ p`, hence `σ r * σ q ≤ σ r * σ p` (monotone multiplication by a
 nonnegative factor), hence `σ(σ r * σ p) ≤ σ(σ r * σ q)` (antitone `σ`
 again). -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 private theorem parr_mono_left {p q : _root_.unitInterval} (h : p ≤ q)
     (r : _root_.unitInterval) : parr r p ≤ parr r q := by
   have key1 : (parr r p : _root_.unitInterval) = σ (σ r * σ p) := rfl
@@ -121,6 +137,8 @@ private theorem parr_mono_left {p q : _root_.unitInterval} (h : p ≤ q)
 
 /-- Blueprint `lem:unit-interval-truth-structure` (monotonicity of `parr`,
 left argument): dual to `parr_mono_left`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 private theorem parr_mono_right {p q : _root_.unitInterval} (h : p ≤ q)
     (r : _root_.unitInterval) : parr p r ≤ parr q r := by
   have key1 : (parr p r : _root_.unitInterval) = σ (σ p * σ r) := rfl
@@ -133,12 +151,16 @@ private theorem parr_mono_right {p q : _root_.unitInterval} (h : p ≤ q)
 `unitInterval`'s `LinearOrder`, the `andC`/`parr` monotonicity above, and
 `UnitBounds` — the point of this row: it exercises `thm:chain-lin` rather
 than proving the eight linear laws by hand. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `unitInterval.coe_parr`, content.tex lem:unit-interval-truth-structure)
 noncomputable instance instLinBLat2Mon : LinBLat2Mon (_root_.unitInterval) :=
   LinBLat2Mon.ofChain andC_mono_left andC_mono_right parr_mono_left parr_mono_right
 
 /-- Blueprint `lem:unit-interval-truth-structure` (`LinBLat2CMon
 unitInterval`): the commutative linear structure, combining
 `instLinBLat2Mon` and `instBLat2CMon`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `unitInterval.coe_parr`, content.tex lem:unit-interval-truth-structure)
 noncomputable instance instLinBLat2CMon : LinBLat2CMon (_root_.unitInterval) where
   __ := instLinBLat2Mon
   __ := instBLat2CMon
@@ -149,6 +171,8 @@ noncomputable instance instLinBLat2CMon : LinBLat2CMon (_root_.unitInterval) whe
 `σ(p * q) = parr (σ q) (σ p)` — near-definitional: `parr (σ q) (σ p) = σ(σσq
 * σσp) = σ(q * p) = σ(p * q)`, the `σσ` cancelling by `symm_symm` and the
 remaining equality by commutativity of `*`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `unitInterval.coe_parr`, content.tex lem:unit-interval-truth-structure)
 noncomputable instance instDMStructure : DMStructure (_root_.unitInterval) where
   dneg := σ
   dneg_dneg := symm_symm

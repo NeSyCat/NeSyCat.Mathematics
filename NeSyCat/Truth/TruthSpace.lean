@@ -12,7 +12,7 @@ import NeSyCat.Monad.LatticeSemiring
 # Truth spaces and lifted connectives: the workhorse machinery
 
 Blueprint items `def:truth-space`, `def:lifted-connective`,
-`cor:lifted-connective-strength`, and `lem:truth-space-instances`
+`lem:lifted-connective-strength`, and `lem:truth-space-instances`
 (`blueprint/src/content.tex`, §"Truth spaces and lifted connectives",
 `[NeSy26, App. A]`).
 
@@ -24,7 +24,7 @@ The `Idmon` clause of the blueprint item (`Idmon BoolS = BoolS`) is the
 trivial reading of the identity monad and needs no separate Lean object:
 `BoolW` itself (`NeSyCat/Monad/LatticeSemiring.lean`) already witnesses it.
 
-## `def:lifted-connective` and `cor:lifted-connective-strength` (PINNED)
+## `def:lifted-connective` and `lem:lifted-connective-strength` (PINNED)
 
 The blueprint *defines* the lifted connective `*_{MS S}` as an iterated
 bind chain (`w₁ bind λu₁. ⋯ wₙ bind λuₙ. Ret(*(u₁,…,uₙ))`) and then shows,
@@ -34,7 +34,7 @@ convenience (a deliberate, disclosed encoding choice, matching the
 `.foreman/C2-T3-spec.md` pin): `dstN` (the strength) and `lift` (built
 *from* `dstN`) are the primitive definitions, so the strength form is
 `lift`'s literal unfolding (`lift_eq_dstN_bind`, the
-`cor:lifted-connective-strength` witness, near-`rfl`); the blueprint's own
+`lem:lifted-connective-strength` witness, near-`rfl`); the blueprint's own
 *original* iterated-bind description becomes three arity-specific LEMMAS
 (`lift_zero`, `lift_one`, `lift_two`, covering every arity actually used
 downstream: nullary, unary `¬`, binary `∧,∨,⅋,\&`).
@@ -85,8 +85,12 @@ abbrev TruthSpace (S : Type*) [Semiring S] := MS S BoolW
 expression. These facts underlie `twoSlot`, `distReadout`, and (in
 `NeSyCat/Truth/Lifted.lean`) the general lifted-connective routing engine. -/
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem BoolW_zero_ne_one : (0 : BoolW) ≠ (1 : BoolW) := by decide
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem BoolW_eq_zero_or_one (a : BoolW) : a = 0 ∨ a = 1 := by
   cases a
   · left; rfl
@@ -100,6 +104,8 @@ argument and vanishes at `0` (matching `Finsupp.sum_add_index'`'s own
 hypotheses). The two-point analogue of "addition marginalises"
 (`NeSyCat/Monad/SemiringMonad.lean`'s module doc comment), specialized to
 the carrier every truth-space computation runs over. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem sum_boolW {N : Type*} [AddCommMonoid N] (w : MS S BoolW) (g : BoolW → S → N)
     (hg0 : ∀ b, g b 0 = 0) (hadd : ∀ b (s₁ s₂ : S), g b (s₁ + s₂) = g b s₁ + g b s₂) :
     w.sum g = g 0 (w 0) + g 1 (w 1) := by
@@ -118,6 +124,8 @@ theorem sum_boolW {N : Type*} [AddCommMonoid N] (w : MS S BoolW) (g : BoolW → 
 (`NeSyCat/Monad/SemiringMonad.lean`) specialized via `sum_boolW`. The
 starting point for the general lifted-connective routing engine in
 `NeSyCat/Truth/Lifted.lean`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem bind_apply_boolW (w : MS S BoolW) (k : BoolW → MS S Y) (y : Y) :
     bind w k y = w 0 * k 0 y + w 1 * k 1 y := by
   rw [bind_apply]
@@ -128,6 +136,8 @@ theorem bind_apply_boolW (w : MS S BoolW) (k : BoolW → MS S Y) (y : Y) :
 coefficients — the two-point specialization of `Dist`'s mass functional
 (`NeSyCat/Monad/Dist.lean`) used by `distReadout` below to unwind the
 mass-one constraint. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem massSum_eq (w : MS S BoolW) : w.sum (fun _ v => v) = w 0 + w 1 :=
   sum_boolW w (fun _ v => v) (fun _ => rfl) fun _ _ _ => rfl
 
@@ -139,18 +149,25 @@ one value of the product type, by structural recursion on `n` via
 `Fin.cons`/`Fin.tail` — `w 0` bound outermost, matching the blueprint's own
 left-to-right bind order. The base case (`n = 0`) returns the point mass at
 the unique function `Fin 0 → X` (`![]`). -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex def:lifted-connective)
 noncomputable def dstN {W : Type*} : ∀ {n : ℕ}, (Fin n → MS S W) → MS S (Fin n → W)
   | 0, _ => ret ![]
   | (_ + 1), w => bind (w 0) fun x => bind (dstN (Fin.tail w)) fun v => ret (Fin.cons x v)
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem dstN_zero {W : Type*} (w : Fin 0 → MS S W) : dstN w = ret ![] := rfl
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem dstN_succ {W : Type*} {n : ℕ} (w : Fin (n + 1) → MS S W) :
     dstN w = bind (w 0) fun x => bind (dstN (Fin.tail w)) fun v => ret (Fin.cons x v) := rfl
 
 /-- `dstN` at arity `1` telescopes to a single bind — the `n = 1` instance
 of the blueprint's iterated-bind description of `dst`, used by `lift_one`
 and, one level deeper, by `dstN_two`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem dstN_one {W : Type*} (w : Fin 1 → MS S W) :
     dstN w = bind (w 0) fun x => ret ![x] := by
   have htail : (Fin.tail w : Fin 0 → MS S W) = ![] := by funext i; exact i.elim0
@@ -164,6 +181,8 @@ theorem dstN_one {W : Type*} (w : Fin 1 → MS S W) :
 instance of the blueprint's iterated-bind description of `dst`, feeding
 `lift_two` and, downstream (`NeSyCat/Truth/Lifted.lean`), every binary
 lifted connective's routing formula. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem dstN_two {W : Type*} (w : Fin 2 → MS S W) :
     dstN w = bind (w 0) fun x => bind (w 1) fun y => ret ![x, y] := by
   rw [dstN_succ]
@@ -181,14 +200,14 @@ theorem dstN_two {W : Type*} (w : Fin 2 → MS S W) :
 /-- Blueprint `def:lifted-connective` (Lifted connective, defined via
 strength): `lift op w := dstN w bind (Ret ∘ op)` — the strength form IS the
 Lean primitive (a deliberate, disclosed pin: see the module doc comment),
-so `cor:lifted-connective-strength` (`lift_eq_dstN_bind` below) is
+so `lem:lifted-connective-strength` (`lift_eq_dstN_bind` below) is
 near-`rfl`, and the blueprint's own iterated-bind definition instead
 appears as the arity lemmas `lift_zero`/`lift_one`/`lift_two`. -/
 noncomputable def lift {n : ℕ} {W B : Type*} (op : (Fin n → W) → B) (w : Fin n → MS S W) :
     MS S B :=
   bind (dstN w) (ret ∘ op)
 
-/-- Blueprint `cor:lifted-connective-strength` (Lifted connective via
+/-- Blueprint `lem:lifted-connective-strength` (Lifted connective via
 strength): `lift op w = dstN w bind (Ret ∘ op)`, i.e. exactly `lift`'s own
 definition — the strength-form primitive was chosen so this corollary is
 the trivial unfolding, with the blueprint's original iterated-bind
@@ -200,6 +219,7 @@ theorem lift_eq_dstN_bind {n : ℕ} {W B : Type*} (op : (Fin n → W) → B) (w 
 /-- Blueprint `def:lifted-connective` (nullary case, matching the
 blueprint's own iterated-bind description at `n = 0`): `lift op w = Ret
 (op ![])`. -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex def:lifted-connective)
 theorem lift_zero {W B : Type*} (op : (Fin 0 → W) → B) (w : Fin 0 → MS S W) :
     lift op w = ret (op ![]) := by
   rw [lift_eq_dstN_bind, dstN_zero, ret_bind]
@@ -208,6 +228,7 @@ theorem lift_zero {W B : Type*} (op : (Fin 0 → W) → B) (w : Fin 0 → MS S W
 /-- Blueprint `def:lifted-connective` (unary case, matching the blueprint's
 own iterated-bind description at `n = 1`): `lift op w = w 0 bind λx. Ret
 (op ![x])`. -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex def:lifted-connective)
 theorem lift_one {W B : Type*} (op : (Fin 1 → W) → B) (w : Fin 1 → MS S W) :
     lift op w = bind (w 0) fun x => ret (op ![x]) := by
   rw [lift_eq_dstN_bind, dstN_one, bind_assoc]
@@ -219,6 +240,7 @@ theorem lift_one {W B : Type*} (op : (Fin 1 → W) → B) (w : Fin 1 → MS S W)
 /-- Blueprint `def:lifted-connective` (binary case, matching the
 blueprint's own iterated-bind description at `n = 2`, the arity used by
 `∧, ∨, ⅋, \&`): `lift op ![a, b] = a bind λx. b bind λy. Ret (op ![x,y])`. -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex def:lifted-connective)
 theorem lift_two {W B : Type*} (op : (Fin 2 → W) → B) (w : Fin 2 → MS S W) :
     lift op w = bind (w 0) fun x => bind (w 1) fun y => ret (op ![x, y]) := by
   rw [lift_eq_dstN_bind, dstN_two, bind_assoc]
@@ -263,11 +285,15 @@ theorem lift₁_eq (op : BoolW → BoolW) (a : MS S BoolW) :
 /-- Blueprint `def:lifted-connective` (the `\&`-lift, "certain conjunction"):
 the lifted family's multiplicative connective, `lift₂` of `BoolW`'s own `⊗
 = ∧` (`NeSyCat/Monad/LatticeSemiring.lean`). -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def andM (a b : MS S BoolW) : MS S BoolW := lift₂ (· * ·) a b
 
 /-- Blueprint `def:lifted-connective` (the `⅋`-lift, "certain disjunction"):
 the lifted family's additive connective, `lift₂` of `BoolW`'s own
 `⊕ = ∨`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def parrM (a b : MS S BoolW) : MS S BoolW := lift₂ (· + ·) a b
 
 /-- Boolean negation on `BoolW`, stated via a `BoolW`-native `ite` rather
@@ -281,8 +307,12 @@ failures several layers down (`NeSyCat/Truth/Lifted.lean`'s
 throughout, with no such boundary to cross. Agrees with `!x` pointwise
 (`negOp_eq_not` below) — a genuine Boolean negation, not a weaker
 substitute. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 def negOp (x : BoolW) : BoolW := if x = 0 then 1 else 0
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem negOp_eq_not (x : BoolW) : negOp x = !x := by
   unfold negOp
   rcases BoolW_eq_zero_or_one x with rfl | rfl <;> decide
@@ -290,6 +320,8 @@ theorem negOp_eq_not (x : BoolW) : negOp x = !x := by
 /-- Blueprint `def:lifted-connective` (the `¬`-lift, lifted negation): the
 lifted family's unary connective, `lift₁` of Boolean negation (`negOp`,
 pointwise equal to `!·` — see `negOp_eq_not`). -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def negM (a : MS S BoolW) : MS S BoolW := lift₁ negOp a
 
 /-! ### `twoSlot`: the workhorse readout equivalence -/
@@ -315,8 +347,11 @@ noncomputable def twoSlot : MS S BoolW ≃ S × S where
     · simp [Finsupp.add_apply, Finsupp.single_eq_same]
     · simp [Finsupp.add_apply, Finsupp.single_eq_same]
 
+-- blueprint: internal (A1 bijection-law companion of `twoSlot`, content.tex def:two-slot)
 @[simp] theorem twoSlot_apply (w : MS S BoolW) : twoSlot w = (w 0, w 1) := rfl
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem twoSlot_symm_apply (p : S × S) :
     twoSlot.symm p = Finsupp.single 0 p.1 + Finsupp.single 1 p.2 :=
   rfl
@@ -328,6 +363,8 @@ direction): a `Dist BoolW` value's `1`-coefficient is the point in
 `unitInterval`, nonnegative (from `ℝ≥0`) and `≤ 1` by the mass-one
 constraint (`d.2`, via `massSum_eq`: `d.1 0 + d.1 1 = 1` forces
 `d.1 1 ≤ 1`). -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def distReadoutToFun (d : Dist BoolW) : unitInterval :=
   ⟨(d.1 1 : ℝ), (d.1 1).2, by
     have hmass := d.2
@@ -337,6 +374,8 @@ noncomputable def distReadoutToFun (d : Dist BoolW) : unitInterval :=
         _ = 1 := hmass
     exact_mod_cast h1⟩
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem distReadoutToFun_coe (d : Dist BoolW) :
     (distReadoutToFun d : ℝ) = (d.1 1 : ℝ) :=
   rfl
@@ -345,6 +384,8 @@ noncomputable def distReadoutToFun (d : Dist BoolW) : unitInterval :=
 direction): a point `p ∈ [0,1]` is completed to the mass-one pair
 `(1 - p, p)` — the redundant `p(0)` coefficient of `def:dist-monad`
 reconstructed from `p(1) = p`. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def distReadoutInvFun (p : unitInterval) : Dist BoolW :=
   ⟨Finsupp.single 0 ⟨1 - (p : ℝ), by linarith [p.2.2]⟩ + Finsupp.single 1 ⟨(p : ℝ), p.2.1⟩, by
     rw [massSum_eq]
@@ -355,14 +396,20 @@ noncomputable def distReadoutInvFun (p : unitInterval) : Dist BoolW :=
     change (1 - (p : ℝ)) + (p : ℝ) = (1 : ℝ)
     ring⟩
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem distReadoutInvFun_apply_zero (p : unitInterval) :
     (distReadoutInvFun p).1 0 = ⟨1 - (p : ℝ), by linarith [p.2.2]⟩ := by
   simp [distReadoutInvFun, Finsupp.add_apply, Finsupp.single_eq_same]
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 @[simp] theorem distReadoutInvFun_apply_one (p : unitInterval) :
     (distReadoutInvFun p).1 1 = ⟨(p : ℝ), p.2.1⟩ := by
   simp [distReadoutInvFun, Finsupp.add_apply, Finsupp.single_eq_same]
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem distReadout_left_inv (d : Dist BoolW) : distReadoutInvFun (distReadoutToFun d) = d := by
   apply Subtype.ext
   apply Finsupp.ext
@@ -381,6 +428,8 @@ theorem distReadout_left_inv (d : Dist BoolW) : distReadoutInvFun (distReadoutTo
     rw [distReadoutToFun_coe]
     rfl
 
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 theorem distReadout_right_inv (p : unitInterval) : distReadoutToFun (distReadoutInvFun p) = p := by
   apply Subtype.ext
   rw [distReadoutToFun_coe, distReadoutInvFun_apply_one]
@@ -398,6 +447,7 @@ noncomputable def distReadout : Dist BoolW ≃ unitInterval where
   left_inv := distReadout_left_inv
   right_inv := distReadout_right_inv
 
+-- blueprint: internal (A1 bijection-law companion of `distReadout`, content.tex def:dist-readout)
 @[simp] theorem distReadout_apply_coe (d : Dist BoolW) :
     (distReadout d : ℝ) = (d.1 1 : ℝ) :=
   rfl

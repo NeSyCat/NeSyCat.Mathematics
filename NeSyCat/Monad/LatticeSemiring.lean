@@ -10,7 +10,10 @@ import Mathlib
 
 Blueprint items `def:lattice-semiring`, `def:comm-lattice-semiring`,
 `def:bounded-lattice-semiring`, `def:bounded-comm-lattice-semiring`,
-`ex:lattice-semiring-rows`, and `lem:prob-not-semiring`
+`inst:boolw-latcsrng`, `inst:massS-latcsrng`, `inst:logS-latcsrng`
+(C2-E4a re-kind: the former single `ex:lattice-semiring-rows` split into
+one `instance` env per row), `def:psum` (C2-E4a/A2 audit fruit), and
+`lem:prob-not-semiring`
 (`blueprint/src/content.tex`, §"Semiring weight monads", `[NeSy26, App. A]`).
 
 `LatSRng` ("lattice-semiring") is stated at its natural generality: an
@@ -217,7 +220,7 @@ unbounded mass/log instances. -/
 (also `true`). -/
 @[simp] theorem top_eq_one : (⊤ : BoolW) = 1 := rfl
 
-/-- Blueprint `ex:lattice-semiring-rows` (Boolean instance): `⊕ = or` is exactly
+/-- Blueprint `inst:boolw-latcsrng` (Boolean row): `⊕ = or` is exactly
 the lattice join and `⊗ = and` is exactly the lattice meet, so both
 directions of monotonicity for both operations, and commutativity, are all
 decidable on this finite carrier; `Bool`'s existing bounds (`⊥ = false`,
@@ -242,7 +245,7 @@ instance, so `ℝ≥0` is built only at `LatCSRng`, not the bounded `BLatCSRng`.
 
 open scoped NNReal
 
-/-- Blueprint `ex:lattice-semiring-rows` (mass instance): on `ℝ≥0` (`⊕ = +`,
+/-- Blueprint `inst:massS-latcsrng` (mass row): on `ℝ≥0` (`⊕ = +`,
 `⊗ = ·`). `NNReal`'s own `CommSemiring`/`Lattice`/order instances supply
 everything except the four monotonicity fields, closed by `gcongr` (both
 directions of both operations are monotone on `ℝ≥0`, uniformly). No
@@ -261,7 +264,9 @@ isomorphism (`lem:log-iso`). -/
 
 /-! ### `lem:prob-not-semiring`: probability is not a semiring -/
 
-/-- The probabilistic-sum operation `p ⊕ q := p + q - p*q` used to test
+/-- Blueprint `def:psum` (Probabilistic sum, C2-E4a/A2 audit fruit: real,
+uncited mathematics found by the completeness census and given its own
+env). The probabilistic-sum operation `p ⊕ q := p + q - p*q` used to test
 whether `([0,1], ⊕, ·, 0, 1)` forms a semiring (blueprint
 `lem:prob-not-semiring`). Defined on all of `ℝ` for convenience; the lemma
 below only uses it on `[0,1]`. -/

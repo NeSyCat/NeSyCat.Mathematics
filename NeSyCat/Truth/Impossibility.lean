@@ -23,7 +23,8 @@ statement. This is not a weakening: a `DMStructure` mixin
 (`NeSyCat/Truth/BLat2Mon.lean`) is only *statable* over a `[BLat2Mon α]`
 instance, which itself demands `[Lattice α] [BoundedOrder α]`; `ℝ≥0` and
 `LogS` carry no `BoundedOrder` instance at all (both are unbounded above,
-matching `ex:lattice-semiring-rows`'s own honesty about these rows), so "no DM
+matching `inst:massS-latcsrng`/`inst:logS-latcsrng`'s own honesty about
+these rows), so "no DM
 structure on `ℝ≥0`/`LogS`" is not even a well-formed Lean statement absent
 an invented completion. The blueprint's own proof never uses any monoid
 data either — only that `dneg` (whatever two-monoid structure it might
@@ -95,6 +96,8 @@ beaten by any real coercion, and a finite `a` is beaten by `a + 1`. The
 own order is literally `WithBot ℝ`'s, via `NeSyCat/Monad/LogIso.lean`'s
 `instLatticeLogS`), proved entirely at the `WithBot ℝ` level per that
 file's own "build at `WithBot ℝ`, cast once" technique note. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 private theorem withBot_real_not_bddAbove (t : WithBot ℝ) : ∃ b : WithBot ℝ, t < b := by
   induction t using WithBot.recBotCoe with
   | bot => exact ⟨(0 : ℝ), WithBot.bot_lt_coe 0⟩
@@ -126,33 +129,45 @@ carried through the `toDual`/`ofDual` wrappers of the order-family type
 (`NeSyCat/Truth/Lifted.lean`) is exactly this formula at the un-dualized
 `twoSlot` — but defined directly by formula here, not via that transport,
 per the ticket's own pin. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 noncomputable def andSq (a b : ℝ≥0ᵒᵈ × ℝ≥0) : ℝ≥0ᵒᵈ × ℝ≥0 :=
   (toDual (ofDual a.1 * ofDual b.1 + ofDual a.1 * b.2 + a.2 * ofDual b.1), a.2 * b.2)
 
 /-- Blueprint `thm:square-not-lin` (the `⅋`-lift's raw two-slot formula),
 dually to `andSq`: `parrSq (a₀,a₁) (b₀,b₁) = (a₀b₀,\ a₀b₁+a₁b₀+a₁b₁)` —
 `lem:lifted-mass`'s `twoSlot_parrM_mass` at the un-dualized `twoSlot`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 noncomputable def parrSq (a b : ℝ≥0ᵒᵈ × ℝ≥0) : ℝ≥0ᵒᵈ × ℝ≥0 :=
   (toDual (ofDual a.1 * ofDual b.1), ofDual a.1 * b.2 + a.2 * ofDual b.1 + a.2 * b.2)
 
 /-- Blueprint `thm:square-not-lin` (the slot swap `dneg (w₀,w₁) = (w₁,w₀)`),
 mod the `toDual`/`ofDual` wrappers — `def:order-family`'s slot-swap
 negation, the candidate DM structure of this theorem. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 noncomputable def swapSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : ℝ≥0ᵒᵈ × ℝ≥0 := (toDual w.2, ofDual w.1)
 
 /-- Blueprint `thm:square-not-lin` (DM axiom (i), involution): `swapSq` is
 its own inverse — immediate, `toDual`/`ofDual` cancel definitionally. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem swapSq_swapSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : swapSq (swapSq w) = w := rfl
 
 /-- Blueprint `thm:square-not-lin` (DM axiom (ii), antitonicity): `swapSq`
 is antitone for the order family (slot `0` reversed, `def:order-family`) —
 each component of the product order flips into the other under the swap. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem swapSq_antitone : Antitone swapSq := by
   intro a b hab
   exact ⟨toDual_le_toDual.mpr hab.2, ofDual_le_ofDual.mpr hab.1⟩
 
 /-- Blueprint `thm:square-not-lin` (`andSq` commutativity), a ring-level
 identity in `ℝ≥0` once the `toDual`/`ofDual` wrappers cancel. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem andSq_comm (a b : ℝ≥0ᵒᵈ × ℝ≥0) : andSq a b = andSq b a := by
   unfold andSq
   simp only [Prod.mk.injEq]
@@ -165,6 +180,8 @@ cross terms of `andSq (andSq a b) c`/`andSq a (andSq b c)`'s slot-`0`
 formula are literally the same seven monomials, `ring`-provably equal
 (the mechanism `lem:linear-lift`'s `andM_assoc` already exercises one
 level up, at general `[CommSemiring S]`). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem andSq_assoc (a b c : ℝ≥0ᵒᵈ × ℝ≥0) : andSq (andSq a b) c = andSq a (andSq b c) := by
   unfold andSq
   simp only [ofDual_toDual, Prod.mk.injEq]
@@ -174,6 +191,8 @@ theorem andSq_assoc (a b c : ℝ≥0ᵒᵈ × ℝ≥0) : andSq (andSq a b) c = a
 
 /-- Blueprint `thm:square-not-lin` (`parrSq` commutativity), dually to
 `andSq_comm`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem parrSq_comm (a b : ℝ≥0ᵒᵈ × ℝ≥0) : parrSq a b = parrSq b a := by
   unfold parrSq
   simp only [Prod.mk.injEq]
@@ -183,6 +202,8 @@ theorem parrSq_comm (a b : ℝ≥0ᵒᵈ × ℝ≥0) : parrSq a b = parrSq b a :
 
 /-- Blueprint `thm:square-not-lin` (`parrSq` associativity), dually to
 `andSq_assoc`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem parrSq_assoc (a b c : ℝ≥0ᵒᵈ × ℝ≥0) : parrSq (parrSq a b) c = parrSq a (parrSq b c) := by
   unfold parrSq
   simp only [ofDual_toDual, Prod.mk.injEq]
@@ -193,27 +214,39 @@ theorem parrSq_assoc (a b c : ℝ≥0ᵒᵈ × ℝ≥0) : parrSq (parrSq a b) c 
 /-- Blueprint `thm:square-not-lin` (`parr`-unit): the image of `Ret 0`
 under `orderedTwoSlot` (`lem:lifted-mass`'s `twoSlot_ret_zero_mass`,
 dualized in slot `0`), `(toDual 1, 0)`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 noncomputable def parrUnitSq : ℝ≥0ᵒᵈ × ℝ≥0 := (toDual 1, 0)
 
 /-- Blueprint `thm:square-not-lin` (`andC`-unit): the image of `Ret 1`
 under `orderedTwoSlot`, `(toDual 0, 1)`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 noncomputable def andUnitSq : ℝ≥0ᵒᵈ × ℝ≥0 := (toDual 0, 1)
 
 /-- Blueprint `thm:square-not-lin` (`⅋`-unit law, left): `parrUnitSq` is a
 left unit for `parrSq`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem parrUnitSq_parrSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : parrSq parrUnitSq w = w := by
   unfold parrSq parrUnitSq; simp
 
 /-- Blueprint `thm:square-not-lin` (`⅋`-unit law, right). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem parrSq_parrUnitSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : parrSq w parrUnitSq = w := by
   unfold parrSq parrUnitSq; simp
 
 /-- Blueprint `thm:square-not-lin` (`&`-unit law, left): `andUnitSq` is a
 left unit for `andSq`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem andUnitSq_andSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : andSq andUnitSq w = w := by
   unfold andSq andUnitSq; simp
 
 /-- Blueprint `thm:square-not-lin` (`&`-unit law, right). -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem andSq_andUnitSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : andSq w andUnitSq = w := by
   unfold andSq andUnitSq; simp
 
@@ -221,6 +254,8 @@ theorem andSq_andUnitSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : andSq w andUnitSq = w :
 `swapSq (andSq a b) = parrSq (swapSq b) (swapSq a)`. A ring-level identity
 after `toDual`/`ofDual` cancel — the same seven cross terms as `andSq`'s
 formula, matched against `parrSq`'s. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem swapSq_dm (a b : ℝ≥0ᵒᵈ × ℝ≥0) : swapSq (andSq a b) = parrSq (swapSq b) (swapSq a) := by
   unfold swapSq andSq parrSq
   simp only [ofDual_toDual, Prod.mk.injEq]
@@ -235,6 +270,8 @@ Witness `p = (1,0)`, `r = (5,0)`, `q = (0,10)`: `r ≤ q` in the order family
 reversed slot (`10 ≤ 5` is false). The mechanism is the cross term
 `a₀b₁` in slot `0`: raising the *for*-weight `b₁` raises the *against*-slot
 of the output. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem andSq_not_monotone_right :
     ¬ Monotone (andSq (toDual (1 : ℝ≥0), (0 : ℝ≥0))) := by
   intro hmono
@@ -257,6 +294,8 @@ bridge; raw twin of `lem:lin-monotone`): if `f` distributes over `⊔` in an
 argument then `f` is monotone in it — on any `SemilatticeSup`, no
 `BLat2Mon`/monoid structure needed. Proof: `p ≤ q` gives `p ⊔ q = q`, so
 `f p ≤ f p ⊔ f q = f (p ⊔ q) = f q`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem monotone_of_distrib_sup {α β : Type*} [SemilatticeSup α] [SemilatticeSup β]
     (f : α → β) (hf : ∀ q r, f (q ⊔ r) = f q ⊔ f r) : Monotone f := by
   intro q r hqr
@@ -284,6 +323,8 @@ formula, restated verbatim at `ℝ≥0∞ᵒᵈ × ℝ≥0∞`, the bounded comp
 the order family. Not the deferred completion-*instances* work (no
 `BLat2Mon`/`Lattice` machinery is built here) — just this theorem's final
 clause, that the counterexample below persists unchanged. -/
+-- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- internal helper, not itself blueprint-cited)
 noncomputable def andSqENN (a b : ℝ≥0∞ᵒᵈ × ℝ≥0∞) : ℝ≥0∞ᵒᵈ × ℝ≥0∞ :=
   (toDual (ofDual a.1 * ofDual b.1 + ofDual a.1 * b.2 + a.2 * ofDual b.1), a.2 * b.2)
 
@@ -291,6 +332,8 @@ noncomputable def andSqENN (a b : ℝ≥0∞ᵒᵈ × ℝ≥0∞) : ℝ≥0∞�
 `p = (1,0)`, `r = (5,0)`, `q = (0,10)` refutes monotonicity of `andSqENN`
 in `ℝ≥0∞ᵒᵈ × ℝ≥0∞` — "the counterexample persists unchanged in the bounded
 completion `[0,∞]²`". -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andSq_not_lin`, content.tex thm:square-not-lin)
 theorem andSqENN_not_monotone_right :
     ¬ Monotone (andSqENN (toDual (1 : ℝ≥0∞), (0 : ℝ≥0∞))) := by
   intro hmono

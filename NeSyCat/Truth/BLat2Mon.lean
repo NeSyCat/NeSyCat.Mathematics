@@ -37,7 +37,7 @@ between existing data (`dzero = ⊥`, `done = ⊤`), not new data.
 
 Only `def:dm-structure` itself is in scope for this file; the further De
 Morgan calculus it entails (`lem:dm-lattice-laws`, `lem:dm-dual-law`,
-`lem:dm-unit-swap`, `prop:dm-presentations`, `lem:dm-maps-units`) and the
+`lem:dm-unit-swap`, `thm:dm-presentations`, `lem:dm-maps-units`) and the
 unit-bounds corollaries (`lem:dualabsorb-decomposition`, `lem:mix`,
 `thm:chain-lin`) are left for later tickets.
 -/
@@ -57,8 +57,9 @@ class BLat2Mon (α : Type*) [Lattice α] [BoundedOrder α] where
   /-- The `⅋`-unit (linear logic's `⊥`, the blueprint's `0̇`). -/
   dzero : α
   /-- The `&`-monoid multiplication (linear logic's *multiplicative*
-  conjunction `⊗`; kept as `&`/`andC` per `[NeSy26]`'s notation, see
-  Remark `rem:ll-dictionary`). -/
+  conjunction `⊗`; kept as `&`/`andC` per `[NeSy26]`'s notation, see the
+  linear-logic dictionary table in `blueprint/src/content.tex`,
+  §"Truth-value structures"). -/
   andC : α → α → α
   /-- The `&`-unit (linear logic's `1`, the blueprint's `1̇`). -/
   done : α
@@ -83,7 +84,8 @@ each argument and `parr` preserves finite meets in each argument: binary
 `⅋` and `⊓`) and nullary (`p & ⊥ = ⊥` annihilation, `p ⅋ ⊤ = ⊤` absorption,
 both two-sided). These are exactly the four linear distributions of linear
 logic (`⊗` over `⊕`, `⅋` over `&`, together with their units), transported
-along the dictionary of Remark `rem:ll-dictionary` (Girard 1987). -/
+along the linear-logic dictionary table of `blueprint/src/content.tex`,
+§"Truth-value structures" (Girard 1987). -/
 class LinBLat2Mon (α : Type*) [Lattice α] [BoundedOrder α] extends BLat2Mon α where
   /-- `andC` preserves finite joins in its right argument. -/
   andC_sup : ∀ p q r, andC p (q ⊔ r) = andC p q ⊔ andC p r
@@ -113,7 +115,7 @@ on a `BLat2Mon` is a map `dneg` satisfying (i) `dneg (dneg p) = p`;
 (ii) `p ≤ q → dneg q ≤ dneg p`; (iii)
 `dneg (p & q) = dneg q ⅋ dneg p`. Linear negation (Girard 1987), axiomatized
 minimally; the equivalent presentations (antitonicity vs. the lattice
-De Morgan law) are compared in `prop:dm-presentations` (out of scope here). -/
+De Morgan law) are compared in `thm:dm-presentations` (out of scope here). -/
 class DMStructure (α : Type*) [Lattice α] [BoundedOrder α] [BLat2Mon α] where
   dneg : α → α
   dneg_dneg : ∀ p, dneg (dneg p) = p
@@ -128,14 +130,16 @@ class ZeroBot (α : Type*) [Lattice α] [BoundedOrder α] [BLat2Mon α] : Prop w
 
 /-- Blueprint `def:one-top` (Unit-bound mixin, OneTop): for a
 `BLat2Mon`, **OneTop** demands `done = ⊤`. Together, `ZeroBot` and `OneTop`
-are `UnitBounds`, collapsing the four constants of Remark
-`rem:four-constants` to two. -/
+are `UnitBounds`, collapsing the four constants of the blueprint's
+introduction (the "Four constants" paragraph, `blueprint/src/content.tex`)
+to two. -/
 class OneTop (α : Type*) [Lattice α] [BoundedOrder α] [BLat2Mon α] : Prop where
   done_eq_top : (BLat2Mon.done : α) = ⊤
 
 /-- Blueprint `def:unit-bounds` (**UnitBounds**, the conjunction): for a
 `BLat2Mon`, `UnitBounds` demands both `ZeroBot` and `OneTop`, collapsing the
-four constants of Remark `rem:four-constants` to two. A trivial alias class
+four constants of the blueprint's introduction (the "Four constants"
+paragraph, `blueprint/src/content.tex`) to two. A trivial alias class
 (no new fields beyond its two parents) naming the conjunction the blueprint
 itself names, used as a single hypothesis by `thm:chain-lin`(ii) and
 `lem:mix` rather than threading `ZeroBot`/`OneTop` separately. -/
@@ -166,6 +170,8 @@ theorem andC_le_andC_left {p q : α} (h : p ≤ q) (r : α) :
 
 /-- Blueprint `lem:lin-monotone` (`andC` monotone, fixed element on the
 right): if `p ≤ q` then `andC p r ≤ andC q r`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andC_le_andC_left`, content.tex lem:lin-monotone)
 theorem andC_le_andC_right {p q : α} (h : p ≤ q) (r : α) :
     andC p r ≤ andC q r := by
   calc andC p r ≤ andC p r ⊔ andC q r := le_sup_left
@@ -174,6 +180,8 @@ theorem andC_le_andC_right {p q : α} (h : p ≤ q) (r : α) :
 
 /-- Blueprint `lem:lin-monotone` (`parr` monotone, fixed element on the
 left): if `p ≤ q` then `parr r p ≤ parr r q`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andC_le_andC_left`, content.tex lem:lin-monotone)
 theorem parr_le_parr_left {p q : α} (h : p ≤ q) (r : α) :
     parr r p ≤ parr r q := by
   calc parr r p = parr r (p ⊓ q) := by rw [inf_eq_left.mpr h]
@@ -182,6 +190,8 @@ theorem parr_le_parr_left {p q : α} (h : p ≤ q) (r : α) :
 
 /-- Blueprint `lem:lin-monotone` (`parr` monotone, fixed element on the
 right): if `p ≤ q` then `parr p r ≤ parr q r`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `andC_le_andC_left`, content.tex lem:lin-monotone)
 theorem parr_le_parr_right {p q : α} (h : p ≤ q) (r : α) :
     parr p r ≤ parr q r := by
   calc parr p r = parr (p ⊓ q) r := by rw [inf_eq_left.mpr h]
@@ -202,18 +212,21 @@ theorem andC_inf_le (p q r : α) :
 
 /-- Blueprint `lem:lin-lax-duals` (`andC` laxly preserves meets, left
 argument): `andC (q ⊓ r) p ≤ andC q p ⊓ andC r p`. -/
+-- blueprint: internal (A1 bijection-law companion of `andC_inf_le`, content.tex lem:lin-lax-duals)
 theorem inf_andC_le (p q r : α) :
     andC (q ⊓ r) p ≤ andC q p ⊓ andC r p :=
   le_inf (andC_le_andC_right inf_le_left p) (andC_le_andC_right inf_le_right p)
 
 /-- Blueprint `lem:lin-lax-duals` (`parr` laxly preserves joins, right
 argument): `parr p q ⊔ parr p r ≤ parr p (q ⊔ r)`. -/
+-- blueprint: internal (A1 bijection-law companion of `andC_inf_le`, content.tex lem:lin-lax-duals)
 theorem le_parr_sup (p q r : α) :
     parr p q ⊔ parr p r ≤ parr p (q ⊔ r) :=
   sup_le (parr_le_parr_left le_sup_left p) (parr_le_parr_left le_sup_right p)
 
 /-- Blueprint `lem:lin-lax-duals` (`parr` laxly preserves joins, left
 argument): `parr q p ⊔ parr r p ≤ parr (q ⊔ r) p`. -/
+-- blueprint: internal (A1 bijection-law companion of `andC_inf_le`, content.tex lem:lin-lax-duals)
 theorem le_sup_parr (p q r : α) :
     parr q p ⊔ parr r p ≤ parr (q ⊔ r) p :=
   sup_le (parr_le_parr_right le_sup_left p) (parr_le_parr_right le_sup_right p)
