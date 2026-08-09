@@ -134,6 +134,71 @@ step below.
 
 ## Blueprint structural laws
 
+- **Final environment inventory.** The blueprint's only environment
+  kinds are: `definition`, `abbreviation`, `lemma`, `theorem`,
+  `example`, `conjecture`, `proof` — nothing else. `remark` is
+  abolished (see below); `proposition` and `corollary` are abolished
+  (C2-E3/A1 kind-sync decree — full LaTeX↔Lean kind synchronization:
+  Lean has no `proposition`/`corollary` keyword and treats `lemma` as a
+  synonym of `theorem`, so the blueprint's theorem-family narrows to
+  exactly `lemma`/`theorem`). Retriage rule for a claim that used to be
+  a proposition or corollary: cited-as-infrastructure by later items →
+  `lemma`; a section/chapter-payoff statement in its own right →
+  `theorem`. `scripts/blueprint.sh`'s CORRESPONDENCE STRUCTURE check
+  rejects any surviving `remark`/`proposition`/`corollary` environment
+  (hard, gate-red); the lint hooks advise on one the moment it is
+  typed.
+- **Remarks are abolished.** The document reads as a STORY: formal
+  environments (`definition`, `abbreviation`, `lemma`/`theorem` +
+  `proof`, `example`, `conjecture`) floating in continuous narrative
+  prose. Anything with no Lean counterpart — provenance credits,
+  notational conventions, dictionary glosses, contrasts, forward
+  pointers — is plain untagged text immediately before or after the
+  formal environment it concerns, never its own `\begin{remark}`.
+  Condensation of this discourse prose is licensed (shorter is
+  better) as long as no mathematical claim is dropped or altered and
+  provenance is never silently deleted — it moves. Honesty records
+  (errata, scope/faithfulness disclosures) MUST survive as prose,
+  condensed but never deleted. `\uses`/`\lean`/`\label`/`\leanok`
+  always stay inside the environment they mark (leanblueprint needs
+  `\uses` inside the env for the dependency graph).
+- **Total Lean-mirror purity.** Every environment with a Lean
+  counterpart — `lemma`/`theorem` (statement), `definition`,
+  `abbreviation`, an `example` carrying a `\lean{}` mark, and `proof`
+  — contains ONLY the mathematical content its cited Lean
+  declaration/proof contains: structure fields, laws, hypotheses,
+  conclusion, carrier, or (for `proof`) the informal mirror of the
+  Lean proof's own steps. Provenance tags (bracketed source
+  citations), dictionary glosses, contrast commentary ("unlike a
+  ... no distributivity is assumed"), and forward/backward pointers
+  are OUT — they move to plain prose immediately before or after the
+  env, condensed and deduped across a run of items sharing the same
+  citation where that reads better as a story, never dropped.
+  Conjectures (no Lean yet) get the same commentary treatment for
+  uniformity, governed otherwise by statement-minimality. **Pinned
+  exemption:** `def:domain-signature-notation` ("Writing convention
+  for typed symbols", Domain layer) is the one definition environment
+  with no Lean counterpart, by explicit user decision predating and
+  surviving this law for this specific item — the sweep and the lint
+  advisory exempt it by label, and it is never dissolved into prose.
+  Enforced advisory-side by the lint hooks' commentary/provenance
+  marker scan (bracketed `[NeSy26`/`[Girard`/... tags, or phrases like
+  "Distilled from", "unlike a", "transported along", "see Remark",
+  "the source"); the hard structural gate lives in
+  `scripts/blueprint.sh`'s CORRESPONDENCE section (env/kind agreement)
+  together with the zero-remark/zero-proposition/corollary checks
+  above.
+- **Statement/proof anatomy.** A `lemma`/`theorem` statement env
+  contains exactly what the Lean statement contains: for an
+  existential or negative claim ("does not distribute", "is not
+  idempotent"), that is the `∃`/`¬`-form itself, with NO witness
+  values and no worked computation. Witness choices, numeric
+  instantiations, and the arithmetic that verifies them belong in the
+  `proof` env, matching the Lean proof's own `refine ⟨...⟩`/`norm_num`
+  shape. "Concretely, at $p=q=r=\tfrac12$, ..." inside a statement is
+  proof content in the wrong box — it always moves down into the
+  `\begin{proof}`. (`example` environments are exempt: showing a
+  concrete instance is their entire point.)
 - **Definition atomicity.** Every `definition` environment introduces
   exactly one named structure. A family of variant refinements
   (commutative / bounded / bounded-commutative; C-variants of a class)

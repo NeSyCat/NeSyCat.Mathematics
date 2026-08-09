@@ -12,6 +12,20 @@
 
 \documentclass[a4paper]{report}
 
+% C2-E3 overfull-lines sweep: a global, print-only tolerance knob.
+% \emergencystretch gives the line breaker extra last-resort stretch
+% before it gives up and overfills a line -- this absorbs small
+% overfull \hbox warnings (a few points) from ordinary text paragraphs
+% without touching any content; \tolerance is loosened one notch from
+% LaTeX's default (200) so a borderline line is allowed to break rather
+% than overfill. Neither setting affects the web build (web.tex does
+% not \input this file). Genuinely wide material (long unbreakable
+% identifier chains, display formulas wider than the text width, the
+% linear-logic dictionary table) is fixed at the call site instead --
+% this knob only mops up ordinary-paragraph residue.
+\setlength{\emergencystretch}{3em}
+\tolerance=500
+
 \usepackage{geometry}
 
 \usepackage{expl3}

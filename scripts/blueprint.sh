@@ -18,14 +18,21 @@
 #      conjectures never are (and never carry a proof-side \leanok);
 #      definition/abbreviation/remark bodies carry no proof/qed
 #      argumentation; no \uses{rem:...}; \leanok never appears without a
-#      \lean{} in the same item; every abbreviation has >=1 \lean{} name.
+#      \lean{} in the same item; every abbreviation has >=1 \lean{} name;
+#      ZERO remark environments (C2-E3 remark-abolition decree — the
+#      document is formal envs floating in continuous prose, never a
+#      \begin{remark}); ZERO proposition/corollary environments (C2-E3/A1
+#      kind-sync decree — the only theorem-family kinds are lemma and
+#      theorem, matching Lean's own lemma-is-a-theorem-synonym vocabulary).
 #   b. KIND-CHECK — Lean-backed: every \lean name is resolved via
 #      `lake env lean` (getConstInfo + isStructure/isClass/isInstance +
 #      getReducibilityStatus) and checked against its environment kind
 #      (theorem-family needs a theorem-kind name; abbreviation names
 #      must be reducible defs; definition items need at least one
 #      def/structure/class/instance-kind name — never *only*
-#      theorem-kind names).
+#      theorem-kind names; example items only need their names to
+#      resolve at all — inhabitation/separation/computation examples may
+#      legitimately be any named kind).
 #   c. REGISTRY SYNC — every `% Lean:`-tagged macro in the sibling
 #      NeSyCat.Logics/macros.sty is checked against NeSyCat/Notation.lean
 #      (vacuous-ready: prints a "not yet present" note until that file
@@ -288,6 +295,39 @@ def cmd_structure(tex_path):
                     f"line {s + 1} (abbreviation {label_of(s, e)}): no "
                     "\\lean{} name")
 
+    # 6. ZERO REMARK ENVIRONMENTS (C2-E3 remark-abolition decree, HARD
+    #    law): the document reads as formal environments floating in
+    #    continuous narrative prose -- everything with no Lean
+    #    counterpart is plain untagged text, never wrapped in its own
+    #    \begin{remark}...\end{remark}. Any surviving remark environment
+    #    is a gate violation. (Checks 2-4 above, which used to also
+    #    touch "remark" bodies, are kept as-is -- cheap, defense in
+    #    depth -- since they simply never match once this check makes
+    #    remarks disappear entirely; this is the load-bearing law.)
+    for (k, s, e) in envs:
+        if k == "remark":
+            violations.append(
+                f"line {s + 1} (remark {label_of(s, e)}): remark "
+                "environments are abolished -- dissolve into plain "
+                "narrative prose before/after the nearest formal env")
+
+    # 7. ZERO PROPOSITION/COROLLARY ENVIRONMENTS (C2-E3/A1 kind-sync
+    #    decree, HARD law): LaTeX<->Lean kind synchronization -- the
+    #    only theorem-family environments are lemma (helpers) and
+    #    theorem (real statements), matching Lean where `lemma` is a
+    #    synonym of `theorem` and no proposition/corollary keywords
+    #    exist. "proposition"/"corollary" stay in THEOREM_FAMILY/
+    #    TARGET_KINDS above (so parse_envs still recognizes and reports
+    #    them here) precisely so a stray one is CAUGHT, not silently
+    #    invisible to this gate.
+    for (k, s, e) in envs:
+        if k in ("proposition", "corollary"):
+            violations.append(
+                f"line {s + 1} ({k} {label_of(s, e)}): "
+                f"{k} environments are abolished -- retriage to lemma "
+                "(cited-as-infrastructure) or theorem (chapter-payoff "
+                "statement)")
+
     # Build groups for the kind-check step (theorem-family, definition,
     # abbreviation, conjecture only -- these are the kinds part (b)
     # checks).
@@ -434,16 +474,19 @@ def cmd_check_kinds(groups_path, lean_out_path):
                     "theorem-kind -- a definition item needs at least one "
                     "def/structure/class/instance-kind declaration")
         elif g["kind"] == "example":
-            non_theorem = [lk for lk in kinds_here
-                           if lk in ("def", "structure", "class",
-                                     "instance")]
-            if not non_theorem:
-                violations.append(
-                    f"example {g['label']} (line {g['line']}): all of "
-                    f"its \\lean names ({', '.join(g['names'])}) are "
-                    "theorem-kind -- an example item needs at least one "
-                    "def/structure/class/instance-kind declaration "
-                    "(typically an instance)")
+            # C2-E3/A2: an example's \lean names may legitimately be ANY
+            # named kind, per the library's three-shape doctrine --
+            # inhabitation (instance/def-kinds: a model of a structure),
+            # separation (theorem-kind: a counterexample, a negative
+            # theorem with a witness), or computation (theorem-kind: an
+            # equation lemma) -- all NAMED declarations. Lean's
+            # anonymous `example` keyword is deliberately NOT the
+            # correspondence target here: an unnamed declaration cannot
+            # be cited or kind-checked, so this branch drops the former
+            # def/structure/class/instance-kind restriction and relies
+            # entirely on the NOT-FOUND/MISSING existence check above
+            # (each name merely has to resolve).
+            pass
         elif g["kind"] == "conjecture":
             pass  # any kind acceptable; no-proof-leanok already checked
             # structurally.

@@ -42,6 +42,88 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 ## Notes
 
 - See `FORMALIZE.md` for the resume protocol and work loop.
+- **C2-E3 (editorial constitution pass, 2026-08-09):** a full-document
+  editorial sweep of `blueprint/src/content.tex`, zero Lean changes.
+  (1) **Remarks abolished**: all 24 `\begin{remark}` environments
+  dissolved into plain narrative prose at their locations (condensed,
+  meaning preserved; the mass-units erratum and the log-`epsilon`-floor
+  scope disclosure survive as prose, flagged `\textbf{...}`); the
+  `remark` environment kind no longer appears anywhere in the document.
+  (2) **Proposition/corollary abolished** (C2-E3/A1 addendum): full
+  LaTeX<->Lean kind sync -- `prop:dm-presentations` ->
+  `thm:dm-presentations`, `prop:batch-transformer` ->
+  `thm:batch-transformer`, `prop:pointwise-eval` -> `thm:pointwise-eval`
+  (all promoted to `theorem`, chapter-payoff statements);
+  `cor:bind-matrix-mult` -> `lem:bind-matrix-mult`,
+  `cor:lifted-connective-strength` -> `lem:lifted-connective-strength`,
+  `cor:normalized-heads` -> `lem:normalized-heads` (all demoted to
+  `lemma`, cited-as-infrastructure); every `\ref`/`\uses` rewired, zero
+  stale labels. (3) **Total Lean-mirror purity**: every theorem-family/
+  definition/abbreviation/`\lean`-marked-example/proof body now
+  contains only its Lean counterpart's content -- provenance brackets
+  (`[NeSy26, App.~A]` etc.), dictionary glosses, contrast asides, and
+  forward pointers moved to plain prose immediately before/after,
+  consolidated per-subsection where a run of items shared one citation.
+  `def:domain-signature-notation` is the one pinned exemption (untouched).
+  (4) **LL dictionary table**: `rem:ll-dictionary` replaced by a plain
+  6-column tabular (ours/LL/name/our unit/LL unit/realized-as) in prose
+  flow, per the notation-reversal-revised row list; the LL column's
+  `parr` cell borrows the (pre-E4) `\parr` macro with an in-source E4
+  TODO to swap to a dedicated `\llparr` once macros.sty adds one.
+  (5) **Notation reversal (blueprint side, FINAL state after addenda
+  A3/A8)**: every OUR-VOICE `\AndC`/`\parr` macro call in `content.tex`
+  was swept in-source to `\otimes`/`\oplus` directly (not left to E4's
+  macro re-render as originally staged -- A8 pulled the source sweep
+  into this ticket since ⅋/&-style glyphs are banned in our own voice
+  outright); the ONE surviving `\parr` is the linear-logic dictionary's
+  own LL-column cell (line 1065), displaying linear logic's *foreign*
+  glyph on purpose, with an in-source E4 TODO to swap it to a dedicated
+  `\llparr` once macros.sty adds one -- `\AndC`/`\parr` themselves stay
+  defined in macros.sty, untouched, used only by that one cell.
+  `\dzero`/`\done` calls are untouched (E4 renders them bold, `𝟎`/`𝟏`,
+  to distinguish a monoid unit from a plain carrier numeral -- prose
+  states this positively, no dates/history). Prose lost every
+  now-redundant "(read `$\otimes$`)"/"(our `$\otimes$`)" parenthetical
+  that the swept commands made tautological. Categorical-layer object
+  tensors (SS2.2, 3.4, 4, 5) swapped `\otimes`/`\otimes_{\mathcal C/A}`
+  for `\boxtimes`/`\boxtimes_{\mathcal C/A}` (macros.sty box macros
+  don't exist yet, so raw `\boxtimes` is used directly per the
+  ticket's fallback protocol); SS6.2's `lem:tensor` `\otimes`
+  deliberately left alone (value-level pairing, same family as our
+  `\otimes`, not the categorical object tensor). (6) **Register normalization**: every
+  `Chapter`/`chapter` occurrence (3 `\ref` sites plus 2 bare-word
+  mentions) reworded to `Section`/`section`; the relocated
+  "This chapter replaces..." framing paragraph now opens "This section
+  replaces...". (7) **Instance-rows reframe**:
+  `ex:lattice-semiring-rows`' framing sentence reworded to the
+  completion framing (computational/finite-weight form; log's in-carrier
+  `-infty` bound and zero; mass/log's `top` deferred to the completion
+  instances) -- the underlying claim (Boolean bounded, mass/log not, in
+  this form) is unchanged. (8) **Overfull print lines**: `print.tex`
+  gained an `\emergencystretch`/`\tolerance` knob (print-only, web
+  unaffected); 3 genuine layout fixes (the LL table shrunk to
+  `\footnotesize` with tighter `\tabcolsep`; two overwide displays split
+  via `gather*`/`multline*`, content unchanged) brought 11 baseline
+  `Overfull \hbox` warnings down to 1 residual at 1.2pt (well under the
+  2pt bar). (9) **Statement/proof anatomy** (addenda A5/A6, a NEW
+  standing law): `lem:prob-not-semiring` and `lem:copying-fails` had
+  their concrete witness numerals (the `p=q=r=1/2` computation; the
+  fair-coin `p=1/2` witness) moved out of the statement env into the
+  proof env, matching the Lean statement's `\exists`-shape versus the
+  Lean proof's `refine`+`norm_num` shape; audited the rest of the
+  document for the same pattern (zero further hits). The law is now
+  codified in `FORMALIZE.md` and enforced by a new lint advisory (both
+  hook copies, RED-tested against the old `prob_not_semiring` text as
+  the specimen). Gates: `scripts/blueprint.sh` CORRESPONDENCE OK at 83
+  environments (down from 107, exactly the 24 dissolved remarks) and
+  195 kind-checked `\lean{}` names (unchanged from baseline); both
+  `lint-blueprint.py` copies updated (remark/prop/cor advisories, the
+  purity-marker advisory, and the anatomy advisory) and RED/GREEN-tested;
+  `scripts/check.sh` and `scripts/sorry-report.sh` unaffected (0
+  sorries, no `NeSyCat/**` changes). See `FORMALIZE.md`'s "Blueprint
+  structural laws" for the law text (final environment inventory,
+  remark abolition, total purity, the pinned exemption, statement/proof
+  anatomy).
 - **C2-E2 (seven-layer restructure, 2026-08-09):** `blueprint/src/content.tex`
   was reorganized to the user-adopted layer architecture: 1 Introduction,
   2 Categorical layer (2.1 Semiring weight monads, 2.2 Categorical

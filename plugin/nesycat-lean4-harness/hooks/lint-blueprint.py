@@ -20,11 +20,44 @@ ABBREV_BEGIN_RE = re.compile(r'\\begin\{abbreviation\}')
 ABBREV_END_RE = re.compile(r'\\end\{abbreviation\}')
 REMARK_BEGIN_RE = re.compile(r'\\begin\{remark\}')
 REMARK_END_RE = re.compile(r'\\end\{remark\}')
+PROP_COR_BEGIN_RE = re.compile(r'\\begin\{(proposition|corollary)\}')
 END_ANY_RE = re.compile(r'\\end\{[a-zA-Z]+\}')
 BEGIN_PROOF_RE = re.compile(r'\\begin\{proof\}')
 LEAN_RE = re.compile(r'\\lean\{')
+LABEL_RE = re.compile(r'\\label\{([^}]*)\}')
 USES_REM_RE = re.compile(r'\\uses\{[^}]*\brem:')
-DISPLAY_MATH_RE = re.compile(r'\\\[|\\begin\{(align|equation)\*?\}')
+
+# Total Lean-mirror purity (C2-E3 decree): the kinds below carry a Lean
+# counterpart and must contain ONLY what that counterpart contains --
+# provenance, glosses, contrasts, and forward pointers move to plain
+# prose outside the env. This regex is the empirically-tuned marker list
+# from the ticket: bracketed provenance tags, plus phrases that are
+# reliably commentary/provenance rather than mathematical content in
+# this document's own voice.
+PURITY_BEGIN_RE = re.compile(
+    r'\\begin\{(theorem|proposition|lemma|corollary|definition|'
+    r'abbreviation|example|proof)\}')
+PURITY_MARKER_RE = re.compile(
+    r'\[NeSy26|\[Girard|\[Coumans|\[NeSyCat Theory|'
+    r'Distilled from|vocabulary from|axiomatized|compared in|'
+    r'\bunlike a\b|transported along|see Remark|see Definition|'
+    r'\bthe source\b|\bthe paper\b')
+# Statement/proof anatomy (C2-E3/A6 decree): a lemma/theorem STATEMENT
+# env contains exactly what the Lean statement contains -- for an
+# existential/negative claim that is the \exists/\lnot-form itself, with
+# no witness values or worked arithmetic (those belong in the proof
+# env, matching the Lean proof's own witness-then-computation shape).
+# Scoped to theorem/lemma only (never proof/definition/abbreviation/
+# example -- a proof is EXACTLY where a witness and its arithmetic
+# belong, and an example's whole point is showing a concrete instance).
+ANATOMY_BEGIN_RE = re.compile(r'\\begin\{(theorem|lemma)\}')
+ANATOMY_MARKER_RE = re.compile(
+    r'\bConcretely\b|\bWitness\b|\btake\s*\$|\\tfrac', re.IGNORECASE)
+
+# The one blessed no-Lean definition (LEAD decree, post-E2): exempt by
+# label match from the purity sweep -- see FORMALIZE.md's structural
+# laws for the standing exemption text.
+PURITY_EXEMPT_LABELS = {"def:domain-signature-notation"}
 
 # Definition-atomicity / no-examples-in-definitions (editorial decree,
 # 2026-08-09). DEFINITION_BEGIN_RE/END_RE bracket a `definition` env; the
@@ -132,17 +165,22 @@ def main():
                 if REMARK_END_RE.search(code_lines[j]):
                     end = j
                     break
-            body = "\n".join(code_lines[start:end + 1])
-            if LEAN_RE.search(body):
-                warnings.append(
-                    f"{rel_posix}:{start + 1}: remark carries \\lean{{}} -- "
-                    "promotion candidate: corollary?")
-            elif DISPLAY_MATH_RE.search(body):
-                warnings.append(
-                    f"{rel_posix}:{start + 1}: remark contains display math "
-                    "(\\[ or align/equation) -- promotion candidate: "
-                    "corollary?")
+            # Remark-abolition decree (C2-E3): remarks are abolished
+            # outright -- the former promotion-candidate advisories
+            # (carries \lean{}; contains display math) are replaced by
+            # this one simple advisory, since a remark's CONTENT no
+            # longer matters -- its mere EXISTENCE is the smell.
+            warnings.append(
+                f"{rel_posix}:{start + 1}: remark environment present -- "
+                "remarks are abolished, write plain prose")
             idx = end + 1
+            continue
+        if PROP_COR_BEGIN_RE.search(code_lines[idx]):
+            kind = PROP_COR_BEGIN_RE.search(code_lines[idx]).group(1)
+            warnings.append(
+                f"{rel_posix}:{idx + 1}: {kind} environment present -- "
+                f"{kind} is abolished, use lemma or theorem")
+            idx += 1
             continue
         if DEFINITION_BEGIN_RE.search(code_lines[idx]):
             start = idx
@@ -190,6 +228,67 @@ def main():
                 warnings.append(
                     f"{rel_posix}:{idx + 1}: {kind} environment has no "
                     "\\begin{proof} immediately following")
+
+    # Total Lean-mirror purity (C2-E3): every theorem-family/definition/
+    # abbreviation/example/proof env body must contain ONLY what its
+    # Lean counterpart contains -- provenance, glosses, contrasts, and
+    # forward pointers belong in plain prose outside the env. Scan each
+    # such env independently (kinds overlap with the scans above, but
+    # this pass is self-contained and does not consume idx from them).
+    idx = 0
+    while idx < n:
+        m = PURITY_BEGIN_RE.search(code_lines[idx])
+        if not m:
+            idx += 1
+            continue
+        kind = m.group(1)
+        start = idx
+        end = idx
+        end_re = re.compile(r'\\end\{' + kind + r'\}')
+        for j in range(idx, n):
+            if end_re.search(code_lines[j]):
+                end = j
+                break
+        body = "\n".join(code_lines[start:end + 1])
+        label_m = LABEL_RE.search(body)
+        label = label_m.group(1) if label_m else None
+        if label not in PURITY_EXEMPT_LABELS:
+            pm = PURITY_MARKER_RE.search(body)
+            if pm:
+                warnings.append(
+                    f"{rel_posix}:{start + 1}: {kind} contains "
+                    "commentary/provenance -- move to plain text outside "
+                    f"the env (absolutely-lean) [matched: {pm.group(0)!r}]")
+        idx = end + 1
+
+    # Statement/proof anatomy (C2-E3/A6): a lemma/theorem STATEMENT
+    # carries no witness values or worked arithmetic -- those belong in
+    # its proof. Independent pass, scoped to theorem/lemma only.
+    idx = 0
+    while idx < n:
+        m = ANATOMY_BEGIN_RE.search(code_lines[idx])
+        if not m:
+            idx += 1
+            continue
+        kind = m.group(1)
+        start = idx
+        end = idx
+        end_re = re.compile(r'\\end\{' + kind + r'\}')
+        for j in range(idx, n):
+            if end_re.search(code_lines[j]):
+                end = j
+                break
+        body = "\n".join(code_lines[start:end + 1])
+        am = ANATOMY_MARKER_RE.search(body)
+        if am:
+            label_m = LABEL_RE.search(body)
+            label = label_m.group(1) if label_m else "<no-label>"
+            warnings.append(
+                f"{rel_posix}:{start + 1}: {kind} {label} -- "
+                "witness/computation inside a statement env -- proof "
+                "content; move to the proof env (statement/proof anatomy "
+                f"law) [matched: {am.group(0)!r}]")
+        idx = end + 1
 
     if not warnings:
         return
