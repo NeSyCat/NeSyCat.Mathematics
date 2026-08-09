@@ -69,6 +69,8 @@ the sixteen sign patterns of the four `if`-conditions is `noncomm_ring`
 (no commutativity of `S`'s `*` is used — only distributivity, matching
 `NeSyCat/Monad/SemiringMonad.lean`'s "distributivity is bind
 associativity" theme one level up). -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- def:lifted-connective)
 theorem lift₂_apply (op : BoolW → BoolW → BoolW) (w v : MS S BoolW) (c : BoolW) :
     (lift₂ op w v) c =
       (if op 0 0 = c then w 0 * v 0 else 0) + (if op 0 1 = c then w 0 * v 1 else 0) +
@@ -96,6 +98,8 @@ theorem twoSlot_lift₂ (op : BoolW → BoolW → BoolW) (w v : MS S BoolW) :
   · exact lift₂_apply op w v 1
 
 /-- The unary routing engine (pointwise form), dual to `lift₂_apply`. -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- def:lifted-connective)
 theorem lift₁_apply (op : BoolW → BoolW) (w : MS S BoolW) (c : BoolW) :
     (lift₁ op w) c = (if op 0 = c then w 0 else 0) + (if op 1 = c then w 1 else 0) := by
   rw [lift₁_eq, bind_apply_boolW]
@@ -379,6 +383,8 @@ operation: the Fubini-style two-line argument of `NeSyCat/Monad/Dist.lean`
 applied twice, via `lift₂_eq`'s bind chain and `bind_mass_one`/
 `ret_mass_one` — exactly chapter 1's technique, reused rather than
 reproved. -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- def:lifted-connective)
 theorem lift₂_mass_one {a b : MS ℝ≥0 BoolW} (ha : a.sum (fun _ w => w) = 1)
     (hb : b.sum (fun _ w => w) = 1) (op : BoolW → BoolW → BoolW) :
     (lift₂ op a b).sum (fun _ w => w) = 1 := by
@@ -386,6 +392,8 @@ theorem lift₂_mass_one {a b : MS ℝ≥0 BoolW} (ha : a.sum (fun _ w => w) = 1
   exact bind_mass_one ha fun x => bind_mass_one hb fun y => ret_mass_one _
 
 /-- `Dist` (mass-one) closure of `lift₁`, dually. -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- def:lifted-connective)
 theorem lift₁_mass_one {a : MS ℝ≥0 BoolW} (ha : a.sum (fun _ w => w) = 1)
     (op : BoolW → BoolW) : (lift₁ op a).sum (fun _ w => w) = 1 := by
   rw [lift₁_eq]

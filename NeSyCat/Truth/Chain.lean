@@ -96,7 +96,6 @@ necessarily bounded, ... whose order is a chain", for any binary operation
 right argument. Proof: on a chain `q ⊔ r ∈ {q, r}`; say `q ≤ r`, so
 `q ⊔ r = r` and monotonicity gives `f p q ≤ f p r`, hence
 `f p q ⊔ f p r = f p r` too. -/
--- blueprint: internal (A1 bijection-law companion of `chain_andC_sup`, content.tex thm:chain-lin)
 theorem chain_binop_sup_right (f : α → α → α)
     (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f r x ≤ f r y)
     (p q r : α) : f p (q ⊔ r) = f p q ⊔ f p r := by
@@ -152,6 +151,8 @@ shape. -/
 
 /-- Blueprint `thm:chain-lin` (i, `andC`-join, right argument): a corollary
 of `chain_binop_sup_right` at `f := andC`. -/
+-- blueprint: internal (A1 companion: BLat2Mon-context corollary of
+-- chain_binop_sup_right, content.tex thm:chain-lin)
 theorem chain_andC_sup
     (andC_mono_left : ∀ {x y : α}, x ≤ y → ∀ r : α, andC r x ≤ andC r y)
     (p q r : α) : andC p (q ⊔ r) = andC p q ⊔ andC p r :=

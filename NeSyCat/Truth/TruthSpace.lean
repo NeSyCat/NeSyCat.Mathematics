@@ -11,15 +11,18 @@ import NeSyCat.Monad.LatticeSemiring
 /-!
 # Truth spaces and lifted connectives: the workhorse machinery
 
-Blueprint items `def:truth-space`, `def:lifted-connective`,
-`lem:lifted-connective-strength`, and `lem:truth-space-instances`
+Blueprint items `abbr:truth-space`, `def:lifted-connective`,
+`lem:lifted-connective-strength`, and `def:two-slot`/`def:dist-readout`
+(formerly a single combined `lem:truth-space-instances`, since split into
+the two readout-equivalence definitions)
 (`blueprint/src/content.tex`, §"Truth spaces and lifted connectives",
 `[NeSy26, App. A]`).
 
-## `def:truth-space`
+## `abbr:truth-space` (formerly `def:truth-space`, C2-E4a-fix F-4:
+re-kinded to Abbreviation since `TruthSpace` is an `abbrev`)
 
 The **truth space** of a semiring monad `MS S` is `MS S BoolW`, the monad
-applied to the Boolean carrier (`def:truth-space` — `TruthSpace` below).
+applied to the Boolean carrier (`abbr:truth-space` — `TruthSpace` below).
 The `Idmon` clause of the blueprint item (`Idmon BoolS = BoolS`) is the
 trivial reading of the identity monad and needs no separate Lean object:
 `BoolW` itself (`NeSyCat/Monad/LatticeSemiring.lean`) already witnesses it.
@@ -43,7 +46,7 @@ downstream: nullary, unary `¬`, binary `∧,∨,⅋,\&`).
 pairing the arguments left-to-right (`w 0` bound outermost) exactly as the
 blueprint's own bind chain does.
 
-## `lem:truth-space-instances`
+## `def:two-slot` and `def:dist-readout` (formerly `lem:truth-space-instances`)
 
 The four truth spaces of the paper and their readouts, encoded as
 equivalences (never as new `Lattice`/`Monoid`-style instances on `MS S
@@ -71,7 +74,7 @@ namespace NeSyCat
 
 open scoped NNReal
 
-/-- Blueprint `def:truth-space` (Truth space): for a semiring monad `MS S`,
+/-- Blueprint `abbr:truth-space` (Truth space): for a semiring monad `MS S`,
 the truth space is `MS S BoolW`, the monad applied to the Boolean carrier
 (Boolean `0` read as False, `1` as True). The `Idmon` clause of the
 blueprint item is the trivial reading `Idmon BoolS = BoolS`, needing no
@@ -258,16 +261,22 @@ theorem lift_two {W B : Type*} (op : (Fin 2 → W) → B) (w : Fin 2 → MS S W)
 `lift₂ op a b` lifts a binary Boolean operation `op` against two
 independent truth-space values. Named per `.foreman/C2-T3-spec.md`'s own
 suggestion; `lift₂_eq` below recovers the plain two-argument bind chain. -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- def:lifted-connective)
 noncomputable def lift₂ (op : BoolW → BoolW → BoolW) (a b : MS S BoolW) : MS S BoolW :=
   lift (fun w => op (w 0) (w 1)) ![a, b]
 
 /-- Unary specialization of `lift`: `lift₁ op a` lifts a unary Boolean
 operation `op` (used for `¬`) against one truth-space value. -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- def:lifted-connective)
 noncomputable def lift₁ (op : BoolW → BoolW) (a : MS S BoolW) : MS S BoolW :=
   lift (fun w => op (w 0)) ![a]
 
 /-- `lift₂`'s plain bind-chain form, via `lift_two`: `lift₂ op a b = a bind
 λx. b bind λy. Ret (op x y)`. -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- def:lifted-connective)
 theorem lift₂_eq (op : BoolW → BoolW → BoolW) (a b : MS S BoolW) :
     lift₂ op a b = bind a fun x => bind b fun y => ret (op x y) := by
   unfold lift₂
@@ -276,6 +285,8 @@ theorem lift₂_eq (op : BoolW → BoolW → BoolW) (a b : MS S BoolW) :
 
 /-- `lift₁`'s plain bind-chain form, via `lift_one`: `lift₁ op a = a bind
 λx. Ret (op x)`. -/
+-- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- def:lifted-connective)
 theorem lift₁_eq (op : BoolW → BoolW) (a : MS S BoolW) :
     lift₁ op a = bind a fun x => ret (op x) := by
   unfold lift₁
@@ -326,7 +337,7 @@ noncomputable def negM (a : MS S BoolW) : MS S BoolW := lift₁ negOp a
 
 /-! ### `twoSlot`: the workhorse readout equivalence -/
 
-/-- Blueprint `lem:truth-space-instances` (the `twoSlot` workhorse):
+/-- Blueprint `def:two-slot` (the `twoSlot` workhorse):
 `MS S BoolW ≃ S × S` via `w ↦ (w 0, w 1)` (slot `0` the weight *against*,
 slot `1` the weight *for*), instantiated at `S := ℝ≥0` for the `Tmon`
 readout and at `S := LogS` for the `LTmon` readout (`LogTens BoolW = MS
@@ -358,7 +369,7 @@ noncomputable def twoSlot : MS S BoolW ≃ S × S where
 
 /-! ### `distReadout`: the probability readout -/
 
-/-- Blueprint `lem:truth-space-instances` (`Dmon` readout, forward
+/-- Blueprint `def:dist-readout` (`Dmon` readout, forward
 direction): a `Dist BoolW` value's `1`-coefficient is the point in
 `unitInterval`, nonnegative (from `ℝ≥0`) and `≤ 1` by the mass-one
 constraint (`d.2`, via `massSum_eq`: `d.1 0 + d.1 1 = 1` forces
@@ -380,7 +391,7 @@ noncomputable def distReadoutToFun (d : Dist BoolW) : unitInterval :=
     (distReadoutToFun d : ℝ) = (d.1 1 : ℝ) :=
   rfl
 
-/-- Blueprint `lem:truth-space-instances` (`Dmon` readout, inverse
+/-- Blueprint `def:dist-readout` (`Dmon` readout, inverse
 direction): a point `p ∈ [0,1]` is completed to the mass-one pair
 `(1 - p, p)` — the redundant `p(0)` coefficient of `def:dist-monad`
 reconstructed from `p(1) = p`. -/
@@ -435,7 +446,7 @@ theorem distReadout_right_inv (p : unitInterval) : distReadoutToFun (distReadout
   rw [distReadoutToFun_coe, distReadoutInvFun_apply_one]
   rfl
 
-/-- Blueprint `lem:truth-space-instances` (`Dmon BoolS ≅ ProbS`):
+/-- Blueprint `def:dist-readout` (`Dmon BoolS ≅ ProbS`):
 `p ↦ p(1)` is an equivalence `Dist BoolW ≃ unitInterval`, forgetting the
 redundant coefficient `p(0) = 1 - p(1)` forced by the mass-one constraint
 of `def:dist-monad`. Single-stage construction (see the module doc

@@ -131,9 +131,11 @@ exactly Lean declaration kind, one for one:
   ``we write $\Tmon$ for $\MS{\MassS}$''). \emph{Invariant:} every
   \texttt{abbreviation} environment carries a
   \texttt{\textbackslash lean\{\}} mark pointing at that
-  \texttt{abbrev} --- no exceptions; two \texttt{abbreviation} blocks
-  exist in this document, \ref{abbr:tensor-monad} and
-  \ref{abbr:log-tensor-monad}.
+  \texttt{abbrev} --- no exceptions; three \texttt{abbreviation} blocks
+  exist in this document, \ref{abbr:tensor-monad},
+  \ref{abbr:log-tensor-monad}, and \ref{abbr:truth-space} (C2-E4a-fix
+  F-4: re-kinded from \texttt{definition}, its Lean counterpart
+  \texttt{TruthSpace} being an \texttt{abbrev}, not a \texttt{def}).
 \item \texttt{lemma} and \texttt{theorem} $\leftrightarrow$ Lean
   \texttt{theorem} alike (Lean ranks nothing between the two keywords;
   the rank --- cited-as-infrastructure vs.\ chapter-payoff --- lives
@@ -968,7 +970,7 @@ This is the MIX rule [Girard 1987].
 % a Prop-valued theorem).
 \begin{theorem}[Chains are linear]
 \label{thm:chain-lin}
-\lean{NeSyCat.chain_andC_sup}
+\lean{NeSyCat.chain_binop_sup_right}
 \leanok
 Let $L$ be a lattice, not necessarily bounded, carrying two monoid
 structures $(\oplus,\dzero)$ and $(\otimes,\done)$ (a Lat2Mon), whose
@@ -1186,8 +1188,8 @@ completion instances.
 
 This section is due to [NeSy26, App.~A] throughout.
 
-\begin{definition}[Truth space]
-\label{def:truth-space}
+\begin{abbreviation}[Truth space]
+\label{abbr:truth-space}
 \lean{NeSyCat.TruthSpace}
 \leanok
 For a semiring monad $\MS{S}$ (Definition~\ref{def:semiring-monad}) or
@@ -1195,9 +1197,9 @@ $\Idmon$, the \textbf{truth space} is $\MS{S}\BoolS$ (resp.\
 $\Idmon\,\BoolS = \BoolS$): the monad applied to the Boolean carrier,
 with Boolean value $0$ read as \emph{False} and $1$ as \emph{True}.
 \uses{def:semiring-monad}
-\end{definition}
+\end{abbreviation}
 
-Definition~\ref{def:truth-space} is stated for a general semiring
+Abbreviation~\ref{abbr:truth-space} is stated for a general semiring
 monad $\MS{S}$; [NeSy26, App.~A] only tabulates the four instances
 $\Idmon, \Dmon, \Tmon, \LTmon$ used in the paper.
 
@@ -1217,7 +1219,7 @@ reads out as itself; $\Tmon\,\BoolS \cong \MassS^2$ and
 $\LTmon\,\BoolS \cong \LogS^2$ forget nothing (no mass-one
 constraint), the log case the image of the mass case under
 Definition~\ref{lem:log-iso}.
-\uses{def:truth-space, lem:log-iso}
+\uses{abbr:truth-space, lem:log-iso}
 \end{definition}
 
 \begin{definition}[Distribution readout]
@@ -1229,7 +1231,7 @@ equivalence $\Dmon\,\BoolS \cong \ProbS$, $p \mapsto p(1)$, forgetting
 the redundant coefficient $p(0) = 1 - p(1)$ (the constraint
 $p(0)+p(1)=1$ of Definition~\ref{def:dist-monad}); immediate from that
 constraint eliminating $p(0)$.
-\uses{def:truth-space, def:dist-monad}
+\uses{abbr:truth-space, def:dist-monad}
 \end{definition}
 
 \begin{definition}[Lifted connective]
@@ -1244,7 +1246,7 @@ $*_{\MS{S}} \colon (\MS{S}\BoolS)^n \to \MS{S}\BoolS$ is
   := w_1 \bind \lambda u_1.\, \cdots\, w_n \bind \lambda u_n.\,
      \Ret(*(u_1,\ldots,u_n)).
 \]
-\uses{def:truth-space}
+\uses{abbr:truth-space}
 \end{definition}
 
 \begin{lemma}[Lifted connective via strength]
@@ -1390,7 +1392,7 @@ $(w_0,w_1)$ as in Definition~\ref{def:two-slot}) is the order
 $\wedge$ and join $\vee$ its meet and join, and bounds
 $\bot = (\top_S, \bot_S)$, $\top = (\bot_S, \top_S)$ where they exist
 in $S$ (after adjoining $\infty$ to $S$ if needed).
-\uses{def:lattice-semiring, def:truth-space}
+\uses{def:lattice-semiring, abbr:truth-space}
 \end{definition}
 
 The order family of Definition~\ref{def:order-family} is induced by

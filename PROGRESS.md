@@ -42,6 +42,47 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 ## Notes
 
 - See `FORMALIZE.md` for the resume protocol and work loop.
+- **C2-E4a-fix (Run 6, closing the V-C2E4a blind-verification FAIL
+  findings, 2026-08-09):** (F-1) **Census soundness**: `CENSUS_DECL_RE`
+  in `scripts/blueprint.sh` widened from an ASCII-only identifier class
+  to a Unicode-correct one (`[^\W\d][\w.']*`), so it no longer
+  truncates at subscript characters and silently conflates e.g.
+  `lift₂_apply` with the unrelated `lift`; the 8 declarations this
+  exposed (`TruthSpace.lean`'s `lift₂`/`lift₁`/`lift₂_eq`/`lift₁_eq`,
+  `Lifted.lean`'s `lift₂_apply`/`lift₁_apply`/`lift₂_mass_one`/
+  `lift₁_mass_one`) tagged `-- blueprint: internal (A1 bijection-law
+  companion of lift, content.tex def:lifted-connective)`. Census after
+  the fix: 303 declarations, 48 cited, 255 internal (was 247), 0
+  unclassified. The prior "affects only precision, not soundness"
+  claim in the C2-E4a note below is corrected in place (it was a
+  soundness gap, not a precision one); the "80 marked envs" figure
+  there is corrected to 49. (F-2) **Stale labels**: `TruthSpace.lean`'s
+  6 remaining `lem:truth-space-instances` doc-comment citations
+  (lines ~15, 46, 337, 369, 391, 446 post-tag-shift) rewritten to the
+  current `def:two-slot`/`def:dist-readout` labels, historical phrasing
+  kept at the two genuinely-historical mentions (module doc header and
+  section banner, both noting the label was split). (F-3) **Principal
+  re-point (LEAD-adjudicated)**: `content.tex`'s `thm:chain-lin` now
+  cites `NeSyCat.chain_binop_sup_right` (the raw, bare-`[LinearOrder
+  α]` lemma matching the env's own "not necessarily bounded" text)
+  instead of `chain_andC_sup`; `chain_andC_sup` (a `BLat2Mon`-context
+  corollary) now carries an internal tag in its place, and the
+  contradictory internal tag on `chain_binop_sup_right` (now cited) is
+  removed. (F-4) **Kind-truth (LEAD-adjudicated)**: `TruthSpace`
+  (`NeSyCat/Truth/TruthSpace.lean`, an `abbrev`) re-kinded from a
+  `definition` to an `abbreviation` blueprint env, label renamed
+  `def:truth-space` -> `abbr:truth-space` (prefix hygiene), all
+  `\ref`/`\uses` call sites in `content.tex` and the doc-comment
+  citations in `TruthSpace.lean` rewired; `LinBLat2Mon.ofChain` stays a
+  `definition` env (reducibility is a technical detail, not a naming
+  concern). `scripts/blueprint.sh`'s abbreviation-branch reducible-def
+  rule accepts `TruthSpace` (Lean reports it `def`/`reducible`, as
+  every `abbrev` does). All Lean-file edits in this fix are
+  comment/tag-only, verified code-identical to HEAD under a
+  comment-stripping diff. Gates: `scripts/check.sh` GREEN;
+  `scripts/sorry-report.sh` 0 sorries, 0 axioms; `scripts/blueprint.sh`
+  GREEN (structure/kind-check/census/registry all clean, pdf+web
+  builds clean).
 - **C2-E4a (full Lean-kind sync + bijection/completeness laws,
   2026-08-09; supersedes C2-E3/A1's proposition/corollary-only kind
   sync):** (1) **Full env inventory**: `example`/`conjecture` join
@@ -58,7 +99,7 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
   (pdf via `pdftotext`, web via the rendered `_thmlabel` spans).
   (2) **The bijection law (addendum A1, mid-ticket)**: every marked env
   now carries exactly one `\lean{}` name; 28 formerly multi-name envs
-  (out of an original 80 marked envs, 195 names) processed --
+  (out of an original 49 marked envs, 195 names) processed --
   `thm:semiring-monad-laws` split into three per-law lemmas
   (`lem:bind-left-unit`/`lem:bind-right-unit`/`lem:bind-assoc`) plus an
   unmarked summary theorem; `thm:chain-lin` split into part (i) (kept
@@ -83,15 +124,24 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
   declarations (routing-engine unfolding lemmas, the `LogS` `WithBot`
   construction scaffold, truth tables, etc.) tagged
   `-- blueprint: internal (C2-E4a/A2 completeness census: ...)`.
-  Known limitation (disclosed, not fixed this ticket): the census's
-  name-matching regex truncates at Lean's unicode subscript characters
-  (e.g. `twoSlot_lift₂`/`twoSlot_lift₁` both truncate to `twoSlot_lift`,
-  and `lift₂_apply`/`lift₁_apply` truncate to `lift`, which then
-  false-passes as "cited" via the unrelated bare name `lift`) --
-  affects only the pragmatic scanner's precision, not its soundness
-  against the real gate risk (an uncited real math item going
-  unnoticed), since every name it *does* flag is genuinely a top-level
-  declaration. (4) **Lean notation swap REVERTED (empirical fallback,
+  Limitation found and closed by C2-E4a-fix (V-C2E4a F-1): the
+  census's name-matching regex truncated at Lean's unicode subscript
+  characters (e.g. `lift₂`/`lift₁`, `lift₂_apply`/`lift₁_apply`,
+  `lift₂_eq`/`lift₁_eq`, `lift₂_mass_one`/`lift₁_mass_one` all
+  truncated to a bare `lift`), which was *not* merely a precision
+  issue: it made those 8 declarations invisible to the scanner outright
+  (never counted, never flagged) and, because the truncated `lift`
+  substring happened to match the genuinely-cited name `lift`, the
+  census silently miscredited each of them as *already cited* --
+  a soundness gap (an uncited item can go unnoticed exactly when its
+  truncated form collides with a real cited name), not merely an
+  imprecision. Fixed: `CENSUS_DECL_RE`'s identifier class widened to
+  Unicode word characters (`scripts/blueprint.sh`); the 8 declarations,
+  now correctly distinguished from `lift`, tagged
+  `-- blueprint: internal (A1 bijection-law companion of lift,
+  content.tex def:lifted-connective)`. Census after the fix: 303
+  declarations, 48 cited, 255 internal, 0 unclassified. (4) **Lean
+  notation swap REVERTED (empirical fallback,
   same shape as the standing `¬`-episode)**: the decreed scoped
   `" ⊕ " => BLat2Mon.parr`/`" ⊗ " => BLat2Mon.andC` was probed exactly
   per the pin's protocol. `⊗` alone is clean. `⊕` alone reproducibly
