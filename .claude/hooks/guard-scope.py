@@ -39,7 +39,6 @@ def main():
         "lean-toolchain",
         "lake-manifest.json",
         ".gitignore",
-        "FORMALIZE.md",
         "CLAUDE.md",
     }
     # .foreman/ is deliberately NOT listed: it is foreman-only orchestration
@@ -47,11 +46,13 @@ def main():
     # by FORMALIZE.md's never-edit list and every ticket's MUST NOT), and
     # prompting on routine ledger bookkeeping was pure noise (user decision
     # 2026-08-07). target/ was removed with the directory itself.
+    # FORMALIZE.md, scripts/, references/, and .claude/ were removed from
+    # protection 2026-08-09 (user decision after the E8 law-patch prompt):
+    # every edit to them flows through tickets with write-sets and blind
+    # verification, so the human-ask gate added prompts without adding
+    # safety. Only files nothing legitimately edits stay protected.
     protected_prefixes = (
-        "scripts/",
-        "references/",
         ".github/",
-        ".claude/",
     )
 
     is_protected = rel_posix in protected_exact or any(
