@@ -163,6 +163,40 @@ DENSITY_BOUNDARY_RE = re.compile(
 # specimen's own flow rather than widen this set back silently.
 FLOW_OPENER_RE = re.compile(r'^(The|This|It)\b')
 
+# SEQUENTIAL COMPOSITION DECREE (C2-E10, USER DECREE 2026-08-09):
+# composition is always written f \seq g ("first f, then g"), never
+# \circ -- \seq's own single source is macros.sty (imported wholesale
+# by blueprint/src/macros/common.tex). \circ has no legitimate use
+# anywhere in this document, with exactly ONE disclosed exemption: the
+# Introduction's own sentence naming the banned symbol ("We never
+# write \circ."), exempted by its precise, fixed preceding phrase --
+# not by location, so a stray \circ dropped anywhere else, even inside
+# the Introduction, still fires. A future genuinely non-composition
+# \circ (e.g. degree notation) needs its own precise, disclosed
+# exemption added here, the same way -- never a silent allowance.
+CIRC_RE = re.compile(r'\\circ\b')
+CIRC_EXEMPT_RE = re.compile(r'never write[\s$]*$', re.IGNORECASE)
+
+
+def circ_scan(code_lines, rel_posix):
+    """C2-E10: advisory on every \\circ in content.tex (math or prose)
+    except the one disclosed self-referential exemption above."""
+    out = []
+    joined = "\n".join(code_lines)
+    for m in CIRC_RE.finditer(joined):
+        window = joined[max(0, m.start() - 60):m.start()]
+        if CIRC_EXEMPT_RE.search(window):
+            continue
+        line_no = joined.count("\n", 0, m.start()) + 1
+        out.append(
+            f"{rel_posix}:{line_no}: STRONG WARNING -- \\circ present "
+            "(sequential composition decree: composition is \\seq only, "
+            "f \\seq g means first f then g) -- flip to \\seq with the "
+            "order reversed, or if this is a genuine non-composition use "
+            "(e.g. degree notation), disclose it and add a precise "
+            "exemption to CIRC_EXEMPT_RE, not a silent allowance")
+    return out
+
 
 def flow_scan(raw_lines, rel_posix):
     """CONNECTIVE FLOW (C2-E8): advisory on a run of 4+ consecutive
@@ -580,6 +614,10 @@ def main():
     # CONNECTIVE FLOW (C2-E8, USER DECREE 2026-08-09): see flow_scan's
     # docstring. Whole-document, paragraph-granularity.
     warnings.extend(flow_scan(raw_lines, rel_posix))
+
+    # SEQUENTIAL COMPOSITION DECREE (C2-E10, USER DECREE 2026-08-09):
+    # see circ_scan's docstring. Whole-document, comment-stripped scan.
+    warnings.extend(circ_scan(code_lines, rel_posix))
 
     # STRUCTURE-MIRROR advisory (C2-E6, USER DECREE 2026-08-09): a
     # \section/\subsection introduced or left without a trailing

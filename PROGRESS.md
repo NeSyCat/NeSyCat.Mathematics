@@ -41,6 +41,96 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 
 ## Notes
 
+- **C2-E10 (sequential composition decree, USER DECREE 2026-08-09):**
+  every `\circ` composite in `blueprint/src/content.tex` becomes
+  `f \seq g` ("first `f`, then `g`"), order flipped at every site,
+  worked site by site (never a regex replace): 33 lines carrying
+  `\circ` at spec time (40 raw tokens; several lines chain 2-3
+  composites, e.g. `thm:pullout`'s point-free chain and the naturality
+  square at `lem:pure-maps`), all 33 flipped, meaning independently
+  re-derivable at each site from argument types (a naturality square,
+  the `dec`/`enc` unit laws, the tilt/pull-out chain, the lifted-
+  connective strength identity). Full before/after per-site list in
+  `.foreman/scratch/C2-E10-content-diff.txt`. The Introduction's
+  conventions sentence rewritten: "We compose maps sequentially:
+  `$f \seq g$` means first `$f$`, then `$g$`. We never write `$\circ$`."
+  Scope guard held throughout: function application (`f(x)`,
+  `\Ret(m(b))`) never touched, only sites already spelling `\circ`.
+  Zero non-composition `\circ` found in `content.tex` (no exemption
+  needed there); `NeSyCat.Logics/new.tex`'s appendix DOES have one —
+  Uustalu's own `-^\circ` notation, quoted verbatim describing his
+  paper's own triple, disclosed and exempted by a `%` comment at the
+  site rather than converted (converting it would misattribute our
+  operator to his paper). Macro plumbing (item 3): already
+  single-sourced — `blueprint/src/macros/common.tex` `\input`s
+  `NeSyCat.Logics/macros.sty` wholesale (pre-existing infrastructure,
+  no local copy), which already carries `\seq`/`\fatsemi`; verified
+  the glyph renders on both paths — print (xelatex, `\XeTeXversion`
+  defined) loads real `stmaryrd`, giving a genuine `\fatsemi` glyph;
+  web (plasTeX, no `\XeTeXversion`) falls through to macros.sty's own
+  `\providecommand{\fatsemi}{;}` MathJax-safe fallback — both builds
+  rebuilt clean, 23-page PDF unchanged in page count.
+  `NeSyCat.Logics/new.tex` sweep (item 4, EDIT ONLY, never
+  committed/staged there — confirmed clean `git status`, nothing
+  staged): 18 lines carrying `\circ`, 17 flipped (its appendix
+  "Monads and their Commutators" and the two grammar-in-context
+  tables; the main body already used `\seq` throughout, pre-existing),
+  1 exempted (Uustalu citation, above). DISCLOSED: `new.tex` and
+  `nesy2026-paper.tex` already carried substantial (1000+-line)
+  uncommitted local modifications, unrelated to this ticket
+  (`\otimes`->`\boxtimes`, new tikz diagrams, a new `note` env, etc.),
+  present before this ticket started; left untouched, layered my flips
+  on top. `nesy2026-paper.tex`: 11 `\circ` sites found, explicitly OUT
+  of scope per the ticket (not zero-risk to touch blind) — counted,
+  reported, left alone. Enforcement (item 5): `lint-blueprint.py`
+  (both copies, byte-identical) gained a `circ_scan`/`CIRC_RE`
+  advisory on every `\circ` in `content.tex`, exempting only the
+  Introduction's own naming sentence (matched by its fixed preceding
+  phrase, not by location) — RED-tested through the hook entry point
+  (both copies fire identically on an injected `$g \circ f$`), GREEN
+  on the final document. FORMALIZE.md's notation-law patch is
+  PREPARED, not applied, at
+  `.foreman/scratch/C2-E10-FORMALIZE-patch.md` (batch-apply-at-morning-
+  close convention, per the user decision after E8 — not a permission-
+  system block this time, since the guard-scope protected set no
+  longer lists `FORMALIZE.md`). Rider 5b: the KLay two-row note
+  (`content.tex`, real->mass/log->log, `\citet{maeneKLay2025}`)
+  extended with one sentence at code-verified strength: the released
+  KLay implementation (`klay@dc32107`) also ships an MPE (max-times)
+  module and a Gödel (max-min) module restricting to the Boolean row
+  on `{0,1}`, verified directly against
+  `~/Repos/NeSyCat/Competitors/klay`'s `src/klay/jax/semiring/godel.py`
+  (`max_layer`/`min_layer`) and `__init__.py`'s `get_semiring` (`'mpe'`
+  case, `max_layer`/`prod_layer`) before writing; paper fact stays
+  cited to the paper, implementation fact cited to the pinned repo in
+  a `%` comment, never rendered. Rider 5c: both undisclosed E8 edits
+  (V-E8 findings 2a/2b) restored verbatim from 5903fd0 — (a) the two
+  Generality-bullet sentences ("...library's own voice, at its natural
+  generality." / "A narrower case from elsewhere appears in-item, as
+  an instance or corollary."), consistent with FORMALIZE.md's own
+  Faithfulness section (no conflict found, no `DONE_WITH_CONCERNS`
+  needed); (b) the LL-dictionary table's top/bottom `\hline` pair and
+  the three `none`/`none` unit cells (`content.tex` around the
+  `def:dm-structure`/`lem:log-iso` rows). Census-exemption narrowing
+  rider: already landed at C2-E8 (`CENSUS_EXEMPT_DECLS = {"
+  blueprintInternalAttr"}`, sentinel 317/56/261/0) — verified intact,
+  unchanged, no further narrowing needed or done. Lean side (item 6):
+  untouched, confirmed — no `NeSyCat/**.lean` edits, registry sync
+  unaffected (9 twins, unchanged). REGRESSION FOUND AND FIXED: the
+  `\seq` glyph is visibly wider than `\circ` in a cramped subscript
+  (`\tilt_{k \seq Z}`), pushing `lem:tilt`'s display equation from the
+  established 1-hbox/1.2pt baseline to a 6.00839pt overfull hbox;
+  split that one `\[...\]` into a two-line `gather*` (content
+  unchanged, matching the same pattern C2-E3 already used twice
+  elsewhere in this document) — rebuilt clean, 0 overfull hboxes (an
+  improvement over the 1.2pt baseline). Gates: `scripts/check.sh`
+  GREEN, sorry-report 0/0, `scripts/blueprint.sh` GREEN with every
+  sentinel unchanged from baseline (structure 88 environments/56
+  kind-checked names, kernel-truth OK 56, census 317/56/261/0,
+  registry sync 9 twins, structure-mirror 15/0), both `lint-
+  blueprint.py` copies silent on the final document, pdf+web rebuilt
+  (23 pages, 0 overfull hboxes).
+
 - **C2-E9 (dependency-graph kind-shape fix, 2026-08-09):** web-only,
   no `.tex` content or Lean touched. `plastexdepgraph`'s
   `Packages/depgraph.py` boxes only the `definition` env kind and

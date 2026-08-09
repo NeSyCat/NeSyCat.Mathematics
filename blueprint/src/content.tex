@@ -28,7 +28,9 @@ Two editorial principles govern every item:
   mathematical level. For example, the weight-monad construction
   $\MS{S}$ is stated for any semiring $S$, not assumed commutative.
   Concrete cases (Boolean, mass, log semirings; the $[0,1]$ readout)
-  then appear as instances.
+  then appear as instances. This document states each item in the
+  library's own voice, at its natural generality. A narrower case from
+  elsewhere appears in-item, as an instance or corollary.
 \item \textbf{Provenance.} Every item's mathematical origin is recorded
   next to it, in the source file, so credit is clear without cluttering
   the page.
@@ -41,9 +43,9 @@ Two editorial principles govern every item:
 % the source's own statement matches this document's verbatim.
 
 We write functions and vectors directly, instead of Dirac bra-ket
-notation, since this loses nothing mathematically. We compose maps in
-the usual right-to-left order $g \circ f$ (``first $f$, then $g$''),
-rather than left-to-right sequencing.
+notation, since this loses nothing mathematically. We compose maps
+sequentially: $f \seq g$ means first $f$, then $g$. We never write
+$\circ$.
 
 Beyond this introduction, the library has five layers. The
 \textbf{categorical layer} covers semiring weight monads, then
@@ -364,6 +366,13 @@ The same two rows run in practice. The KLay circuit evaluator of
 \citet{maeneKLay2025} evaluates arithmetic circuits in exactly these
 semirings: its real module is the mass row, and its logarithmic
 module, using $\lse$ in place of the sum, is the log row.
+% Implementation-only fact (not claimed by the paper itself), verified
+% directly against the pinned KLay repo (klay@dc32107):
+% src/klay/jax/semiring/godel.py (max_layer/min_layer) and
+% src/klay/jax/semiring/__init__.py's get_semiring (the 'mpe' case,
+% max_layer/prod_layer, reusing godel.py's own max_layer).
+It also ships an MPE (max-times) module and a Gödel (max-min) module
+that restricts to the Boolean row on $\{0,1\}$.
 
 \begin{definition}[Semiring monad $\MS{S}$]
 \label{def:semiring-monad}
@@ -1193,17 +1202,17 @@ why the dictionary below exists.
 \begin{center}
 {\footnotesize\setlength{\tabcolsep}{3pt}
 \begin{tabular}{llllll}
-
+\hline
 \textbf{ours} & \textbf{LL} & \textbf{name in LL} & \textbf{our unit} & \textbf{LL unit} & \textbf{realized here as} \\
 \hline
 $\vee$ & $\oplus$ & additive disjunction (join) & $\bot$ & $0$ & order family (Definition~\ref{def:order-family}, join) \\
 $\wedge$ & \& & additive conjunction (meet) & $\top$ & $\top$ & order family (meet) \\
 $\otimes$ & $\otimes$ & multiplicative conjunction & $\done$ & $1$ & lifted connective (Definition~\ref{def:lifted-connective}) \\
 $\oplus$ & $\llparr$ & multiplicative disjunction & $\dzero$ & $\bot$ & lifted connective \\
-$\neg$ & $(\cdot)^\bot$ & linear negation &  &  & DM structure (Class~\ref{def:dm-structure}) \\
-$\impc{\cdot}$ & $\multimap$ & linear implication &  &  & deferred (residuation section) \\
-$!,?$ & $!,?$ & exponentials &  &  & exp/log bridge (Definition~\ref{lem:log-iso}; completions) \\
-
+$\neg$ & $(\cdot)^\bot$ & linear negation & none & none & DM structure (Class~\ref{def:dm-structure}) \\
+$\impc{\cdot}$ & $\multimap$ & linear implication & none & none & deferred (residuation section) \\
+$!,?$ & $!,?$ & exponentials & none & none & exp/log bridge (Definition~\ref{lem:log-iso}; completions) \\
+\hline
 \end{tabular}
 }
 \end{center}
@@ -1308,7 +1317,7 @@ $*_{\MS{S}} \colon (\MS{S}\BoolS)^n \to \MS{S}\BoolS$ is
 \lean{NeSyCat.lift_eq_dstN_bind}
 \leanok
 $*_{\MS{S}}(w_1,\ldots,w_n)$ of Definition~\ref{def:lifted-connective}
-equals $\mathrm{dst}(w_1,\ldots,w_n) \bind (\Ret \circ *)$, where
+equals $\mathrm{dst}(w_1,\ldots,w_n) \bind (* \seq \Ret)$, where
 $\mathrm{dst} \colon (\MS{S}\BoolS)^n \to \MS{S}(\BoolS^n)$ is the
 $n$-ary tensorial strength pairing the $n$ arguments into one element
 of $\MS{S}(\BoolS^n)$.
@@ -1317,7 +1326,7 @@ of $\MS{S}(\BoolS^n)$.
 
 \begin{proof}
 \leanok
-Both sides bind each of $w_1,\ldots,w_n$ in turn against $\Ret \circ *$;
+Both sides bind each of $w_1,\ldots,w_n$ in turn against $* \seq \Ret$;
 this is exactly the definition of the $n$-ary strength $\mathrm{dst}$
 as the iterated bind pairing the arguments.
 \end{proof}
@@ -2089,7 +2098,7 @@ $\mathcal M$), and there are two canonical monad morphisms into it:
   \mathrm{lift}_{\mathcal M} := \mathrm{const},
   \qquad
   \mathrm{lift}_{\Bmon} \colon \Bmon X \to \Bmon\mathcal M X,\
-  \mathrm{lift}_{\Bmon}(m) := \Ret_{\mathcal M} \circ m.
+  \mathrm{lift}_{\Bmon}(m) := m \seq \Ret_{\mathcal M}.
 \]
 \uses{def:batch-monad, thm:semiring-monad-laws}
 \end{theorem}
@@ -2102,7 +2111,7 @@ index, to the monad laws of $\mathcal M$
 (Theorem~\ref{thm:semiring-monad-laws}). $\mathrm{lift}_{\mathcal M}$
 is a monad morphism since a constant family trivially commutes with
 diagonal bind; $\mathrm{lift}_{\Bmon}$ is a monad morphism since
-$\Ret_{\mathcal M}$ is natural and $\Ret_{\mathcal M}(m(b)) \bind_{\mathcal M} \Ret_{\mathcal M}\circ f = \Ret_{\mathcal M}(f(m(b)))$
+$\Ret_{\mathcal M}$ is natural and $\Ret_{\mathcal M}(m(b)) \bind_{\mathcal M} f\seq\Ret_{\mathcal M} = \Ret_{\mathcal M}(f(m(b)))$
 by the unit laws of $\mathcal M$.
 \end{proof}
 
@@ -2118,8 +2127,8 @@ $m \mapsto m(i)$, is a monad morphism. Assuming in addition that every
 symbol and quantifier interpretation of
 Definition~\ref{def:domain-interpretation} used in the batched reading
 is \emph{batch-natural}, i.e.\ defined pointwise across the batch
-($\mathcal I^{\Bmon\mathcal M}(f) = \mathrm{lift}_{\mathcal M} \circ
-\mathcal I^{\mathcal M}(f)$ applied index by index, for every symbol
+($\mathcal I^{\Bmon\mathcal M}(f) = \mathcal I^{\mathcal M}(f) \seq
+\mathrm{lift}_{\mathcal M}$ applied index by index, for every symbol
 $f$), $\mathrm{ev}_i$ commutes with the Kleisli interpretation of
 feed-forward composites (grammar interpretation,
 Definition~\ref{def:kleisli-interpretation}): for a batch $s \colon
@@ -2137,7 +2146,7 @@ $\mathrm{ev}_i(\Ret_{\Bmon\mathcal M}(a)) = \mathrm{const}(a)(i) = a =
 \Ret_{\mathcal M}(a)$ and $\mathrm{ev}_i(m \bind f) = f(m(i))(i) =
 m(i) \bind_{?}\!\ldots$ unfolds, under the batch-naturality hypothesis
 on every symbol occurring in $f$, to $\mathrm{ev}_i(m) \bind
-\mathrm{ev}_i \circ f$; induction on the grammar of
+f \seq \mathrm{ev}_i$; induction on the grammar of
 Definition~\ref{def:grammatical-signature} then transports this through
 every clause of Definition~\ref{def:kleisli-interpretation}.
 \end{proof}
@@ -2176,7 +2185,7 @@ $a \in \LogS^X$ (allowing $-\infty$ coordinates for zero mass). Define
 \begin{lemma}[Pure maps]
 \label{lem:pure-maps}
 For pure $h \colon X \to Y$: $Z\bigl(\Tmon(h)(a)\bigr) = Z(a)$ and
-$\dec_Y \circ \Tmon(h) = \Dmon(h) \circ \dec_X$.
+$\Tmon(h) \seq \dec_Y = \dec_X \seq \Dmon(h)$.
 \uses{def:dec-enc-mass}
 \end{lemma}
 
@@ -2210,8 +2219,8 @@ of softmaxes.
 
 \begin{lemma}[Units]
 \label{lem:units}
-$\enc \circ \Ret_{\Dmon} = \Ret_{\Tmon}$, $\dec \circ \enc =
-\mathrm{id}_{\Dmon}$, hence $\dec \circ \Ret_{\Tmon} = \Ret_{\Dmon}$,
+$\Ret_{\Dmon} \seq \enc = \Ret_{\Tmon}$, $\enc \seq \dec =
+\mathrm{id}_{\Dmon}$, hence $\Ret_{\Tmon} \seq \dec = \Ret_{\Dmon}$,
 and $Z(\Ret_{\Tmon}(x)) = 1$.
 \uses{def:dec-enc-mass}
 \end{lemma}
@@ -2233,7 +2242,7 @@ $\epsilon$-floor implementation substitutes a large negative finite
 number for $-\infty$, so it satisfies these identities only up to
 $O(\epsilon)$ error. The reason: $\Ret_{\Tmon}(x)$ genuinely needs a
 $-\infty$ coordinate, not merely a small one, at every $x' \ne x$, for
-$\enc\circ\Ret_{\Dmon} = \Ret_{\Tmon}$ to hold on the nose.
+$\Ret_{\Dmon}\seq\enc = \Ret_{\Tmon}$ to hold on the nose.
 
 \begin{lemma}[Strengths]
 \label{lem:strengths}
@@ -2247,9 +2256,10 @@ $\sigma^{(j)}_{\Dmon}$ likewise over $\Dmon$. Then
 \[
   Z\bigl(\sigma^{(j)}_{\Tmon}(x_1,\ldots,a,\ldots,x_m)\bigr) = Z(a),
   \qquad
-  \dec \circ \sigma^{(j)}_{\Tmon}
-  = \bigl(\mathrm{id} \otimes \cdots \otimes \dec_j \otimes \cdots
-     \otimes \mathrm{id}\bigr) \circ \sigma^{(j)}_{\Dmon} \circ (\mathrm{id},\ldots,\dec,\ldots,\mathrm{id})
+  \sigma^{(j)}_{\Tmon} \seq \dec
+  = (\mathrm{id},\ldots,\dec,\ldots,\mathrm{id}) \seq \sigma^{(j)}_{\Dmon} \seq
+     \bigl(\mathrm{id} \otimes \cdots \otimes \dec_j \otimes \cdots
+     \otimes \mathrm{id}\bigr)
 \]
 in the sense that decoding the strength agrees with decoding only the
 effectful slot and inserting the plain coordinates as certain values.
@@ -2272,13 +2282,12 @@ $(a \bind k)_y = \lse_x(a_x+k(x)_y)$). Assume $Z(k(x)) > 0$ for every
 $x \in \supp(\dec(a))$ (equivalently, $k$'s mass is nowhere zero on
 $a$'s support), needed for the tilt weight below to be positive there
 and hence for $\mathrm{tilt}$ to be well-defined. Then
-\[
-  \dec(a \bind k) \;=\; \tilt_{Z \circ k}\bigl(\dec(a)\bigr) \bind
-  \bigl(\dec \circ k\bigr),
-  \qquad
+\begin{gather*}
+  \dec(a \bind k) \;=\; \tilt_{k \seq Z}\bigl(\dec(a)\bigr) \bind
+  \bigl(k \seq \dec\bigr), \\
   \tilt_w(p)(x) := \frac{w(x)\,p(x)}{\sum_{x'} w(x')\,p(x')}
   \quad (w \colon X \to \mathbb R_{>0}).
-\]
+\end{gather*}
 \uses{def:dec-enc-mass, lem:units}
 \end{lemma}
 
@@ -2286,7 +2295,7 @@ and hence for $\mathrm{tilt}$ to be well-defined. Then
 Expand both sides at $y \in Y$: the left side is
 $e^{\lse_x(a_x+k(x)_y)}/Z(a\bind k) = \sum_x e^{a_x}e^{k(x)_y} /
 \sum_{x,y'}e^{a_x+k(x)_{y'}}$; the right side is
-$\sum_x \tilt_{Z\circ k}(\dec(a))(x)\,\dec(k(x))_y = \sum_x
+$\sum_x \tilt_{k\seq Z}(\dec(a))(x)\,\dec(k(x))_y = \sum_x
 \frac{Z(k(x))\dec(a)_x}{\sum_{x'}Z(k(x'))\dec(a)_{x'}} \cdot
 \frac{e^{k(x)_y}}{Z(k(x))}$. The numerators agree termwise once
 $\dec(a)_x = e^{a_x}/Z(a)$ is unfolded and the $Z(k(x))$ factors
@@ -2304,7 +2313,7 @@ $x \mapsto Z(k(x))$ is constant on $X$.
 \begin{lemma}[Mass-preserving arrows are closed]
 \label{lem:mass-preserving-closure}
 The class of mass-preserving arrows (Definition~\ref{def:mass-preserving})
-contains $\Ret_{\Tmon} \circ h$ for every pure $h$, every lift
+contains $h \seq \Ret_{\Tmon}$ for every pure $h$, every lift
 $\Tmon(h)$, the units of Lemma~\ref{lem:units}, and the strengths of
 Lemma~\ref{lem:strengths}; it is closed under composition, under
 $\otimes$ (Lemma~\ref{lem:tensor}), and under the structural wiring
@@ -2330,7 +2339,7 @@ trivially preserves any constant-mass property.
 
 \begin{theorem}[Pull out]
 \label{thm:pullout}
-Let $\Phi = B_r \circ \cdots \circ B_1 \circ L$ be the point-free chain
+Let $\Phi = L \seq B_1 \seq \cdots \seq B_r$ be the point-free chain
 of a feed-forward composite, where $L$ tensors together the leaves
 (via Lemma~\ref{lem:tensor}, landing in $\Tmon(Y_1\times\cdots\times
 Y_n)$) and each $B_i$ is a lifted pure map $\Tmon(h)$
@@ -2340,14 +2349,14 @@ Y_n)$) and each $B_i$ is a lifted pure map $\Tmon(h)$
 bound continuation $k_i$ is mass preserving
 (Definition~\ref{def:mass-preserving}), then
 \[
-  \dec \circ \Phi \;=\;
-  \bigl(B_r^{\Dmon} \circ \cdots \circ B_1^{\Dmon}\bigr) \circ
-  (\dec \otimes \cdots \otimes \dec) \circ L,
+  \Phi \seq \dec \;=\;
+  L \seq (\dec \otimes \cdots \otimes \dec) \seq
+  \bigl(B_1^{\Dmon} \seq \cdots \seq B_r^{\Dmon}\bigr),
 \]
 the same chain read in $\Dmon$, with one $\dec$ per leaf. If some
 $k_i$ is not mass preserving, the two sides differ in general, and
 Lemma~\ref{lem:tilt} gives the exact discrepancy: one
-$\tilt_{Z \circ k_i}$ per offending bind.
+$\tilt_{k_i \seq Z}$ per offending bind.
 \uses{lem:pure-maps, lem:tensor, lem:units, lem:strengths, lem:tilt, def:mass-preserving, def:feed-forward}
 \end{theorem}
 
@@ -2355,8 +2364,8 @@ $\tilt_{Z \circ k_i}$ per offending bind.
 Induction on $r$: each non-bind factor commutes with
 $\dec$ by Lemmas~\ref{lem:pure-maps}, \ref{lem:tensor},
 \ref{lem:units}, \ref{lem:strengths}; a bind factor commutes with
-$\dec$ exactly when $\tilt_{Z\circ k_i} = \mathrm{id}$, which by
-Lemma~\ref{lem:tilt} holds precisely when $Z\circ k_i$ is constant,
+$\dec$ exactly when $\tilt_{k_i\seq Z} = \mathrm{id}$, which by
+Lemma~\ref{lem:tilt} holds precisely when $k_i\seq Z$ is constant,
 i.e.\ $k_i$ is mass preserving; the converse direction (some $k_i$ not
 mass preserving forces a genuine discrepancy) is witnessed by the
 tilt-failure example below.
@@ -2395,7 +2404,7 @@ $r > 1$ binds.
 
 \begin{definition}[Normalizer]
 \label{def:normalizer}
-$\nrm_X := \enc_X \circ \dec_X \colon \Tmon X \to \Tmon X$, concretely
+$\nrm_X := \dec_X \seq \enc_X \colon \Tmon X \to \Tmon X$, concretely
 $\nrm(a) = a - \log Z(a)\cdot\mathbf 1$ (the log-softmax).
 \uses{def:dec-enc-mass}
 \end{definition}
@@ -2404,11 +2413,11 @@ $\nrm(a) = a - \log Z(a)\cdot\mathbf 1$ (the log-softmax).
 \label{lem:normalizer-props}
 $\nrm$ (Definition~\ref{def:normalizer}) satisfies:
 \begin{enumerate}
-\item[(i)] $\dec \circ \nrm = \dec$ (predictions unchanged);
+\item[(i)] $\nrm \seq \dec = \dec$ (predictions unchanged);
 \item[(ii)] $Z(\nrm(a)) = 1$ (mass one);
 \item[(iii)] $\nrm(a + c\cdot\mathbf 1) = \nrm(a)$ for every constant
   $c$ (kills the shift);
-\item[(iv)] $\nrm \circ \nrm = \nrm$ (idempotent).
+\item[(iv)] $\nrm \seq \nrm = \nrm$ (idempotent).
 \end{enumerate}
 \uses{def:normalizer}
 \end{lemma}
@@ -2437,7 +2446,7 @@ one $\lse$ evaluation per head.
 
 \begin{proof}
 A mass-one weight vector $w$ has $Z(w)=1$
-(Lemma~\ref{lem:normalizer-props}(ii)), so $Z\circ(\text{symbol})$ is
+(Lemma~\ref{lem:normalizer-props}(ii)), so $(\text{symbol})\seq Z$ is
 the constant function $1$, i.e.\ mass preserving
 (Definition~\ref{def:mass-preserving}); apply
 Theorem~\ref{thm:pullout} with every $k_i$ of this form, so the
@@ -2458,7 +2467,7 @@ $k(1) = (\ln 100,\, 0)$ (coordinates $(\cdot_0,\cdot_1)$ as in
 Lemma~\ref{lem:lifted-mass}/\ref{lem:lifted-log}). Then $Z(k(0)) = 2$,
 $Z(k(1)) = 101$, so $k$ is far from mass preserving
 (Definition~\ref{def:mass-preserving}). Lemma~\ref{lem:tilt} tilts
-$\dec(a) = (\tfrac12,\tfrac12)$ by $w = Z\circ k = (2,101)$ into
+$\dec(a) = (\tfrac12,\tfrac12)$ by $w = k\seq Z = (2,101)$ into
 $\tilt_w(\dec(a)) = \bigl(\tfrac{2}{103}, \tfrac{101}{103}\bigr)$, and
 one checks directly that
 \[
@@ -2478,8 +2487,8 @@ instantiates the converse direction of Theorem~\ref{thm:pullout}.
 axiom's $\Tmon$-chain and $\Dmon$-chain
 (Section~\ref{sec:syntax-semantics}'s running example). The leaves are
 neural digit classifiers. Every subsequent bind binds either a
-strength, a pure comparison $\Ret\circ({+})$, or a pure comparison
-$\Ret\circ({=}s)$ against the observed sum. All of these are mass
+strength, a pure comparison $({+})\seq\Ret$, or a pure comparison
+$({=}s)\seq\Ret$ against the observed sum. All of these are mass
 preserving by Lemma~\ref{lem:mass-preserving-closure}.
 Theorem~\ref{thm:pullout} therefore applies directly, giving
 $t_{\Tmon} = t_{\Dmon}$ for the MNIST axiom. On the addition step, the
@@ -2489,8 +2498,8 @@ theorem specializes to the convolution identity
 \]
 (discrete convolution of the two digit distributions). This is the
 instance of Theorem~\ref{thm:pullout} at the bind
-$({-}\bind \Ret\circ({+}))$. That bind is mass preserving by
-Lemma~\ref{lem:mass-preserving-closure}, since $\Ret\circ h$ is mass
+$({-}\bind ({+})\seq\Ret)$. That bind is mass preserving by
+Lemma~\ref{lem:mass-preserving-closure}, since $h\seq\Ret$ is mass
 preserving for every pure $h$.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
 % This example is due to [NeSy26, App.~B draft/T3; \S 5].
