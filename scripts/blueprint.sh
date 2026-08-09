@@ -140,7 +140,7 @@ import sys
 
 THEOREM_FAMILY = {"theorem", "proposition", "lemma", "corollary"}
 TARGET_KINDS = THEOREM_FAMILY | {"conjecture", "definition", "abbreviation",
-                                  "remark", "proof"}
+                                  "remark", "proof", "example"}
 
 BEGIN_RE = re.compile(r'\\begin\{([a-zA-Z]+)\}')
 END_RE = re.compile(r'\\end\{([a-zA-Z]+)\}')
@@ -259,7 +259,8 @@ def cmd_structure(tex_path):
     #    \lean{}.
     for pos, (k, s, e) in enumerate(envs):
         if k not in (THEOREM_FAMILY | {"conjecture", "definition",
-                                        "abbreviation", "remark"}):
+                                        "abbreviation", "remark",
+                                        "example"}):
             continue
         span_end = e
         if k in THEOREM_FAMILY:
@@ -293,7 +294,7 @@ def cmd_structure(tex_path):
     for (k, s, e) in envs:
         fam = "theorem-family" if k in THEOREM_FAMILY else k
         if fam not in ("theorem-family", "definition", "abbreviation",
-                       "conjecture"):
+                       "conjecture", "example"):
             continue
         names = []
         for m in LEAN_RE.finditer(body_text(s, e)):
@@ -432,6 +433,17 @@ def cmd_check_kinds(groups_path, lean_out_path):
                     f"its \\lean names ({', '.join(g['names'])}) are "
                     "theorem-kind -- a definition item needs at least one "
                     "def/structure/class/instance-kind declaration")
+        elif g["kind"] == "example":
+            non_theorem = [lk for lk in kinds_here
+                           if lk in ("def", "structure", "class",
+                                     "instance")]
+            if not non_theorem:
+                violations.append(
+                    f"example {g['label']} (line {g['line']}): all of "
+                    f"its \\lean names ({', '.join(g['names'])}) are "
+                    "theorem-kind -- an example item needs at least one "
+                    "def/structure/class/instance-kind declaration "
+                    "(typically an instance)")
         elif g["kind"] == "conjecture":
             pass  # any kind acceptable; no-proof-leanok already checked
             # structurally.

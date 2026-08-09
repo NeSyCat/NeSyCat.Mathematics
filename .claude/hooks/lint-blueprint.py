@@ -40,7 +40,7 @@ DISPLAY_MATH_RE = re.compile(r'\\\[|\\begin\{(align|equation)\*?\}')
 DEFINITION_BEGIN_RE = re.compile(r'\\begin\{definition\}')
 DEFINITION_END_RE = re.compile(r'\\end\{definition\}')
 STRUCT_INTRO_RE = re.compile(
-    r'\b[Aa]n?\s+\\textbf\{[^}]+\}(?:[^.]{0,120})?\bis\s+an?\b', re.S)
+    r'\b[Aa]n?\s+\\textbf\{[^}]+\}(?:[^.]{0,120})?\bis\s+(?:an?|the)\b', re.S)
 MIXIN_INTRO_RE = re.compile(r'\\textbf\{[^}]+\}\s*(?:demands|requires)\b', re.S)
 ITEM_INSTANCE_ROW_RE = re.compile(r'\\item\s*\\emph\{[^}]+\}\s*\([^)]*\)\s*:')
 INSTANCE_MARKER_RE = re.compile(
