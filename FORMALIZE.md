@@ -132,6 +132,20 @@ step below.
   statement defeats the campaign's purpose — construct the proof, even
   if it uses Mathlib lemmas as steps.
 
+## Blueprint structural laws
+
+- **Definition atomicity.** Every `definition` environment introduces
+  exactly one named structure. A family of variant refinements
+  (commutative / bounded / bounded-commutative; C-variants of a class)
+  each get their own `definition` environment, `\uses`-linked to the
+  atom(s) they refine — never bundled into one env with the base
+  structure.
+- **No examples in definitions.** A `definition` environment states the
+  structure only: no worked instances, running-instance itemizations, or
+  anti-examples. That content moves to a `\begin{example}` environment
+  placed after the definition(s) it instantiates, `\uses`-linked back to
+  them.
+
 ## Work strategy
 
 - Prioritize named definitions/theorems/constructions over exercises;

@@ -26,6 +26,27 @@ LEAN_RE = re.compile(r'\\lean\{')
 USES_REM_RE = re.compile(r'\\uses\{[^}]*\brem:')
 DISPLAY_MATH_RE = re.compile(r'\\\[|\\begin\{(align|equation)\*?\}')
 
+# Definition-atomicity / no-examples-in-definitions (editorial decree,
+# 2026-08-09). DEFINITION_BEGIN_RE/END_RE bracket a `definition` env; the
+# two structure-introduction patterns below are the two grammatical shapes
+# this document uses to name a brand-new structure ("A \textbf{Foo} ... is
+# a ..." and "\textbf{Foo} demands/requires ..."); counting more than one
+# such introduction in a single env is the atomicity smell. Deliberately
+# NOT triggered by bare \textbf{} occurrences (component names inside a
+# single structure's own data, e.g. \textbf{domain symbols} inside
+# def:domain-signature, are not separate structures) nor by bare
+# \begin{itemize}/\begin{enumerate} (a definition's own law/component list,
+# e.g. def:lin-blat2mon's binary/nullary laws, is not example content).
+DEFINITION_BEGIN_RE = re.compile(r'\\begin\{definition\}')
+DEFINITION_END_RE = re.compile(r'\\end\{definition\}')
+STRUCT_INTRO_RE = re.compile(
+    r'\b[Aa]n?\s+\\textbf\{[^}]+\}(?:[^.]{0,120})?\bis\s+an?\b', re.S)
+MIXIN_INTRO_RE = re.compile(r'\\textbf\{[^}]+\}\s*(?:demands|requires)\b', re.S)
+ITEM_INSTANCE_ROW_RE = re.compile(r'\\item\s*\\emph\{[^}]+\}\s*\([^)]*\)\s*:')
+INSTANCE_MARKER_RE = re.compile(
+    r'running instance|instances are|e\.g\.|for example|not an instance',
+    re.IGNORECASE)
+
 
 def strip_comment(line):
     i, n = 0, len(line)
@@ -121,6 +142,27 @@ def main():
                     f"{rel_posix}:{start + 1}: remark contains display math "
                     "(\\[ or align/equation) -- promotion candidate: "
                     "corollary?")
+            idx = end + 1
+            continue
+        if DEFINITION_BEGIN_RE.search(code_lines[idx]):
+            start = idx
+            end = idx
+            for j in range(idx, n):
+                if DEFINITION_END_RE.search(code_lines[j]):
+                    end = j
+                    break
+            body = "\n".join(code_lines[start:end + 1])
+            struct_count = (len(STRUCT_INTRO_RE.findall(body))
+                             + len(MIXIN_INTRO_RE.findall(body)))
+            if struct_count > 1:
+                warnings.append(
+                    f"{rel_posix}:{start + 1}: definition not atomic -- "
+                    "split (one structure per definition)")
+            if (INSTANCE_MARKER_RE.search(body)
+                    or ITEM_INSTANCE_ROW_RE.search(body)):
+                warnings.append(
+                    f"{rel_posix}:{start + 1}: example content inside "
+                    "definition -- move to an example env")
             idx = end + 1
             continue
         idx += 1

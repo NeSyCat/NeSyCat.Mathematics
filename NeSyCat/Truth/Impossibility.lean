@@ -23,7 +23,7 @@ statement. This is not a weakening: a `DMStructure` mixin
 (`NeSyCat/Truth/BLat2Mon.lean`) is only *statable* over a `[BLat2Mon α]`
 instance, which itself demands `[Lattice α] [BoundedOrder α]`; `ℝ≥0` and
 `LogS` carry no `BoundedOrder` instance at all (both are unbounded above,
-matching `def:lattice-semiring`'s own honesty about these rows), so "no DM
+matching `ex:lattice-semiring-rows`'s own honesty about these rows), so "no DM
 structure on `ℝ≥0`/`LogS`" is not even a well-formed Lean statement absent
 an invented completion. The blueprint's own proof never uses any monoid
 data either — only that `dneg` (whatever two-monoid structure it might

@@ -73,7 +73,7 @@ Table 3 of the source distinguishes two families of binary connective,
 kept visually and notationally apart throughout this document:
 \begin{itemize}
 \item \textbf{Lattice connectives} $\vee,\wedge$, with bounds
-  $\bot,\top$ (Definition~\ref{def:lattice-semiring},
+  $\bot,\top$ (Definition~\ref{def:bounded-lattice-semiring},
   Definition~\ref{def:order-family}).
 \item \textbf{Monoid connectives on truth values}, at the
   \emph{logical/truth-value} level only: $\parr$ (or-like, unit
@@ -167,39 +167,49 @@ Lean-kind assertion per \texttt{\textbackslash lean\{\}} name).
 
 \begin{definition}[Lattice-semiring]
 \label{def:lattice-semiring}
-\lean{NeSyCat.LatSRng, NeSyCat.LatCSRng, NeSyCat.BLatSRng, NeSyCat.BLatCSRng, NeSyCat.BoolW.instBLatCSRng, NeSyCat.instLatCSRngNNReal, NeSyCat.instLatCSRngLogS}
+\lean{NeSyCat.LatSRng}
 \leanok
 A \textbf{lattice-semiring} ($\mathrm{LatSRng}$) is a semiring
 $(S, \oplus, \otimes, 0, 1)$ equipped
 with a lattice order $\le$ on the carrier $S$: a meet $\wedge$ and join
 $\vee$ exist for every pair of elements, and $\oplus$, $\otimes$ are
-each monotone in \emph{both} arguments with respect to $\le$. A
-\textbf{commutative lattice-semiring} ($\mathrm{LatCSRng}$) is a
-lattice-semiring whose $\otimes$ is commutative; a \textbf{bounded
-lattice-semiring} ($\mathrm{BLatSRng}$, resp.\ its commutative
-refinement $\mathrm{BLatCSRng}$) additionally carries an in-carrier
-$\bot$ and $\top$.
+each monotone in \emph{both} arguments with respect to $\le$.
+[NeSy26, App.~A]
+\end{definition}
 
-The library's three running instances are all commutative
-($\mathrm{LatCSRng}$); only the Boolean one is bounded
-($\mathrm{BLatCSRng}$), since mass and log have no in-carrier $\top$
-without adjoining $\infty$ externally:
-\begin{itemize}
-\item \emph{Boolean} (bounded): carrier $\BoolS = \{0,1\}$, $\bot{=}0$,
-  $\top{=}1$, $\vee{=}\mathtt{or}$, $\wedge{=}\mathtt{and}$, $0{=}0$,
-  $1{=}1$, $\oplus{=}\mathtt{or}$, $\otimes{=}\mathtt{and}$;
-\item \emph{mass} (unbounded above): carrier $\MassS$, $\bot{=}0$,
-  $\top{=}\infty$ only after adjoining $\infty$ externally,
-  $\vee{=}\max$, $\wedge{=}\min$, $0{=}0$, $1{=}1$, $\oplus{=}{+}$,
-  $\otimes{=}\cdot$;
-\item \emph{log} (unbounded): carrier $\LogS$, $\bot{=}{-\infty}$,
-  $\top{=}\infty$ only after adjoining $\infty$ externally,
-  $\vee{=}\max$, $\wedge{=}\min$, $0{=}{-\infty}$,
-  $1{=}0$, $\oplus{=}\lse$, $\otimes{=}{+}$.
-\end{itemize}
-\emph{Not} an instance: the probability row $(\ProbS, p{+}q{-}pq,
-\cdot)$ carried by $\max,\min$ as its lattice --- see
-Lemma~\ref{lem:prob-not-semiring}.
+\begin{definition}[Commutative lattice-semiring]
+\label{def:comm-lattice-semiring}
+\lean{NeSyCat.LatCSRng}
+\leanok
+A \textbf{commutative lattice-semiring} ($\mathrm{LatCSRng}$) is a
+lattice-semiring (Definition~\ref{def:lattice-semiring}) whose $\otimes$
+is commutative.
+\uses{def:lattice-semiring}
+[NeSy26, App.~A]
+\end{definition}
+
+\begin{definition}[Bounded lattice-semiring]
+\label{def:bounded-lattice-semiring}
+\lean{NeSyCat.BLatSRng}
+\leanok
+A \textbf{bounded lattice-semiring} ($\mathrm{BLatSRng}$) is a
+lattice-semiring (Definition~\ref{def:lattice-semiring}) that
+additionally carries an in-carrier $\bot$ and $\top$.
+\uses{def:lattice-semiring}
+[NeSy26, App.~A]
+\end{definition}
+
+\begin{definition}[Bounded commutative lattice-semiring]
+\label{def:bounded-comm-lattice-semiring}
+\lean{NeSyCat.BLatCSRng}
+\leanok
+A \textbf{bounded commutative lattice-semiring} ($\mathrm{BLatCSRng}$)
+is the commutative refinement of a bounded lattice-semiring
+(Definition~\ref{def:bounded-lattice-semiring}): a bounded
+lattice-semiring whose $\otimes$ is commutative --- equivalently, the
+bounded refinement of a commutative lattice-semiring
+(Definition~\ref{def:comm-lattice-semiring}).
+\uses{def:bounded-lattice-semiring, def:comm-lattice-semiring}
 [NeSy26, App.~A]
 \end{definition}
 
@@ -213,12 +223,13 @@ $\oplus$'s two directions of monotonicity are never independent data
 right-monotonicity always follows from left-monotonicity --- but
 $\otimes$'s two directions genuinely are, absent commutativity of
 $\otimes$; they collapse to one only in the commutative refinement
-$\mathrm{LatCSRng}$. This library states the lattice-semiring notion at
+$\mathrm{LatCSRng}$ (Definition~\ref{def:comm-lattice-semiring}). This
+library states the lattice-semiring notion at
 this natural level of generality, splitting it the way Mathlib splits
 \texttt{Semiring}/\texttt{CommSemiring}; [NeSy26, App.~A] states the
 commutative case throughout, matching the library's three running
 instances.
-\uses{def:lattice-semiring}
+\uses{def:lattice-semiring, def:comm-lattice-semiring}
 \end{remark}
 
 \begin{lemma}[Probability is not a semiring]
@@ -252,6 +263,35 @@ Lemma~\ref{lem:lifted-prob-readout}, not a semiring in its own right.
 The displayed numerical instance witnesses the failure
 of distributivity directly.
 \end{proof}
+
+\begin{example}[Lattice-semiring rows]
+\label{ex:lattice-semiring-rows}
+\lean{NeSyCat.BoolW.instBLatCSRng, NeSyCat.instLatCSRngNNReal, NeSyCat.instLatCSRngLogS}
+\leanok
+The library's three running instances are all commutative
+($\mathrm{LatCSRng}$, Definition~\ref{def:comm-lattice-semiring}); only
+the Boolean one is bounded ($\mathrm{BLatCSRng}$,
+Definition~\ref{def:bounded-comm-lattice-semiring}), since mass and log
+have no in-carrier $\top$ without adjoining $\infty$ externally:
+\begin{itemize}
+\item \emph{Boolean} (bounded): carrier $\BoolS = \{0,1\}$, $\bot{=}0$,
+  $\top{=}1$, $\vee{=}\mathtt{or}$, $\wedge{=}\mathtt{and}$, $0{=}0$,
+  $1{=}1$, $\oplus{=}\mathtt{or}$, $\otimes{=}\mathtt{and}$;
+\item \emph{mass} (unbounded above): carrier $\MassS$, $\bot{=}0$,
+  $\top{=}\infty$ only after adjoining $\infty$ externally,
+  $\vee{=}\max$, $\wedge{=}\min$, $0{=}0$, $1{=}1$, $\oplus{=}{+}$,
+  $\otimes{=}\cdot$;
+\item \emph{log} (unbounded): carrier $\LogS$, $\bot{=}{-\infty}$,
+  $\top{=}\infty$ only after adjoining $\infty$ externally,
+  $\vee{=}\max$, $\wedge{=}\min$, $0{=}{-\infty}$,
+  $1{=}0$, $\oplus{=}\lse$, $\otimes{=}{+}$.
+\end{itemize}
+\emph{Not} an instance: the probability row $(\ProbS, p{+}q{-}pq,
+\cdot)$ carried by $\max,\min$ as its lattice --- see
+Lemma~\ref{lem:prob-not-semiring}.
+\uses{def:lattice-semiring, def:comm-lattice-semiring, def:bounded-lattice-semiring, def:bounded-comm-lattice-semiring, lem:prob-not-semiring}
+[NeSy26, App.~A]
+\end{example}
 
 \begin{definition}[Semiring monad $\MS{S}$]
 \label{def:semiring-monad}
@@ -502,23 +542,32 @@ The lifted connective family of a truth space (Definition~\ref{def:lifted-connec
 
 \begin{definition}[Two-monoid bounded lattice]
 \label{def:blat2mon}
-\lean{NeSyCat.BLat2Mon, NeSyCat.BLat2CMon}
+\lean{NeSyCat.BLat2Mon}
 \leanok
 A \textbf{BLat2Mon} is a set carrying a bounded lattice
 $(\wedge,\vee,\bot,\top)$ together with two monoid structures
 $(\parr,\dzero)$ and $(\AndC,\done)$; unlike a lattice-semiring
 (Definition~\ref{def:lattice-semiring}), no distributivity of any kind
-is assumed between the three structures. A \textbf{BLat2CMon} is a
-BLat2Mon whose two monoids $(\parr,\dzero)$ and $(\AndC,\done)$ are
-both commutative.
+is assumed between the three structures.
 \uses{def:lattice-semiring}
+Distilled from [NeSy26, App.~A] (the lifted-connective family);
+vocabulary from linear logic [Girard 1987].
+\end{definition}
+
+\begin{definition}[Commutative two-monoid bounded lattice]
+\label{def:blat2cmon}
+\lean{NeSyCat.BLat2CMon}
+\leanok
+A \textbf{BLat2CMon} is a BLat2Mon (Definition~\ref{def:blat2mon}) whose
+two monoids $(\parr,\dzero)$ and $(\AndC,\done)$ are both commutative.
+\uses{def:blat2mon}
 Distilled from [NeSy26, App.~A] (the lifted-connective family);
 vocabulary from linear logic [Girard 1987].
 \end{definition}
 
 \begin{definition}[Linear two-monoid lattice]
 \label{def:lin-blat2mon}
-\lean{NeSyCat.LinBLat2Mon, NeSyCat.LinBLat2CMon}
+\lean{NeSyCat.LinBLat2Mon}
 \leanok
 A \textbf{LinBLat2Mon} is a BLat2Mon (Definition~\ref{def:blat2mon}) in
 which $\AndC$ preserves finite joins in each argument and $\parr$
@@ -531,9 +580,21 @@ preserves finite meets in each argument:
 \item nullary: $p \AndC \bot = \bot = \bot \AndC p$ (annihilation) and
   $p \parr \top = \top = \top \parr p$ (absorption).
 \end{itemize}
-A \textbf{LinBLat2CMon} is a commutative one (a BLat2CMon satisfying
-these laws), in which case the one-sided version of each law suffices.
 \uses{def:blat2mon}
+These are exactly the four linear distributions of linear logic
+($\otimes$ over $\oplus$, $\parr$ over $\&$, together with their
+units), transported along the dictionary of
+Remark~\ref{rem:ll-dictionary}; [Girard 1987].
+\end{definition}
+
+\begin{definition}[Commutative linear two-monoid lattice]
+\label{def:lin-blat2cmon}
+\lean{NeSyCat.LinBLat2CMon}
+\leanok
+A \textbf{LinBLat2CMon} is a BLat2CMon (Definition~\ref{def:blat2cmon})
+satisfying the linear laws of Definition~\ref{def:lin-blat2mon}, in
+which case the one-sided version of each law suffices.
+\uses{def:blat2cmon, def:lin-blat2mon}
 These are exactly the four linear distributions of linear logic
 ($\otimes$ over $\oplus$, $\parr$ over $\&$, together with their
 units), transported along the dictionary of
@@ -686,15 +747,33 @@ Lemma~\ref{lem:dm-unit-swap}, $\neg p \parr \neg q = \dzero$, so
 $\neg q$ is a two-sided $\parr$-inverse of $\neg p$.
 \end{proof}
 
-\begin{definition}[Unit-bound mixins]
-\label{def:unit-bounds}
-\lean{NeSyCat.ZeroBot, NeSyCat.OneTop, NeSyCat.UnitBounds}
+\begin{definition}[ZeroBot]
+\label{def:zero-bot}
+\lean{NeSyCat.ZeroBot}
 \leanok
-For a BLat2Mon (Definition~\ref{def:blat2mon}): \textbf{ZeroBot}
-demands $\dzero = \bot$; \textbf{OneTop} demands $\done = \top$;
-\textbf{UnitBounds} demands both, collapsing the four constants of
-Remark~\ref{rem:four-constants} to two.
+For a BLat2Mon (Definition~\ref{def:blat2mon}), \textbf{ZeroBot}
+demands $\dzero = \bot$.
 \uses{def:blat2mon}
+\end{definition}
+
+\begin{definition}[OneTop]
+\label{def:one-top}
+\lean{NeSyCat.OneTop}
+\leanok
+For a BLat2Mon (Definition~\ref{def:blat2mon}), \textbf{OneTop}
+demands $\done = \top$.
+\uses{def:blat2mon}
+\end{definition}
+
+\begin{definition}[UnitBounds]
+\label{def:unit-bounds}
+\lean{NeSyCat.UnitBounds}
+\leanok
+For a BLat2Mon (Definition~\ref{def:blat2mon}), \textbf{UnitBounds}
+demands both ZeroBot (Definition~\ref{def:zero-bot}) and OneTop
+(Definition~\ref{def:one-top}), collapsing the four constants of
+Remark~\ref{rem:four-constants} to two.
+\uses{def:zero-bot, def:one-top}
 \end{definition}
 
 \begin{lemma}[Unit bounds via mixed absorption]
@@ -711,7 +790,7 @@ In a LinBLat2Mon (Definition~\ref{def:lin-blat2mon}):
 \item[(ii)] $\dzero = \bot$ iff $p \vee q \le p \parr q$ for all $p,q$
   iff the mixed absorption $p \wedge (p \parr q) = p$ holds.
 \end{enumerate}
-\uses{lem:lin-monotone, def:unit-bounds}
+\uses{lem:lin-monotone, def:zero-bot, def:one-top}
 \end{lemma}
 
 \begin{proof}
@@ -785,11 +864,11 @@ NeSyCat.BoolW.andC_eq_inf}
 \leanok
 $\BoolS$ with its lattice $(\wedge,\vee,0,1)$, monoids
 $(\parr,\dzero) = (\vee,0)$ and $(\AndC,\done) = (\wedge,1)$, and
-$\neg$ is a LinBLat2CMon (Definition~\ref{def:lin-blat2mon}) with DM
+$\neg$ is a LinBLat2CMon (Definition~\ref{def:lin-blat2cmon}) with DM
 structure (Definition~\ref{def:dm-structure}) and UnitBounds
 (Definition~\ref{def:unit-bounds}); the connective pairs collapse,
 $\AndC = \wedge$ and $\parr = \vee$ --- the idempotent case.
-\uses{def:lin-blat2mon, def:dm-structure, def:unit-bounds,
+\uses{def:lin-blat2cmon, def:dm-structure, def:unit-bounds,
 thm:chain-lin}
 [NeSy26, App.~A]
 \end{lemma}
@@ -813,7 +892,7 @@ $(\parr,\dzero) = (p+q-pq,\ 0)$ and $(\AndC,\done) = (pq,\ 1)$, and
 $\neg p = 1-p$ is a LinBLat2CMon with DM structure and UnitBounds.
 This is precisely the structure the non-semiring row of
 Lemma~\ref{lem:prob-not-semiring} does carry.
-\uses{def:lin-blat2mon, def:dm-structure, def:unit-bounds,
+\uses{def:lin-blat2cmon, def:dm-structure, def:unit-bounds,
 thm:chain-lin, lem:prob-not-semiring}
 [NeSy26, App.~A]
 \end{lemma}
@@ -892,7 +971,7 @@ $\neg(w_0,w_1) = (w_1,w_0)$ is a DM structure
 but $\AndC$ is not monotone; hence, by Lemma~\ref{lem:lin-monotone},
 the linear laws fail --- the square rows are BLat2CMon-with-DM
 territory, not Lin.
-\uses{def:order-family, lem:lifted-mass, def:dm-structure,
+\uses{def:order-family, lem:lifted-mass, def:blat2cmon, def:dm-structure,
 lem:lin-monotone}
 \end{theorem}
 
@@ -1215,7 +1294,7 @@ For a lattice-semiring $S$, $\MS{S}(\BoolS) = S^{\BoolS} \cong S\times
 S$ carries all scalar operations ($\oplus,\otimes,0,1$) and the order
 ($\wedge,\vee,\bot,\top,\le$) componentwise, and a (finite) power of a
 lattice-semiring is again a lattice-semiring.
-\uses{def:lattice-semiring, def:semiring-monad}
+\uses{def:lattice-semiring, def:comm-lattice-semiring, def:bounded-lattice-semiring, def:bounded-comm-lattice-semiring, def:semiring-monad}
 [NeSy26, App.~A]
 \end{lemma}
 

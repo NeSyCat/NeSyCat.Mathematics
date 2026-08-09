@@ -11,7 +11,8 @@ import NeSyCat.Monad.SemiringMonad
 # The log semiring and the log isomorphism
 
 Blueprint item `lem:log-iso` (`blueprint/src/content.tex`, §"Semiring weight
-monads", `[NeSy26, App. A]`), and the log instance of `def:lattice-semiring`
+monads", `[NeSy26, App. A]`), and the log instance of
+`ex:lattice-semiring-rows`
 (`blueprint/src/content.tex`, same section) deferred from
 `NeSyCat/Monad/LatticeSemiring.lean`.
 
@@ -51,7 +52,7 @@ one level or the other.
 * the transported `CommSemiring LogS` instance, plus `logS_add_eq_lse` /
   `logS_mul_eq_logMul` bridging it to `lse`/`logMul`.
 * `logRingEquiv : ℝ≥0 ≃+* LogS` — the semiring isomorphism proper.
-* `instLatCSRngLogS : LatCSRng LogS` — completing `def:lattice-semiring`.
+* `instLatCSRngLogS : LatCSRng LogS` — completing `ex:lattice-semiring-rows`.
 * `logTensEquiv X : MS ℝ≥0 X ≃ MS LogS X` and `LogTens` — the monad
   isomorphism `Tmon ≅ LTmon`.
 -/
@@ -62,7 +63,7 @@ open scoped NNReal
 
 /-! ### The carrier `LogS` and its native lattice order -/
 
-/-- Blueprint `def:lattice-semiring` (log carrier): `LogS := ℝ ∪ {-∞}`,
+/-- Blueprint `ex:lattice-semiring-rows` (log carrier): `LogS := ℝ ∪ {-∞}`,
 realized as Mathlib's `WithBot ℝ`. See the module doc comment for why this
 is a plain `def`, not `abbrev`. -/
 def LogS : Type := WithBot ℝ
@@ -151,7 +152,7 @@ theorem logToFun_of_ne_zero {x : ℝ≥0} (hx : x ≠ 0) :
 `LogS`'s native `WithBot ℝ` order. Used below both to install the
 `LatCSRng LogS` monotonicity fields (transporting `ℝ≥0`'s) and, earlier in
 spirit, to justify that the transported algebra and the native lattice order
-of `def:lattice-semiring`'s log row genuinely agree. -/
+of `ex:lattice-semiring-rows`'s log row genuinely agree. -/
 theorem logEquiv_le_iff (x y : ℝ≥0) : logEquiv x ≤ logEquiv y ↔ x ≤ y := by
   by_cases hx : x = 0
   · subst hx
@@ -263,7 +264,7 @@ theorem logEquiv_mul (x y : ℝ≥0) : logEquiv (x * y) = logMul (logEquiv x) (l
 
 /-! ### The transported `CommSemiring LogS` -/
 
-/-- Blueprint `def:lattice-semiring` (log instance, semiring structure):
+/-- Blueprint `ex:lattice-semiring-rows` (log instance, semiring structure):
 `CommSemiring LogS` transported from `CommSemiring ℝ≥0` along `logEquiv`,
 via Mathlib's transfer machinery (`Equiv.commSemiring`,
 `Mathlib/Algebra/Ring/TransferInstance.lean`) rather than proved by hand.
@@ -323,7 +324,7 @@ noncomputable def logRingEquiv : ℝ≥0 ≃+* LogS :=
 
 theorem logRingEquiv_apply (x : ℝ≥0) : logRingEquiv x = logEquiv x := rfl
 
-/-! ### `LatCSRng LogS`, completing `def:lattice-semiring` -/
+/-! ### `LatCSRng LogS`, completing `ex:lattice-semiring-rows` -/
 
 theorem logS_add_le_add_left {a b : LogS} (h : a ≤ b) (c : LogS) : c + a ≤ c + b := by
   rw [logS_add_eq_lse, logS_add_eq_lse, ← logEquiv.apply_symm_apply c,
@@ -347,7 +348,7 @@ theorem logS_mul_le_mul_left {a b : LogS} (h : a ≤ b) (c : LogS) : c * a ≤ c
 theorem logS_mul_le_mul_right {a b : LogS} (h : a ≤ b) (c : LogS) : a * c ≤ b * c := by
   rw [mul_comm a c, mul_comm b c]; exact logS_mul_le_mul_left h c
 
-/-- Blueprint `def:lattice-semiring` (log instance): completes the log row
+/-- Blueprint `ex:lattice-semiring-rows` (log instance): completes the log row
 of the definition — `LogS` is a commutative lattice-semiring, its `+`/`*`
 (via `logS_add_eq_lse`/`logS_mul_eq_logMul`, i.e. `lse`/`logMul`) each
 monotone with respect to the native `WithBot ℝ` order, transported from

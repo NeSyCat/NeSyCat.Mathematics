@@ -8,7 +8,8 @@ import Mathlib
 /-!
 # Two-monoid bounded lattices (`BLat2Mon`)
 
-Blueprint items `def:blat2mon`, `def:lin-blat2mon`, `def:dm-structure`,
+Blueprint items `def:blat2mon`, `def:blat2cmon`, `def:lin-blat2mon`,
+`def:lin-blat2cmon`, `def:dm-structure`, `def:zero-bot`, `def:one-top`,
 `def:unit-bounds`, `lem:lin-monotone`, `lem:lin-lax-duals`
 (`blueprint/src/content.tex`, §"Truth-value structures", `[NeSy26, App. A]`;
 vocabulary from linear logic, Girard 1987).
@@ -68,7 +69,7 @@ class BLat2Mon (α : Type*) [Lattice α] [BoundedOrder α] where
   done_andC : ∀ p, andC done p = p
   andC_done : ∀ p, andC p done = p
 
-/-- Blueprint `def:blat2mon` (Commutative two-monoid bounded lattice): a
+/-- Blueprint `def:blat2cmon` (Commutative two-monoid bounded lattice): a
 **BLat2CMon** is a `BLat2Mon` whose two monoids `(parr, dzero)` and
 `(andC, done)` are both commutative. -/
 class BLat2CMon (α : Type*) [Lattice α] [BoundedOrder α] extends BLat2Mon α where
@@ -101,7 +102,7 @@ class LinBLat2Mon (α : Type*) [Lattice α] [BoundedOrder α] extends BLat2Mon �
   /-- Absorption: `parr` saturates to `⊤` on the left. -/
   top_parr : ∀ p, parr ⊤ p = ⊤
 
-/-- Blueprint `def:lin-blat2mon` (Commutative linear two-monoid lattice): a
+/-- Blueprint `def:lin-blat2cmon` (Commutative linear two-monoid lattice): a
 **LinBLat2CMon** is a `BLat2CMon` satisfying the `LinBLat2Mon` laws (a
 commutative `LinBLat2Mon`); Lean flattens the shared `BLat2Mon` parent. -/
 class LinBLat2CMon (α : Type*) [Lattice α] [BoundedOrder α]
@@ -119,13 +120,13 @@ class DMStructure (α : Type*) [Lattice α] [BoundedOrder α] [BLat2Mon α] wher
   dneg_antitone : ∀ p q : α, p ≤ q → dneg q ≤ dneg p
   dneg_andC : ∀ p q, dneg (BLat2Mon.andC p q) = BLat2Mon.parr (dneg q) (dneg p)
 
-/-- Blueprint `def:unit-bounds` (Unit-bound mixin, ZeroBot): for a
+/-- Blueprint `def:zero-bot` (Unit-bound mixin, ZeroBot): for a
 `BLat2Mon`, **ZeroBot** demands `dzero = ⊥`. A `Prop`-class: it asserts a
 coincidence between already-existing data, not new data. -/
 class ZeroBot (α : Type*) [Lattice α] [BoundedOrder α] [BLat2Mon α] : Prop where
   dzero_eq_bot : (BLat2Mon.dzero : α) = ⊥
 
-/-- Blueprint `def:unit-bounds` (Unit-bound mixin, OneTop): for a
+/-- Blueprint `def:one-top` (Unit-bound mixin, OneTop): for a
 `BLat2Mon`, **OneTop** demands `done = ⊤`. Together, `ZeroBot` and `OneTop`
 are `UnitBounds`, collapsing the four constants of Remark
 `rem:four-constants` to two. -/

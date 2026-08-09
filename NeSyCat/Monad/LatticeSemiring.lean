@@ -8,7 +8,9 @@ import Mathlib
 /-!
 # Lattice-semirings
 
-Blueprint items `def:lattice-semiring` and `lem:prob-not-semiring`
+Blueprint items `def:lattice-semiring`, `def:comm-lattice-semiring`,
+`def:bounded-lattice-semiring`, `def:bounded-comm-lattice-semiring`,
+`ex:lattice-semiring-rows`, and `lem:prob-not-semiring`
 (`blueprint/src/content.tex`, §"Semiring weight monads", `[NeSy26, App. A]`).
 
 `LatSRng` ("lattice-semiring") is stated at its natural generality: an
@@ -92,7 +94,7 @@ theorem add_le_add_right_of_left {a b : S} (h : a ≤ b) (c : S) : a + c ≤ b +
 
 end LatSRng
 
-/-- Blueprint `def:lattice-semiring` (Commutative lattice-semiring): the
+/-- Blueprint `def:comm-lattice-semiring` (Commutative lattice-semiring): the
 commutative refinement of `LatSRng`, adding `mul_comm`. The library's three
 running instances (Boolean, mass, log) are all `LatCSRng` in this sense —
 `[NeSy26, App.~A]` only ever works with the commutative case, so this is the
@@ -136,7 +138,7 @@ theorem mul_le_mul_right_of_left {a b : S} (h : a ≤ b) (c : S) : a * c ≤ b *
 
 end LatCSRng
 
-/-- Blueprint `def:lattice-semiring` (Bounded lattice-semiring): the bounded
+/-- Blueprint `def:bounded-lattice-semiring` (Bounded lattice-semiring): the bounded
 refinement of `LatSRng`, additionally requiring a `BoundedOrder` (an
 in-carrier `⊥` and `⊤`). The mass and log instances are *not* bounded in
 this sense (no in-carrier `⊤` without adjoining `∞` externally); the
@@ -144,7 +146,7 @@ Boolean instance is (`⊥ = 0 = false`, `⊤ = 1 = true`, see
 `BoolW.bot_eq_zero`/`BoolW.top_eq_one` below). -/
 class BLatSRng (S : Type*) extends LatSRng S, BoundedOrder S
 
-/-- Blueprint `def:lattice-semiring` (Bounded commutative lattice-semiring):
+/-- Blueprint `def:bounded-comm-lattice-semiring` (Bounded commutative lattice-semiring):
 the bounded refinement of `LatCSRng`, structured in parallel to it —
 `BLatCSRng` extends `BLatSRng` and adds its own `mul_comm` field (rather
 than also `extends LatCSRng`, which would create two independent `mul_comm`
@@ -215,7 +217,7 @@ unbounded mass/log instances. -/
 (also `true`). -/
 @[simp] theorem top_eq_one : (⊤ : BoolW) = 1 := rfl
 
-/-- Blueprint `def:lattice-semiring` (Boolean instance): `⊕ = or` is exactly
+/-- Blueprint `ex:lattice-semiring-rows` (Boolean instance): `⊕ = or` is exactly
 the lattice join and `⊗ = and` is exactly the lattice meet, so both
 directions of monotonicity for both operations, and commutativity, are all
 decidable on this finite carrier; `Bool`'s existing bounds (`⊥ = false`,
@@ -240,7 +242,7 @@ instance, so `ℝ≥0` is built only at `LatCSRng`, not the bounded `BLatCSRng`.
 
 open scoped NNReal
 
-/-- Blueprint `def:lattice-semiring` (mass instance): on `ℝ≥0` (`⊕ = +`,
+/-- Blueprint `ex:lattice-semiring-rows` (mass instance): on `ℝ≥0` (`⊕ = +`,
 `⊗ = ·`). `NNReal`'s own `CommSemiring`/`Lattice`/order instances supply
 everything except the four monotonicity fields, closed by `gcongr` (both
 directions of both operations are monotone on `ℝ≥0`, uniformly). No
