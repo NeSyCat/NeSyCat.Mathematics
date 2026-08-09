@@ -41,6 +41,106 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 
 ## Notes
 
+- **C2-E4b (Run 6, outward notation propagation, 2026-08-09):**
+  the E4b half of the notation-propagation spec: macros.sty surgery,
+  Lean glyph-notation removal, both papers, the hash pin, bold units,
+  and one naked-claim lemma promotion.
+  (1) **`NeSyCat.Logics/macros.sty`** (edited, not committed, per
+  standing convention): the LL-dictionary `\parr` cell's macro is
+  retired and replaced by a new `\llparr` (self-contained dual-render:
+  reuses a real `\parr` glyph if a package already defines one, e.g.
+  the papers' own `cmll`, else falls back to the bare Unicode `⅋`, safe
+  for the web/MathJax build); `\parr`/`\AndC` themselves are DELETED
+  (grepped first across the blueprint and both papers: zero remaining
+  callers, confirming the C2-E3/A8 sweep's completeness). `\dzero`/
+  `\done` keep their macro calls but now render BOLD (`\ifdefined\symbf`
+  for `unicode-math` engines, `\mathbf` otherwise; verified both
+  engines produce actual bold glyphs -- print.tex's pdf shows Unicode
+  bold-digit codepoints `𝟎`/`𝟏`, the web build shows `\mathbf{0}`/
+  `\mathbf{1}`). `% Lean:` twins updated to match: `\AndC`'s twin
+  retired from `NeSyCat/Notation.lean`'s registry (both sides in the
+  same step); `\dzero`/`\done`'s twins reworded to point at the live
+  `BLat2Mon.dzero`/`done` fields (no glyph claim); `\llparr` carries no
+  `% Lean:` tag (a foreign-notation display device, never gaining a
+  Lean counterpart). (2) **`NeSyCat/Notation.lean`**: the scoped `⅋`/`&`
+  infix notation (never shipped as anything but scoped, unused in any
+  statement or proof per an exhaustive grep) is REMOVED entirely per
+  user adjudication -- plain field names (`oplus`/`otimes`) are the
+  Lean surface, matching the `dneg` precedent; a new module-doc section
+  records the retirement rationale alongside the file's two existing
+  "tried and reverted" transcripts. Doc-comment mentions across
+  `BLat2Mon.lean`, `DeMorgan.lean`, `Impossibility.lean`,
+  `BoolInstance.lean`, `TruthSpace.lean`, `Lifted.lean`, and
+  `ThreeLayers.lean` that named the glyphs AS IF they were live Lean
+  notation (`` `⅋`-unit ``, `` `w \& v` `` formulas, etc.) are swept to
+  the plain names (`` `oplus`-unit ``, `` otimes w v ``); citations of
+  Girard's own Linear Logic vocabulary (`` linear logic's `⅋` ``) are
+  left untouched, since those describe LL's symbol, not ours. Stale
+  dotted-unit glyph mentions (`0̇`/`1̇`) swept to plain prose ("bold
+  `0`"/"bold `1`") to match the macros.sty re-render. (3) **Both
+  papers** (`NeSyCat.Logics`, edited, not committed): `new.tex` already
+  `\usepackage{../../macros}` (shared-macros adoption, pre-existing) --
+  its "2MonBLat connectives" table (`tab:layer-connectives`, beyond the
+  authoritative lines 1--396) swapped its LL-dictionary `\parr` cells to
+  `\llparr`; separately, ALL `\otimes`/`\oplus` occurrences that denote
+  the categorical/object-level tensor (the CD-category and actegory
+  apparatus of the "Categorical Layer"/"Logical Layer" (which is really
+  about categorical interpretation)/"Domain Layer"/"Grammatical Layer"
+  sections, lines 100-471, matching `content.tex`'s own already-swapped
+  "From here on, `\otimes` (rendered `\boxtimes`)" convention verbatim;
+  and the "Categorical 2Mon-BLat" section's `def:cat-2mon-blat`/
+  `def:cat-a2mon-blat` material and its own connectives table's
+  "Categorical" column, lines 811-945) were swapped to `\boxtimes`/
+  `\boxplus`, DISCLOSED judgment call: the paper's `def:2mon-blat`
+  (value-level, sort `\tau`) and its one monotonicity citation stay
+  `\otimes`/`\oplus`, matching the value-level/object-level split
+  `content.tex` already made. One occurrence (a Zadeh fuzzy-powerset
+  "sup-`\otimes`" composition mention, unrelated external-paper
+  notation, not ours either layer) was left untouched, disclosed as
+  out of scope rather than guessed at. `new.tex` recompiled clean via
+  its own `pdflatex`+`latexmk` route (exit 0, 24 pages, zero errors,
+  two pre-existing unrelated font-shape warnings). `nesy2026-paper.tex`
+  needed NO content changes (grepped: zero `\parr`/`\AndC`/bare `⅋`
+  connective misuse, zero `\dzero`/`\done` calls -- its own extensive
+  `\otimes`/`\oplus` usage is entirely semiring-monad/lifted-connective
+  value-level material, i.e. the same "pre-boundary" layer `content.tex`
+  itself never boxes); its compile could NOT be verified in this
+  environment (`latexmk` fails on a pre-existing, unrelated TeXLive
+  `latexminted` 0.5.0 / Python 3.14 `argparse` incompatibility --
+  confirmed pre-existing: the file already carried ~986 lines of
+  unrelated uncommitted WIP diff before this ticket touched it, and
+  this ticket made zero edits to it). (4) **Hash pin**: `new.tex`'s
+  sha256 changed after the sweep (content unchanged, notation only);
+  the `content.tex` `%`-comment pin (moved there by C2-E5) updated from
+  prefix `9a84f22551f1e9ec` to `a2d490694ef768fb`. User should commit
+  `new.tex` in `NeSyCat.Logics` (recommended again, per convention).
+  (5) **§10 rider, naked-claim promotion**: the unproven observation
+  sentence at content.tex's quantifier-nestability discussion (with its
+  own confessing "recorded here as an observation, not re-argued"
+  comment) is promoted to a new UNMARKED
+  `Lemma~\ref{lem:quantifier-columns-nestable}` (no Lean yet -- its
+  subject `\mathcal I(Q)_n` joins the logical-signatures formalization
+  slate) with the LEAD-supplied statement and proof transcribed
+  verbatim in house style (register-law dashes restructured to
+  parentheses/commas); the old sentence is replaced by a `\ref` to the
+  new lemma; `FORMALIZE.md`'s book register law gained one sentence:
+  narrative mathematical claims must be env-backed or explicitly Open,
+  never merely asserted. Gates: `scripts/check.sh` GREEN (full Lean
+  rebuild, notation removal touched real files); `scripts/sorry-report.sh`
+  0 sorries, 0 axioms; `scripts/blueprint.sh` GREEN -- structure 88
+  environments (baseline 87 per C2-E5, +1: the new lemma+its proof are
+  counted as ONE structural item by this gate's own convention, not +2
+  as a naive per-env count would suggest; reported here as the actual
+  observed change, not the ticket's own +2 expectation), kind-check 56
+  names (unchanged -- the new lemma is unmarked), census 303/48/255/0
+  unclassified (unchanged), registry sync OK at 9 twins (down from 10,
+  `\AndC`'s retirement), structure-mirror 15/0 (unchanged), pdf+web
+  rebuilds clean (1 overfull hbox, 1.2pt, unchanged from baseline).
+  DISCLOSED: `blueprint/src/print.tex` shows as locally modified
+  (title/author) but this ticket made no edits there and it is outside
+  this ticket's write set -- pre-existing uncommitted WIP matching
+  C2-E5's own disclosed "web/print title" follow-up flag, left
+  untouched and unstaged.
 - See `FORMALIZE.md` for the resume protocol and work loop.
 - **C2-E5 (Run 6, THE BOOK REGISTER, USER DECREE 2026-08-09):** the
   rendered blueprint now reads like a book. (1) **Apparatus off the

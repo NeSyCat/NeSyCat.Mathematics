@@ -21,11 +21,12 @@ the three structures. This file isolates that shape abstractly.
 **Why explicit operation fields, not `Monoid` instances.** A single carrier
 here bears *two* independent monoid structures — `(oplus, dzero)` (linear
 logic's `⅋`, "or-like") and `(otimes, done)` (linear logic's multiplicative
-`⊗`, notated `&` at the term level; the field itself is named `otimes`,
-not `[NeSy26]`'s own `andC` spelling — USER DECREE 2026-08-09, C2-E4c: the
-glyph-carrying operator symbol and the paper's own field name are
-independent choices, and the field is renamed to match the operator it
-denotes one-to-one) — and Mathlib's
+`⊗`; the field itself is named `otimes`, not `[NeSy26]`'s own `andC`
+spelling — USER DECREE 2026-08-09, C2-E4c: the glyph the LaTeX side prints
+and the paper's own field name are independent choices, and the field is
+renamed to match the operator it denotes one-to-one). No Lean notation
+glyph is shipped for either (`oplus`/`otimes` are the plain working names,
+C2-E4b — see `NeSyCat/Notation.lean`). Mathlib's
 `Monoid` typeclass can be registered at most once per type. So `BLat2Mon`
 carries `oplus`/`dzero`/`otimes`/`done` as explicit fields (over an ambient
 `[Lattice α] [BoundedOrder α]`, *not* extended — `BoolW` already carries
@@ -56,17 +57,16 @@ a set carrying a bounded lattice `(⊓, ⊔, ⊥, ⊤)` (via the ambient
 three structures. Distilled from `[NeSy26, App. A]` (the lifted-connective
 family); vocabulary from linear logic (Girard 1987). -/
 class BLat2Mon (α : Type*) [Lattice α] [BoundedOrder α] where
-  /-- The `⅋`-monoid multiplication (linear logic's `⅋`, "or-like"). -/
+  /-- The `oplus`-monoid multiplication (linear logic's `⅋`, "or-like"). -/
   oplus : α → α → α
-  /-- The `⅋`-unit (linear logic's `⊥`, the blueprint's `0̇`). -/
+  /-- The `oplus`-unit (linear logic's `⊥`, the blueprint's bold `0`). -/
   dzero : α
-  /-- The `&`-monoid multiplication (linear logic's *multiplicative*
-  conjunction `⊗`, notated `&` at the term level; field renamed `otimes`
-  from `[NeSy26]`'s `andC` spelling, C2-E4c — see the linear-logic
-  dictionary table in `blueprint/src/content.tex`,
-  §"Truth-value structures"). -/
+  /-- The `otimes`-monoid multiplication (linear logic's *multiplicative*
+  conjunction `⊗`; field renamed `otimes` from `[NeSy26]`'s `andC`
+  spelling, C2-E4c — see the linear-logic dictionary table in
+  `blueprint/src/content.tex`, §"Truth-value structures"). -/
   otimes : α → α → α
-  /-- The `&`-unit (linear logic's `1`, the blueprint's `1̇`). -/
+  /-- The `otimes`-unit (linear logic's `1`, the blueprint's bold `1`). -/
   done : α
   oplus_assoc : ∀ p q r, oplus (oplus p q) r = oplus p (oplus q r)
   dzero_oplus : ∀ p, oplus dzero p = p
@@ -85,12 +85,12 @@ class BLat2CMon (α : Type*) [Lattice α] [BoundedOrder α] extends BLat2Mon α 
 /-- Blueprint `def:lin-blat2mon` (Linear two-monoid lattice): a
 **LinBLat2Mon** is a `BLat2Mon` in which `otimes` preserves finite joins in
 each argument and `oplus` preserves finite meets in each argument: binary
-(`p & (q ⊔ r) = (p & q) ⊔ (p & r)` and its left-argument twin, dually for
-`⅋` and `⊓`) and nullary (`p & ⊥ = ⊥` annihilation, `p ⅋ ⊤ = ⊤` absorption,
-both two-sided). These are exactly the four linear distributions of linear
-logic (`⊗` over `⊕`, `⅋` over `&`, together with their units), transported
-along the linear-logic dictionary table of `blueprint/src/content.tex`,
-§"Truth-value structures" (Girard 1987). -/
+(`otimes p (q ⊔ r) = otimes p q ⊔ otimes p r` and its left-argument twin,
+dually for `oplus` and `⊓`) and nullary (`otimes p ⊥ = ⊥` annihilation,
+`oplus p ⊤ = ⊤` absorption, both two-sided). These are exactly the four
+linear distributions of linear logic (`⊗` over `⊕`, `⅋` over `&`, together
+with their units), transported along the linear-logic dictionary table of
+`blueprint/src/content.tex`, §"Truth-value structures" (Girard 1987). -/
 class LinBLat2Mon (α : Type*) [Lattice α] [BoundedOrder α] extends BLat2Mon α where
   /-- `otimes` preserves finite joins in its right argument. -/
   otimes_sup : ∀ p q r, otimes p (q ⊔ r) = otimes p q ⊔ otimes p r
@@ -118,7 +118,7 @@ class LinBLat2CMon (α : Type*) [Lattice α] [BoundedOrder α]
 /-- Blueprint `def:dm-structure` (De Morgan structure): a **DM structure**
 on a `BLat2Mon` is a map `dneg` satisfying (i) `dneg (dneg p) = p`;
 (ii) `p ≤ q → dneg q ≤ dneg p`; (iii)
-`dneg (p & q) = dneg q ⅋ dneg p`. Linear negation (Girard 1987), axiomatized
+`dneg (otimes p q) = oplus (dneg q) (dneg p)`. Linear negation (Girard 1987), axiomatized
 minimally; the equivalent presentations (antitonicity vs. the lattice
 De Morgan law) are compared in `thm:dm-presentations` (out of scope here). -/
 class DMStructure (α : Type*) [Lattice α] [BoundedOrder α] [BLat2Mon α] where

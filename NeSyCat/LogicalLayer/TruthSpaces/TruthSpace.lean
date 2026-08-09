@@ -42,7 +42,7 @@ convenience (a deliberate, disclosed encoding choice, matching the
 `lem:lifted-connective-strength` witness, near-`rfl`); the blueprint's own
 *original* iterated-bind description becomes three arity-specific LEMMAS
 (`lift_zero`, `lift_one`, `lift_two`, covering every arity actually used
-downstream: nullary, unary `¬`, binary `∧,∨,⅋,\&`).
+downstream: nullary, unary `¬`, binary `∧,∨,oplus,otimes`).
 
 `dstN` is built by structural recursion on `n` via `Fin.cons`/`Fin.tail`,
 pairing the arguments left-to-right (`w 0` bound outermost) exactly as the
@@ -244,7 +244,7 @@ theorem lift_one {W B : Type*} (op : (Fin 1 → W) → B) (w : Fin 1 → MS S W)
 
 /-- Blueprint `def:lifted-connective` (binary case, matching the
 blueprint's own iterated-bind description at `n = 2`, the arity used by
-`∧, ∨, ⅋, \&`): `lift op ![a, b] = a bind λx. b bind λy. Ret (op ![x,y])`. -/
+`∧, ∨, oplus, otimes`): `lift op ![a, b] = a bind λx. b bind λy. Ret (op ![x,y])`. -/
 -- blueprint: internal (A1 bijection-law companion of `lift`, content.tex def:lifted-connective)
 theorem lift_two {W B : Type*} (op : (Fin 2 → W) → B) (w : Fin 2 → MS S W) :
     lift op w = bind (w 0) fun x => bind (w 1) fun y => ret (op ![x, y]) := by
@@ -295,14 +295,14 @@ theorem lift₁_eq (op : BoolW → BoolW) (a : MS S BoolW) :
   rw [lift_one]
   simp
 
-/-- Blueprint `def:lifted-connective` (the `\&`-lift, "certain conjunction"):
+/-- Blueprint `def:lifted-connective` (the `otimes`-lift, "certain conjunction"):
 the lifted family's multiplicative connective, `lift₂` of `BoolW`'s own `⊗
 = ∧` (`NeSyCat/CategoricalLayer/SemiringMonads/LatticeSemiring.lean`). -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
 noncomputable def otimesM (a b : MS S BoolW) : MS S BoolW := lift₂ (· * ·) a b
 
-/-- Blueprint `def:lifted-connective` (the `⅋`-lift, "certain disjunction"):
+/-- Blueprint `def:lifted-connective` (the `oplus`-lift, "certain disjunction"):
 the lifted family's additive connective, `lift₂` of `BoolW`'s own
 `⊕ = ∨`. -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing

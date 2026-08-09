@@ -34,13 +34,14 @@ argument needs anyway).
 
 **Helper for `lem:dm-unit-swap`**: `oplus_unit_eq_dzero`, the private
 two-sided-unit-is-`dzero` fact the blueprint's proof invokes ("`¬done` is a
-two-sided `⅋`-unit, and monoid units are unique"): `e = e ⅋ dzero = dzero`,
-the first `=` from the *right*-unit law for `dzero` (`BLat2Mon.oplus_dzero`),
-the second from `e`'s own *left*-unit hypothesis instantiated at `dzero`
-— so, mechanically, only the left-unit hypothesis is consumed, but both are
-kept as parameters to match the blueprint's own "two-sided" framing (the
-proof site below supplies both, exactly mirroring its two displayed
-computations `¬done ⅋ p = p` and `p ⅋ ¬done = p`).
+two-sided `oplus`-unit, and monoid units are unique"):
+`e = oplus e dzero = dzero`, the first `=` from the *right*-unit law for
+`dzero` (`BLat2Mon.oplus_dzero`), the second from `e`'s own *left*-unit
+hypothesis instantiated at `dzero` — so, mechanically, only the left-unit
+hypothesis is consumed, but both are kept as parameters to match the
+blueprint's own "two-sided" framing (the proof site below supplies both,
+exactly mirroring its two displayed computations `oplus (dneg done) p = p`
+and `oplus p (dneg done) = p`).
 
 ## `thm:dm-presentations` (encoding choice: `List.TFAE`)
 
@@ -130,9 +131,10 @@ theorem dneg_oplus (p q : α) : dneg (oplus p q) = otimes (dneg q) (dneg p) := b
     _ = otimes (dneg q) (dneg p) := dneg_dneg _
 
 omit [DMStructure α] in
-/-- A two-sided `⅋`-unit equals `dzero` — the blueprint's `lem:dm-unit-swap`
-proof helper ("monoid units are unique"): `e = e ⅋ dzero = dzero`, the
-first `=` from `dzero`'s own right-unit law, the second from `e`'s
+/-- A two-sided `oplus`-unit equals `dzero` — the blueprint's
+`lem:dm-unit-swap` proof helper ("monoid units are unique"):
+`e = oplus e dzero = dzero`, the first `=` from `dzero`'s own right-unit
+law, the second from `e`'s
 left-unit hypothesis instantiated at `dzero`. Both hypotheses are kept
 (matching the blueprint's "two-sided" framing at the call site below),
 though only the left one is consumed here. -/
@@ -144,7 +146,7 @@ private theorem oplus_unit_eq_dzero {e : α}
 
 /-- Blueprint `lem:dm-unit-swap` (negation swaps `done` to `dzero`): for a
 DM structure, `dneg done = dzero`. Proof: `dneg done` is a two-sided
-`⅋`-unit — `dneg done ⅋ p = dneg (otimes (dneg p) done) = dneg (dneg p) = p`
+`oplus`-unit — `oplus (dneg done) p = dneg (otimes (dneg p) done) = dneg (dneg p) = p`
 and symmetrically — so `oplus_unit_eq_dzero` applies. -/
 theorem dneg_done : dneg (done : α) = dzero := by
   apply oplus_unit_eq_dzero

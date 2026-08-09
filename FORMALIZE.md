@@ -374,7 +374,13 @@ step below.
   "corrected upstream", "revisions up to", "git ref", "sha256",
   "authored and verified"), and the filler-phrase list above. A blind
   verifier reads a rendered page sample as a READER and flags apparatus
-  leakage or register violations on its own initiative.
+  leakage or register violations on its own initiative. Narrative
+  mathematical claims must be env-backed or explicitly Open, never
+  merely asserted in prose (C2-E4b, USER-CAUGHT violation): a sentence
+  making a real mathematical claim that Definition/Lemma/Theorem/proof
+  envs do not already cover gets promoted to its own env (with a real
+  proof, or the open-theorem convention's "Open." marker), not left as
+  an unmarked observation.
 - **The structure-mirror law (C2-E6, USER DECREE 2026-08-09).** The
   blueprint's `\section`/`\subsection` tree and the `NeSyCat/` folder
   tree mirror each other exactly — computed and self-updating, never

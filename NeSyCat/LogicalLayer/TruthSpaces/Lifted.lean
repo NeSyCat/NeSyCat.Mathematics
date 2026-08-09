@@ -47,7 +47,8 @@ Stated as readout *homomorphy*: the `Dist`-restricted lifted connectives
 argument reusing `NeSyCat/CategoricalLayer/SemiringMonads/Dist.lean`'s
 `bind_mass_one`/`ret_mass_one`
 exactly as chapter 1 does) commute with `distReadout` onto the *stipulated*
-`unitInterval` family of `NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean` (`&`, `⅋`,
+`unitInterval` family of
+`NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean` (`otimes`, `oplus`,
 `unitInterval.symm`) — the "derived, not stipulated" content of the
 blueprint item, in homomorphism form rather than as raw `ℝ≥0`
 truncated-subtraction formulas.
@@ -140,8 +141,8 @@ private theorem BoolW_or_table :
 private theorem BoolW_not_table : (negOp (0 : BoolW) = 1) ∧ (negOp (1 : BoolW) = 0) :=
   ⟨by decide, by decide⟩
 
-/-- The `\&`-lift's coordinate formula, at a general `[Semiring S]`: `w \& v
-= (w₀v₀+w₀v₁+w₁v₀, w₁v₁)` — the entry with `∧(1,1)=1` collects `w₁v₁` into
+/-- The `otimes`-lift's coordinate formula, at a general `[Semiring S]`:
+`otimes w v = (w₀v₀+w₀v₁+w₁v₀, w₁v₁)` — the entry with `∧(1,1)=1` collects `w₁v₁` into
 slot `1`, the three entries with `∧ = 0` sum into slot `0` (the routing
 engine `twoSlot_lift₂` specialized at `op := ∧`, then `BoolW_and_table`
 resolves all four `if`-conditions). Proved once; `lem:lifted-mass` and
@@ -156,7 +157,7 @@ theorem twoSlot_otimesM (w v : MS S BoolW) :
   rw [twoSlot_lift₂]
   simp [h00, h01, h10, h11, BoolW_zero_ne_one, BoolW_zero_ne_one.symm]
 
-/-- The `⅋`-lift's coordinate formula, dually: `w ⅋ v = (w₀v₀,
+/-- The `oplus`-lift's coordinate formula, dually: `oplus w v = (w₀v₀,
 w₀v₁+w₁v₀+w₁v₁)`. -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
@@ -176,9 +177,9 @@ theorem twoSlot_negM (w : MS S BoolW) : twoSlot (negM w) = (w 1, w 0) := by
   rw [twoSlot_lift₁, h0, h1]
   simp [BoolW_zero_ne_one, BoolW_zero_ne_one.symm]
 
-/-- The units' coordinate formula: `Ret(0) = (1, 0)`, the `⅋`-identity
-(certain False), and `Ret(1) = (0, 1)`, the `\&`-identity (certain True) —
-the unique solutions of `e ⅋ w = w`/`e \& w = w`, found here directly from
+/-- The units' coordinate formula: `Ret(0) = (1, 0)`, the `oplus`-identity
+(certain False), and `Ret(1) = (0, 1)`, the `otimes`-identity (certain True) —
+the unique solutions of `oplus e w = w`/`otimes e w = w`, found here directly from
 `ret`'s two-point support (`Finsupp.single_eq_same`/`_eq_of_ne`). Erratum
 note: the blueprint's own "Erratum, corrected upstream" paragraph
 (`blueprint/src/content.tex`, §"Truth spaces and lifted connectives",
@@ -196,13 +197,13 @@ theorem twoSlot_ret_one : twoSlot (ret (1 : BoolW) : MS S BoolW) = (0, 1) := by
 
 /-! ### `lem:lifted-mass`: the `S := ℝ≥0` instances (direct substitutions) -/
 
-/-- Blueprint `lem:lifted-mass` (`\&`-lift, mass coordinates), the `S :=
+/-- Blueprint `lem:lifted-mass` (`otimes`-lift, mass coordinates), the `S :=
 ℝ≥0` instance of `twoSlot_otimesM`. -/
 theorem twoSlot_otimesM_mass (w v : MS ℝ≥0 BoolW) :
     twoSlot (otimesM w v) = (w 0 * v 0 + w 0 * v 1 + w 1 * v 0, w 1 * v 1) :=
   twoSlot_otimesM w v
 
-/-- Blueprint `lem:lifted-mass` (`⅋`-lift, mass coordinates), the `S :=
+/-- Blueprint `lem:lifted-mass` (`oplus`-lift, mass coordinates), the `S :=
 ℝ≥0` instance of `twoSlot_oplusM`. -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
@@ -231,11 +232,11 @@ theorem twoSlot_ret_one_mass : twoSlot (ret (1 : BoolW) : MS ℝ≥0 BoolW) = (0
 
 /-! ### `lem:lifted-log`: the `S := LogS` instances -/
 
-/-- Blueprint `lem:lifted-log` (`\&`-lift, log coordinates): applying
+/-- Blueprint `lem:lifted-log` (`otimes`-lift, log coordinates): applying
 `Lemma lem:log-iso`'s bridging identities (`logS_mul_eq_logMul`,
 "products becoming sums", and `logS_add_eq_lse`, "sums becoming `lse`")
 coordinatewise to `twoSlot_otimesM`'s formula recovers the blueprint's display
-`a \& b = (lse(lse(a₀+b₀, a₀+b₁), a₁+b₀), a₁+b₁)`, where the inner `+` is
+`otimes a b = (lse(lse(a₀+b₀, a₀+b₁), a₁+b₀), a₁+b₁)`, where the inner `+` is
 `logMul` (log-space "multiplication is addition") and the outer `lse` is
 `LogS`'s own `⊕` (associative, so the ternary `lse(x,y,z)` display is the
 two binary applications shown). -/
@@ -246,7 +247,7 @@ theorem twoSlot_otimesM_log (a b : MS LogS BoolW) :
   rw [twoSlot_otimesM, logS_mul_eq_logMul, logS_mul_eq_logMul, logS_mul_eq_logMul,
     logS_mul_eq_logMul, logS_add_eq_lse, logS_add_eq_lse]
 
-/-- Blueprint `lem:lifted-log` (`⅋`-lift, log coordinates), dually. -/
+/-- Blueprint `lem:lifted-log` (`oplus`-lift, log coordinates), dually. -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `twoSlot_otimesM_log`, content.tex lem:lifted-log)
 theorem twoSlot_oplusM_log (a b : MS LogS BoolW) :
@@ -400,13 +401,13 @@ theorem lift₁_mass_one {a : MS ℝ≥0 BoolW} (ha : a.sum (fun _ w => w) = 1)
   rw [lift₁_eq]
   exact bind_mass_one ha fun x => ret_mass_one _
 
-/-- Blueprint `lem:lifted-prob-readout` (the `Dist`-restricted `\&`-lift). -/
+/-- Blueprint `lem:lifted-prob-readout` (the `Dist`-restricted `otimes`-lift). -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `distReadout_otimesD`, content.tex lem:lifted-prob-readout)
 noncomputable def otimesD (p q : Dist BoolW) : Dist BoolW :=
   ⟨otimesM p.1 q.1, lift₂_mass_one p.2 q.2 _⟩
 
-/-- Blueprint `lem:lifted-prob-readout` (the `Dist`-restricted `⅋`-lift). -/
+/-- Blueprint `lem:lifted-prob-readout` (the `Dist`-restricted `oplus`-lift). -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `distReadout_otimesD`, content.tex lem:lifted-prob-readout)
 noncomputable def oplusD (p q : Dist BoolW) : Dist BoolW :=
@@ -418,11 +419,11 @@ noncomputable def oplusD (p q : Dist BoolW) : Dist BoolW :=
 noncomputable def negD (p : Dist BoolW) : Dist BoolW :=
   ⟨negM p.1, lift₁_mass_one p.2 _⟩
 
-/-- Blueprint `lem:lifted-prob-readout` (`\&` readout homomorphism):
-`distReadout (p otimesD q) = distReadout p \& distReadout q`, where `\&` is
+/-- Blueprint `lem:lifted-prob-readout` (`otimes` readout homomorphism):
+`distReadout (p otimesD q) = otimes (distReadout p) (distReadout q)`, where `otimes` is
 `unitInterval`'s own stipulated multiplication
 (`NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean`'s `instBLat2Mon`) — the *derived* lifted
-`\&`, read out through the mass-one slice, coincides with the *stipulated*
+`otimes`, read out through the mass-one slice, coincides with the *stipulated*
 `unitInterval` connective. Proved from `twoSlot_otimesM`'s second coordinate
 (`w₁v₁`) via `NNReal.coe_mul`. -/
 theorem distReadout_otimesD (p q : Dist BoolW) :
@@ -435,11 +436,11 @@ theorem distReadout_otimesD (p q : Dist BoolW) :
   push_cast
   rfl
 
-/-- Blueprint `lem:lifted-prob-readout` (`⅋` readout homomorphism):
-`distReadout (p oplusD q) = distReadout p ⅋ distReadout q`, where `⅋` is
+/-- Blueprint `lem:lifted-prob-readout` (`oplus` readout homomorphism):
+`distReadout (p oplusD q) = oplus (distReadout p) (distReadout q)`, where `oplus` is
 `unitInterval`'s stipulated (`σ`-conjugate) `oplus`
 (`NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean`) — its real value `p+q-pq`
-(`unitInterval.coe_oplus`) matches the lifted family's `⅋`-slot exactly.
+(`unitInterval.coe_oplus`) matches the lifted family's `oplus`-slot exactly.
 This is the blueprint's headline content: the `[0,1]` family is *derived*
 from binding two independent truth values and pushing forward along the
 Boolean operation, not stipulated. -/

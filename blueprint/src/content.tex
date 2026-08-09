@@ -621,8 +621,11 @@ isomorphism), so it is a monad isomorphism $\MS{\MassS} \cong
 % working text of \emph{NeSyCat Theory: Semantics in Kleisli Categories
 % for Neuro-Symbolic AI in HaskTorch} (\textbf{NeSyCat Theory v2}), lines
 % 1--396 of \texttt{new.tex} in the \texttt{NeSyCat.Logics} repository
-% (sha256 prefix \texttt{9a84f22551f1e9ec} of that working text, itself
-% layered over \texttt{NeSyCat.Logics} git ref \texttt{1ade210}); no
+% (sha256 prefix \texttt{a2d490694ef768fb} of that working text, updated
+% C2-E4b after the \(\boxtimes\)/\(\boxplus\)/\(\llparr\) notation sweep of
+% the categorical/domain/grammatical layers and the categorical 2Mon-BLat
+% section -- content unchanged, notation only; itself layered over
+% \texttt{NeSyCat.Logics} git ref \texttt{1ade210}); no
 % notation from the superseded §3+ of the NeSy26 paper is reused below.
 % Every definition from here through the end of the Grammatical layer
 % (Section~\ref{sec:syntax-semantics}) is due to \emph{NeSyCat Theory
@@ -1179,7 +1182,7 @@ why the dictionary below exists.
 $\vee$ & $\oplus$ & additive disjunction (join) & $\bot$ & $0$ & order family (Definition~\ref{def:order-family}, join) \\
 $\wedge$ & \& & additive conjunction (meet) & $\top$ & $\top$ & order family (meet) \\
 $\otimes$ & $\otimes$ & multiplicative conjunction & $\done$ & $1$ & lifted connective (Definition~\ref{def:lifted-connective}) \\
-$\oplus$ & $\parr$ & multiplicative disjunction & $\dzero$ & $\bot$ & lifted connective \\
+$\oplus$ & $\llparr$ & multiplicative disjunction & $\dzero$ & $\bot$ & lifted connective \\
 $\neg$ & $(\cdot)^\bot$ & linear negation & none & none & DM structure (Class~\ref{def:dm-structure}) \\
 $\impc{\cdot}$ & $\multimap$ & linear implication & none & none & deferred (residuation section) \\
 $!,?$ & $!,?$ & exponentials & none & none & exp/log bridge (Definition~\ref{lem:log-iso}; completions) \\
@@ -1187,17 +1190,13 @@ $!,?$ & $!,?$ & exponentials & none & none & exp/log bridge (Definition~\ref{lem
 \end{tabular}
 }
 \end{center}
-% E4 TODO (C2-E3/A8): the LL column's "par" cell above still borrows
-% the old par macro (today rendering the turned-ampersand glyph) to
-% display linear logic's OWN multiplicative disjunction -- the one
-% deliberately retained foreign-glyph use in this document, since
-% macros.sty has no dedicated symbol for it yet and this ticket cannot
-% touch macros files. Every OTHER occurrence of the old par/and-C
-% macros in our own voice was swept to the round oplus/otimes commands
-% in this same ticket (the macros.sty definitions of the old macros
-% are untouched and still exist, used only by this one cell). Once
-% macros.sty adds a dedicated LL-par command, swap this cell to it and
-% delete the old par macro from macros.sty entirely (E4).
+% E4b: the LL column's "par" cell above now uses the dedicated \llparr
+% macro (macros.sty), which displays linear logic's OWN multiplicative
+% disjunction glyph -- the one deliberately retained foreign-glyph use in
+% this document. Every OTHER occurrence of the old par/and-C macros in our
+% own voice was already swept to the round oplus/otimes commands (C2-E3/A8);
+% macros.sty's own \parr/\AndC macros are now deleted entirely (E4b),
+% having zero remaining callers once this cell moved to \llparr.
 
 Class~\ref{def:lin-blat2mon} is exactly linear logic's four linear
 distributions; Lemma~\ref{lem:mix} is the MIX rule; linear implication
@@ -1962,18 +1961,34 @@ inputs of $\mathcal I(Q)_n$ (resp.\ $\mathcal I(Q)_m$) does not change
 its value.
 \end{proof}
 
-% Statement-minimality law (M5 Part B.7): the following sentence ---
-% "the four running quantifier columns ... satisfy both hypotheses" ---
-% is not argued by the proof above, which only proves the general
-% symmetric+nestable-implies-agreement claim; recorded here as an
-% observation, not re-argued (disclosed as this ticket's B.7 judgment
-% call, carried forward from the remark this dissolved out of).
 The four running quantifier columns (Max, Min, the $\Sigma$-$\Pi$ pair,
 and their log-column twins) all satisfy both hypotheses of
-Lemma~\ref{lem:quantifier-nestable}.
+Lemma~\ref{lem:quantifier-nestable}, by
+Lemma~\ref{lem:quantifier-columns-nestable} below.
 % Apparatus (C2-E5): source line-pin note, moved verbatim.
 % this too draws on \emph{NeSyCat Theory v2} beyond the pinned lines
 % 1--396.
+
+\begin{lemma}[Quantifier columns are nestable]
+\label{lem:quantifier-columns-nestable}
+The four running interpretation families (max, min, the $\Sigma$-$\Pi$
+pair, and their log twins) are symmetric and nestable in the sense of
+the hypotheses of Lemma~\ref{lem:quantifier-nestable}.
+\uses{lem:quantifier-nestable, lem:log-iso}
+\end{lemma}
+
+\begin{proof}
+Symmetry: each family reduces its inputs by an operation that is
+commutative and associative (max, min, $+$, $\cdot$), so the reduction is
+invariant under any permutation of its inputs. Nestability: a reduction
+over $mn$ inputs decomposes into $m$ block reductions of size $n$,
+followed by a reduction over the $m$ block results (for max and min by
+associativity, for $\Sigma$ and $\Pi$ by the block decomposition of
+finite sums and products). The log twins inherit both properties along
+the log isomorphism of Lemma~\ref{lem:log-iso}, since $\mathrm{lse}$ and
+$+$ are the images of $+$ and $\cdot$, and both laws transport
+pointwise.
+\end{proof}
 
 \textbf{Dice or die.} Let $\mathsf{dice} \colon [\,] \to \bigcirc\mathrm{Nat}$,
 $6 \colon [\,] \to \mathrm{Nat}$, ${=} \colon \mathrm{Nat}^2 \to \tau$,

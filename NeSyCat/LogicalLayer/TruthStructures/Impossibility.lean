@@ -122,7 +122,7 @@ theorem no_antitone_involution_logS :
 
 /-! ## `thm:square-not-lin`: the square operations -/
 
-/-- Blueprint `thm:square-not-lin` (the `\&`-lift's raw two-slot formula on
+/-- Blueprint `thm:square-not-lin` (the `otimes`-lift's raw two-slot formula on
 `ℝ≥0ᵒᵈ × ℝ≥0`): `otimesSq (a₀,a₁) (b₀,b₁) = (a₀b₀+a₀b₁+a₁b₀,\ a₁b₁)`, slot `0`
 carried through the `toDual`/`ofDual` wrappers of the order-family type
 (`def:order-family`). Provably equal to the lift `otimesM` transported through
@@ -135,7 +135,7 @@ per the ticket's own pin. -/
 noncomputable def otimesSq (a b : ℝ≥0ᵒᵈ × ℝ≥0) : ℝ≥0ᵒᵈ × ℝ≥0 :=
   (toDual (ofDual a.1 * ofDual b.1 + ofDual a.1 * b.2 + a.2 * ofDual b.1), a.2 * b.2)
 
-/-- Blueprint `thm:square-not-lin` (the `⅋`-lift's raw two-slot formula),
+/-- Blueprint `thm:square-not-lin` (the `oplus`-lift's raw two-slot formula),
 dually to `otimesSq`: `oplusSq (a₀,a₁) (b₀,b₁) = (a₀b₀,\ a₀b₁+a₁b₀+a₁b₁)` —
 `lem:lifted-mass`'s `twoSlot_oplusM_mass` at the un-dualized `twoSlot`. -/
 -- blueprint: internal (A1 bijection-law companion of
@@ -227,27 +227,27 @@ under `orderedTwoSlot`, `(toDual 0, 1)`. -/
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
 noncomputable def otimesUnitSq : ℝ≥0ᵒᵈ × ℝ≥0 := (toDual 0, 1)
 
-/-- Blueprint `thm:square-not-lin` (`⅋`-unit law, left): `oplusUnitSq` is a
+/-- Blueprint `thm:square-not-lin` (`oplus`-unit law, left): `oplusUnitSq` is a
 left unit for `oplusSq`. -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
 theorem oplusUnitSq_oplusSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : oplusSq oplusUnitSq w = w := by
   unfold oplusSq oplusUnitSq; simp
 
-/-- Blueprint `thm:square-not-lin` (`⅋`-unit law, right). -/
+/-- Blueprint `thm:square-not-lin` (`oplus`-unit law, right). -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
 theorem oplusSq_oplusUnitSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : oplusSq w oplusUnitSq = w := by
   unfold oplusSq oplusUnitSq; simp
 
-/-- Blueprint `thm:square-not-lin` (`&`-unit law, left): `otimesUnitSq` is a
+/-- Blueprint `thm:square-not-lin` (`otimes`-unit law, left): `otimesUnitSq` is a
 left unit for `otimesSq`. -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
 theorem otimesUnitSq_otimesSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : otimesSq otimesUnitSq w = w := by
   unfold otimesSq otimesUnitSq; simp
 
-/-- Blueprint `thm:square-not-lin` (`&`-unit law, right). -/
+/-- Blueprint `thm:square-not-lin` (`otimes`-unit law, right). -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
 theorem otimesSq_otimesUnitSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : otimesSq w otimesUnitSq = w := by

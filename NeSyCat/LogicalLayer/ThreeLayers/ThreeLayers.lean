@@ -35,7 +35,7 @@ but **no** canonical multiplication is registered on it (Finsupp
 deliberately carries no global pointwise-mul semiring instance, to avoid
 clashing with the different `AddMonoidAlgebra`-style convolution product a
 reader might otherwise expect): the hard rail against instance pollution on
-Mathlib-shaped carriers forbids inventing one here. So the `⊗`/`0̇... /1`/
+Mathlib-shaped carriers forbids inventing one here. So the mul/one/
 order-componentwise content is recorded as plain (non-instance) `def`s
 transporting `S × S`'s own pointwise operations *backward* through
 `twoSlot`, each with an "equational lemma on values" readout
@@ -51,7 +51,7 @@ below).
 
 Over `[CommSemiring S]` (the `163adf1`-patched blueprint hypothesis): the
 lifted family's monoid laws (associativity, commutativity, two-sided units)
-for `⅋`/`\&` (`oplusM`/`otimesM`), plus the De Morgan involution package for `¬`
+for `oplus`/`otimes` (`oplusM`/`otimesM`), plus the De Morgan involution package for `¬`
 (`negM`), stated as EQUATIONAL LEMMAS on `MS S BoolW` — no
 `Lattice`/`BLat2Mon`/`Monoid`-style instance is registered on `MS S BoolW`
 or `Finsupp`, matching the hard rail. Proved by two-slot transport: each
@@ -61,7 +61,7 @@ own explicit formulas (`twoSlot_otimesM`/`twoSlot_oplusM`/`twoSlot_negM`), the
 blueprint's own sanctioned proof route ("Directly from Lemma
 lem:lifted-mass"). Associativity needs no commutativity of `S` at all (the
 same six/four cross terms appear on both sides, `ring`-provably equal via
-only the semiring axioms); commutativity of `⅋`/`\&` is exactly the one
+only the semiring axioms); commutativity of `oplus`/`otimes` is exactly the one
 place `S`'s own `mul_comm` enters the argument — this is the concrete,
 routing-formula-level shadow of `thm:semiring-monad-commutative`'s
 `dstL = dstR ↔ S` commutative
@@ -102,7 +102,7 @@ about `MS BoolW BoolW`'s own `otimesM`/`oplusM` pointwise agreeing with
 rejected before writing this file, the disprove-guard in action), and
 units-vs-bounds: the positive witness is `unitInterval`'s own `UnitBounds`
 instance (`NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean`, cited), the negative witness
-(`not_isBot_orderedTwoSlot_ret_zero`) exhibits the `⅋`-unit's image under
+(`not_isBot_orderedTwoSlot_ret_zero`) exhibits the `oplus`-unit's image under
 `orderedTwoSlot` at `S := ℝ≥0` failing `IsBot`.
 -/
 
@@ -357,10 +357,10 @@ theorem ret_one_apply_one : (ret (1 : BoolW) : MS S BoolW) 1 = 1 :=
 
 variable {R : Type*} [CommSemiring R]
 
-/-! ### `⅋`/`\&` are commutative monoids (`lem:linear-lift`, over
+/-! ### `oplus`/`otimes` are commutative monoids (`lem:linear-lift`, over
 `[CommSemiring S]`) -/
 
-/-- Blueprint `lem:linear-lift` (`\&` associativity): proved by `twoSlot`
+/-- Blueprint `lem:linear-lift` (`otimes` associativity): proved by `twoSlot`
 transport — both sides expand, via `otimesM_apply_zero`/`otimesM_apply_one`, to
 the same sum of three-fold products, `ring`-closed with no need for `S`'s
 commutativity (matching the blueprint proof: associativity uses only the
@@ -371,7 +371,7 @@ theorem otimesM_assoc (a b c : MS R BoolW) : otimesM (otimesM a b) c = otimesM a
     otimesM_apply_one]
   ext <;> ring
 
-/-- Blueprint `lem:linear-lift` (`\&` commutativity): the one identity that
+/-- Blueprint `lem:linear-lift` (`otimes` commutativity): the one identity that
 genuinely needs `S`'s own `mul_comm` — the concrete, routing-formula-level
 shadow of `thm:semiring-monad-commutative`'s `dstL = dstR ↔ S` commutative
 (`NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean`'s `dst_comm`): the two independent
@@ -383,21 +383,21 @@ theorem otimesM_comm (a b : MS R BoolW) : otimesM a b = otimesM b a := by
   rw [twoSlot_otimesM, twoSlot_otimesM]
   ext <;> ring
 
-/-- Blueprint `lem:linear-lift` (`\&` left unit): `Ret(1) \& w = w`. -/
+/-- Blueprint `lem:linear-lift` (`otimes` left unit): `otimes (Ret 1) w = w`. -/
 -- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
 theorem ret_one_otimesM (w : MS R BoolW) : otimesM (ret 1) w = w := by
   apply twoSlot.injective
   rw [twoSlot_otimesM, ret_one_apply_zero, ret_one_apply_one]
   ext <;> simp
 
-/-- Blueprint `lem:linear-lift` (`\&` right unit): `w \& Ret(1) = w`. -/
+/-- Blueprint `lem:linear-lift` (`otimes` right unit): `otimes w (Ret 1) = w`. -/
 -- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
 theorem otimesM_ret_one (w : MS R BoolW) : otimesM w (ret 1) = w := by
   apply twoSlot.injective
   rw [twoSlot_otimesM, ret_one_apply_zero, ret_one_apply_one]
   ext <;> simp
 
-/-- Blueprint `lem:linear-lift` (`⅋` associativity), dual to `otimesM_assoc`. -/
+/-- Blueprint `lem:linear-lift` (`oplus` associativity), dual to `otimesM_assoc`. -/
 -- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
 theorem oplusM_assoc (a b c : MS R BoolW) : oplusM (oplusM a b) c = oplusM a (oplusM b c) := by
   apply twoSlot.injective
@@ -405,23 +405,23 @@ theorem oplusM_assoc (a b c : MS R BoolW) : oplusM (oplusM a b) c = oplusM a (op
     oplusM_apply_one]
   ext <;> ring
 
-/-- Blueprint `lem:linear-lift` (`⅋` commutativity), dual to `otimesM_comm` —
+/-- Blueprint `lem:linear-lift` (`oplus` commutativity), dual to `otimesM_comm` —
 again the one place `S`'s commutativity enters, matching the blueprint's
-"commutativity of `⅋, \&` specifically needs … `dstL = dstR`" proof note. -/
+"commutativity of `oplus, otimes` specifically needs … `dstL = dstR`" proof note. -/
 -- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
 theorem oplusM_comm (a b : MS R BoolW) : oplusM a b = oplusM b a := by
   apply twoSlot.injective
   rw [twoSlot_oplusM, twoSlot_oplusM]
   ext <;> ring
 
-/-- Blueprint `lem:linear-lift` (`⅋` left unit): `Ret(0) ⅋ w = w`. -/
+/-- Blueprint `lem:linear-lift` (`oplus` left unit): `oplus (Ret 0) w = w`. -/
 -- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
 theorem ret_zero_oplusM (w : MS R BoolW) : oplusM (ret 0) w = w := by
   apply twoSlot.injective
   rw [twoSlot_oplusM, ret_zero_apply_zero, ret_zero_apply_one]
   ext <;> simp
 
-/-- Blueprint `lem:linear-lift` (`⅋` right unit): `w ⅋ Ret(0) = w`. -/
+/-- Blueprint `lem:linear-lift` (`oplus` right unit): `oplus w (Ret 0) = w`. -/
 -- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
 theorem oplusM_ret_zero (w : MS R BoolW) : oplusM w (ret 0) = w := by
   apply twoSlot.injective
@@ -443,8 +443,8 @@ theorem negM_ret_zero : (negM (ret 0) : MS S BoolW) = ret 1 := by
   apply twoSlot.injective
   rw [twoSlot_negM, ret_zero_apply_zero, ret_zero_apply_one, twoSlot_ret_one]
 
-/-- Blueprint `lem:linear-lift` (De Morgan law, `⅋` to `\&`): `¬(w ⅋ v) = ¬w
-\& ¬v`. Unlike `negM_negM`/`negM_ret_zero` above, this identity's cross
+/-- Blueprint `lem:linear-lift` (De Morgan law, `oplus` to `otimes`):
+`¬(oplus w v) = otimes ¬w ¬v`. Unlike `negM_negM`/`negM_ret_zero` above, this identity's cross
 terms reorder as `w0v1+w1v0` vs. `w1v0+w0v1` — an `+`-only reordering that
 holds at any `[Semiring S]` — but it is stated under `[CommSemiring R]`
 alongside `negM_otimesM` (which does need `mul_comm`) to keep
@@ -457,8 +457,8 @@ theorem negM_oplusM (w v : MS R BoolW) : negM (oplusM w v) = otimesM (negM w) (n
     negM_apply_one, negM_apply_zero, negM_apply_one]
   ext <;> ring
 
-/-- Blueprint `lem:linear-lift` (De Morgan law, `\&` to `⅋`): `¬(w \& v) =
-¬v ⅋ ¬w`. This one genuinely needs `R`'s `mul_comm` (`w1*v1 = v1*w1` in the
+/-- Blueprint `lem:linear-lift` (De Morgan law, `otimes` to `oplus`):
+`¬(otimes w v) = oplus ¬v ¬w`. This one genuinely needs `R`'s `mul_comm` (`w1*v1 = v1*w1` in the
 first coordinate), the De Morgan identity where `S`'s commutativity is
 load-bearing, not merely convenient. -/
 -- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
@@ -489,7 +489,7 @@ theorem distReadout_fairCoin :
   Equiv.apply_symm_apply _ _
 
 /-- Blueprint `lem:copying-fails` (fair-coin witness): the `Dist`-restricted
-`\&`-lift is not idempotent at the fair coin — `otimesD ρ ρ ≠ ρ`. Proved via
+`otimes`-lift is not idempotent at the fair coin — `otimesD ρ ρ ≠ ρ`. Proved via
 the readout homomorphism `distReadout_otimesD`: `readout (ρ otimesD ρ) = ½ * ½ =
 ¼ ≠ ½ = readout ρ`, `norm_num` on the real/`unitInterval` coercions. -/
 -- blueprint: internal (A1 bijection-law companion of
@@ -507,9 +507,9 @@ theorem otimesD_fairCoin_ne : otimesD fairCoin fairCoin ≠ fairCoin := by
   norm_num [BLat2Mon.otimes] at hcoe
 
 /-- Blueprint `lem:copying-fails` (general clause, `∃`-form matching the
-blueprint's own "fail in general. Witness: …" statement shape): `\&` is not
-idempotent — some `p` strictly between `0` and `1` has `p \& p ≠ p`,
-witnessed by `p = 1/2` (`p \& p = p² ≠ p` since `p ∈ \{0,1\}` would be
+blueprint's own "fail in general. Witness: …" statement shape): `otimes` is not
+idempotent — some `p` strictly between `0` and `1` has `otimes p p ≠ p`,
+witnessed by `p = 1/2` (`otimes p p = p² ≠ p` since `p ∈ \{0,1\}` would be
 needed for equality, `norm_num`). -/
 theorem exists_otimes_ne_self :
     ∃ p : _root_.unitInterval, (0 : ℝ) < p ∧ (p : ℝ) < 1 ∧ BLat2Mon.otimes p p ≠ p := by
@@ -586,7 +586,7 @@ built from `instZeroBot`/`instOneTop`) is the positive case: `Ret(0),Ret(1)`
 agree with `⊥,⊤` on the normalized (mass-one) row — cited, not reproved. -/
 
 /-- Blueprint `thm:three-layers` (units-vs-bounds, negative witness): in the
-mass order family (`Sᵒᵈ × S` at `S := ℝ≥0`), the `⅋`-unit's image under
+mass order family (`Sᵒᵈ × S` at `S := ℝ≥0`), the `oplus`-unit's image under
 `orderedTwoSlot` is not a bottom — exhibited via the point
 `(toDual 2, 0)`, since `toDual 1 ≤ toDual 2` would force `2 ≤ 1` in `ℝ≥0`. -/
 -- blueprint: internal (A1 bijection-law companion of

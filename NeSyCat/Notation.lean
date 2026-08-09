@@ -6,13 +6,17 @@ Authors: Daniel Romero Schellhorn
 import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
 
 /-!
-# Scoped notation for the truth-value connectives
+# Notation history and the `macros.sty` twin registry
 
-Scoped notation only — no theory lives here (that's
-`NeSyCat/LogicalLayer/TruthStructures/BLat2Mon.lean` and friends). Notation is `scoped` inside
-`namespace NeSyCat`: automatically active for any `NeSyCat/*.lean` file
-that reopens `namespace NeSyCat` (once this file is imported), opt-in
-elsewhere via `open scoped NeSyCat`.
+No theory lives here (that's
+`NeSyCat/LogicalLayer/TruthStructures/BLat2Mon.lean` and friends), and — as
+of C2-E4b — no live notation either: the scoped `⅋`/`&` infix notation this
+file used to declare is retired (user adjudication, below); the truth-value
+connectives are named directly (`BLat2Mon.oplus`/`BLat2Mon.otimes`, or the
+bare `oplus`/`otimes` field names once the structure is opened). This file's
+job now is purely historical record (the reverted notation experiments) and
+the `macros.sty` twin registry that `scripts/blueprint.sh` checks
+mechanically.
 
 ## The `¬` overload was tried and reverted (empirical fallback)
 
@@ -106,6 +110,26 @@ example (f : Foo) : Foo := { f with x := 5 }
 example (p q r : α) : p & q ⅋ r = (p & q) ⅋ r := rfl  -- `&` binds tighter
 ```
 
+## The `⅋`/`&` scoped notation itself is RETIRED (C2-E4b, user adjudication)
+
+Despite the clean empirical result directly above, the notation is not
+shipped: E4a's own probe (the `⊕`/`⊗` swap episode) showed Lean core's
+global notation beats a scoped alternative in exactly the ordinary
+no-expected-type shape this library writes constantly, and the user
+adjudicated that the fix is not to keep hunting for a glyph pair immune to
+every such conflict, but to drop glyph notation for the truth-value
+connectives ENTIRELY: plain field names (`BLat2Mon.oplus`,
+`BLat2Mon.otimes`, opened as bare `oplus`/`otimes` via `open NeSyCat` or
+qualified) are the working Lean surface, per the `dneg` precedent (the `¬`
+overload above was tried and reverted for the same reason). The `⊕`/`⊗`
+story lives in LaTeX (`macros.sty`, `blueprint/src/content.tex`); Lean
+speaks plain names. The two `scoped infixl` declarations that used to live
+below (`" ⅋ " => BLat2Mon.oplus`, `" & " => BLat2Mon.otimes`) are deleted;
+grepped clean across `NeSyCat/` first (zero uses in any statement or
+proof, only in doc-comment prose naming the LaTeX symbols, which is
+expected and left as prose). Field names `oplus`/`otimes` themselves are
+unaffected and unchanged.
+
 ## Twin registry (`macros.sty` ↔ `NeSyCat/Notation.lean`)
 
 Every `% Lean:`-tagged macro in the sibling `NeSyCat.Logics/macros.sty`
@@ -113,15 +137,13 @@ must appear, literally, on one line below (checked mechanically by
 `scripts/blueprint.sh`'s registry-sync gate): either a live Lean
 counterpart, or an honest `PLANNED` status naming where it lands.
 
--- \AndC  ↔ NeSyCat.BLat2Mon.andC (macros.sty twin, PRE-RENAME spelling --
---          C2-E4c renamed the live Lean field to
---          NeSyCat.BLat2Mon.otimes (scoped notation " & ", this file);
---          this line stays literal for the registry-sync grep until
---          E4b updates the macros.sty side to match, retiring then)
--- \dzero ↔ NeSyCat.BLat2Mon.dzero (live field; the "0̇" glyph itself is
---          not notation-shipped by this ticket, only the bare name)
--- \done  ↔ NeSyCat.BLat2Mon.done (live field; the "1̇" glyph itself is
---          not notation-shipped by this ticket, only the bare name)
+-- \AndC  ↔ RETIRED (C2-E4b: macros.sty deleted \AndC's "Lean:" tag along
+--          with the macro itself, in the same step this line was removed
+--          from the registry -- both sides of the twin retire together)
+-- \dzero ↔ NeSyCat.BLat2Mon.dzero (live field; the bold render is a LaTeX-
+--          only markup choice, no Lean notation glyph shipped)
+-- \done  ↔ NeSyCat.BLat2Mon.done (live field; the bold render is a LaTeX-
+--          only markup choice, no Lean notation glyph shipped)
 -- \impc  ↔ PLANNED (connective-indexed implication, S/R-implication /
 --          residuation chapter, per the linear-logic dictionary table in
 --          blueprint/src/content.tex, §"Truth-value structures")
@@ -139,17 +161,9 @@ counterpart, or an honest `PLANNED` status naming where it lands.
 -- \actop ↔ PLANNED (def:categorical-interpretation, actegory chapter)
 -/
 
-namespace NeSyCat
-
-/-- The `⅋`-monoid multiplication of a `BLat2Mon` (linear logic's `⅋`,
-"or-like"; the field itself is `BLat2Mon.oplus`, C2-E4c). `&` (below)
-binds tighter than `⅋`, matching linear logic's own conventions and the
-blueprint's precedence. -/
-scoped infixl:65 " ⅋ " => BLat2Mon.oplus
-
-/-- The `&`-monoid multiplication of a `BLat2Mon` (linear logic's
-*multiplicative* conjunction `⊗`; the field itself is `BLat2Mon.otimes`,
-C2-E4c, renamed from `[NeSy26]`'s own `andC` spelling). -/
-scoped infixl:70 " & " => BLat2Mon.otimes
-
-end NeSyCat
+-- No live scoped notation remains (C2-E4b retirement, above): the
+-- `⅋`/`&` declarations that used to live in a `namespace NeSyCat` block
+-- here are deleted. This file (imported by the root `NeSyCat.lean`) now
+-- declares nothing at all; it remains the registry home per the block
+-- above, and imports only `BLat2Mon` for the registry's own
+-- cross-references.

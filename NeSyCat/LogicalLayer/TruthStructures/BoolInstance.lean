@@ -54,13 +54,13 @@ instance instBLat2Mon : BLat2Mon BoolW where
   done_otimes := by decide
   otimes_done := by decide
 
-/-- Blueprint `lem:bool-truth-structure` (connective collapse, `⅋`): on
-`BoolW` the `⅋`-monoid multiplication is exactly the lattice join --- the
+/-- Blueprint `lem:bool-truth-structure` (connective collapse, `oplus`): on
+`BoolW` the `oplus`-monoid multiplication is exactly the lattice join --- the
 "idempotent case" collapse of the connective pairs. -/
 @[simp] theorem oplus_eq_sup (p q : BoolW) : BLat2Mon.oplus p q = p ⊔ q := rfl
 
-/-- Blueprint `lem:bool-truth-structure` (connective collapse, `&`): on
-`BoolW` the `&`-monoid multiplication is exactly the lattice meet. -/
+/-- Blueprint `lem:bool-truth-structure` (connective collapse, `otimes`): on
+`BoolW` the `otimes`-monoid multiplication is exactly the lattice meet. -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `BoolW.oplus_eq_sup`, content.tex lem:bool-truth-structure)
 @[simp] theorem otimes_eq_inf (p q : BoolW) : BLat2Mon.otimes p q = p ⊓ q := rfl
