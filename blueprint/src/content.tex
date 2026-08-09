@@ -371,7 +371,7 @@ module, using $\lse$ in place of the sum, is the log row.
 % src/klay/jax/semiring/godel.py (max_layer/min_layer) and
 % src/klay/jax/semiring/__init__.py's get_semiring (the 'mpe' case,
 % max_layer/prod_layer, reusing godel.py's own max_layer).
-It also ships an MPE (max-times) module and a Gödel (max-min) module
+It also ships an MPE (max-times) option and a Gödel (max-min) module
 that restricts to the Boolean row on $\{0,1\}$.
 
 \begin{definition}[Semiring monad $\MS{S}$]
@@ -656,6 +656,8 @@ monad.
 
 \begin{definition}[Categorical signature]
 \label{def:categorical-signature}
+\lean{NeSyCat.CatSignature}
+\leanok
 A \textbf{categorical signature} $\Sigma_\alpha$ consists of a
 \textbf{category symbol} $\mathbf C$, an \textbf{actor symbol}
 $\mathbf A$, and a \textbf{monad symbol} $\bigcirc$. The identity monad
@@ -666,6 +668,8 @@ $\mathrm{Mon} := \{\mathrm{Id}, \bigcirc\}$.
 
 \begin{definition}[CD category]
 \label{def:cd-category}
+\lean{NeSyCat.CDCategory}
+\leanok
 A \textbf{CD (copy-discard) category}
 $(\mathcal C, \boxtimes_{\mathcal C}, \mathrm I_{\mathcal C}, \mathsf{copy}, \mathsf{del})$
 is a symmetric monoidal category equipped with a commutative comonoid
@@ -676,6 +680,8 @@ $X$, compatible with $\boxtimes_{\mathcal C}$.
 
 \begin{definition}[Categorical interpretation]
 \label{def:categorical-interpretation}
+\lean{NeSyCat.CatInterpretation}
+\leanok
 A \textbf{categorical interpretation} $\mathcal I_\alpha$ of a
 categorical signature $\Sigma_\alpha$ (Definition~\ref{def:categorical-signature})
 is given by a CD category
