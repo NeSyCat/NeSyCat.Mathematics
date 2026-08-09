@@ -68,6 +68,30 @@ ANATOMY_MARKER_RE = re.compile(
 # laws for the standing exemption text.
 PURITY_EXEMPT_LABELS = {"def:domain-signature-notation"}
 
+# Book register law (C2-E5, USER DECREE 2026-08-09): the rendered page
+# (comment-stripped, whole document -- not scoped to any one env) must
+# carry no citation apparatus, no history/provenance markers, no dashes,
+# and none of the filler phrases below. Four independent marker classes,
+# each scanned line-by-line against the comment-stripped text.
+REGISTER_CITATION_RE = re.compile(
+    r'\[NeSy26|\[Girard|\[Coumans|\[NeSyCat Theory|'
+    r'\[[A-Z][A-Za-z]*[- ]?[A-Za-z]*\s?\d{2,4}[,\]]')
+# Pragmatic heuristic (disclosed in FORMALIZE.md's register law): dashes
+# are flagged wherever two or more hyphens (or a literal em/en dash
+# character) occur, with NO math-mode tracking. This is deliberately
+# blunt -- the final swept document contains zero such occurrences
+# anywhere, in or out of math, so the heuristic has zero false positives
+# on it; a future legitimate math-mode "--" would call for refining this
+# regex, not for leaving prose dashes unswept.
+REGISTER_DASH_RE = re.compile(r'-{2,}|—|–')
+REGISTER_HISTORY_RE = re.compile(
+    r'Erratum|corrected upstream|revisions up to|git ref|sha256|'
+    r'authored and verified', re.IGNORECASE)
+REGISTER_FILLER_RE = re.compile(
+    r'It is worth noting|Crucially|Note that|serves as|'
+    r'plays a crucial role|underscores|highlights|In essence',
+    re.IGNORECASE)
+
 # Definition-atomicity / no-examples-in-definitions (editorial decree,
 # 2026-08-09). DEFINITION_BEGIN_RE/END_RE bracket a `definition` env; the
 # two structure-introduction patterns below are the two grammatical shapes
@@ -326,6 +350,39 @@ def main():
                 "content; move to the proof env (statement/proof anatomy "
                 f"law) [matched: {am.group(0)!r}]")
         idx = end + 1
+
+    # Book register law (C2-E5): whole-document, comment-stripped scan
+    # for rendered-text apparatus leakage -- citations, dashes, history
+    # markers, filler phrases. Independent of env boundaries: a
+    # provenance sentence between two envs is just as much a leak as one
+    # inside a definition.
+    for idx, line in enumerate(code_lines):
+        cm = REGISTER_CITATION_RE.search(line)
+        if cm:
+            warnings.append(
+                f"{rel_posix}:{idx + 1}: REGISTER -- bracket-citation "
+                f"apparatus on the rendered page [matched: {cm.group(0)!r}] "
+                "-- move to a % comment (book register law)")
+        dm = REGISTER_DASH_RE.search(line)
+        if dm:
+            warnings.append(
+                f"{rel_posix}:{idx + 1}: REGISTER -- dash on the rendered "
+                f"page [matched: {dm.group(0)!r}] -- restructure with a "
+                "comma, colon, period, or parentheses (book register law; "
+                "hyphens in compound words and math minus signs are fine)")
+        hm = REGISTER_HISTORY_RE.search(line)
+        if hm:
+            warnings.append(
+                f"{rel_posix}:{idx + 1}: REGISTER -- history/provenance "
+                f"marker on the rendered page [matched: {hm.group(0)!r}] "
+                "-- move to a % comment plus PROGRESS.md/the ledger (book "
+                "register law)")
+        fm = REGISTER_FILLER_RE.search(line)
+        if fm:
+            warnings.append(
+                f"{rel_posix}:{idx + 1}: REGISTER -- filler phrase on the "
+                f"rendered page [matched: {fm.group(0)!r}] -- reword "
+                "plainly (book register law)")
 
     if not warnings:
         return

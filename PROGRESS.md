@@ -42,6 +42,56 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 ## Notes
 
 - See `FORMALIZE.md` for the resume protocol and work loop.
+- **C2-E5 (Run 6, THE BOOK REGISTER, USER DECREE 2026-08-09):** the
+  rendered blueprint now reads like a book. (1) **Apparatus off the
+  page**: every bracketed source citation (`[NeSy26, ...]`,
+  `[Girard 1987]`, `Coumans--Jacobs, Lem. 23`), the "Sources and
+  provenance" paragraph (git refs, sha256 pins), the categorical-layer
+  supersession/pinned-text history, the erratum account, the
+  "Blueprint-to-Lean correspondence" itemization's enforcement
+  sentence, and the two line-pin notes on the quantifier-nestability
+  lemma all moved verbatim into `%` comments at their original
+  locations (honesty records preserved as comments; the erratum and
+  the C2-E5 decree itself already have their PROGRESS/ledger homes).
+  A short reader-facing "How to read the boxes" paragraph replaces the
+  correspondence itemization in plain book language, with no tool
+  names or script paths. `def:domain-signature-notation`'s own
+  provenance tag moved to a comment after its `\end{definition}`
+  (its structural exemption from Lean-mirror purity is untouched).
+  (2) **Language sweep**: zero em/en dashes and zero bracket citations
+  remain in rendered text (72 dash-run occurrences and 23 bracket
+  citations, measured pre-edit by a comment-stripped regex scan, swept
+  to commas, colons, periods, parentheses, or comments; hyphens in
+  compound words and math minus signs untouched); `$\Sigma$--$\Pi$`
+  became `$\Sigma$-$\Pi$`; the three
+  empty LL-dictionary unit cells (`---`) became `none`; one British
+  spelling (`marginalises`) normalized to the document's own voice
+  (`marginalizes`); no filler phrases, aphorisms, or overclaims were
+  found in the document (a targeted regex sweep for the reviewer's
+  negative-example shapes was silent both before and after). (3)
+  **Mathematics untouched**: every edit inside an env body was a
+  dash-only fix (parentheses/commas replacing `---`/`--`) with no
+  mathematical clause altered; env/kind counts, `\label`/`\uses`/`\lean`
+  placement, and all 56 `\lean{}` names are unchanged. (4)
+  **Enforcement**: both `lint-blueprint.py` copies gained a book
+  register law pass (`REGISTER_CITATION_RE`/`REGISTER_DASH_RE`/
+  `REGISTER_HISTORY_RE`/`REGISTER_FILLER_RE`, scanning the whole
+  comment-stripped document, not just env bodies), RED-tested against
+  four synthetic violations (citation, dash, history marker, filler
+  phrase) and silent on the final `content.tex`; `FORMALIZE.md` gained
+  the book register law under "Blueprint structural laws". Gates:
+  `scripts/check.sh` GREEN (no Lean files touched), `scripts/sorry-report.sh`
+  0/0, `scripts/blueprint.sh` GREEN and numerically unchanged from
+  baseline (87 environments, 56 kind-checked names, census 48
+  cited/255 internal/0 unclassified, registry sync OK at 10 twins),
+  pdf+web rebuild clean, overfull count unchanged at 1 hbox, 1.2pt.
+  DISCLOSED OUT-OF-SCOPE FINDING: the web/print page title
+  (`\title{NeSyCat Semantics --- NeSy26 blueprint}` in
+  `blueprint/src/web.tex` and `blueprint/src/print.tex`) still carries
+  an em dash and a bare `NeSy26` mention; both files sit outside this
+  ticket's write set (`content.tex`, `lint-blueprint.py` x2,
+  `FORMALIZE.md`, `PROGRESS.md` only) and were left untouched — flagged
+  here for a follow-up ticket with `web.tex`/`print.tex` in scope.
 - **C2-E4c (Run 6, THE RENAME + the reuse-principle fold,
   2026-08-09):** (1) **The rename (USER DECREE)**: `BLat2Mon` fields
   `parr`/`andC` renamed `oplus`/`otimes` (`dzero`/`done`/`dneg`

@@ -330,6 +330,51 @@ step below.
   to an `instance` env (per the three-shape witness doctrine above) or
   plain prose placed after the definition(s)/class(es) it
   instantiates, `\uses`-linked back to them.
+- **The book register law (C2-E5, USER DECREE 2026-08-09).** The
+  rendered blueprint reads like a book: simple, direct language, no
+  jargon, no meta-history, no provenance apparatus on the page, no
+  dashes. Scholarly bookkeeping (bracketed source citations, the
+  erratum account, the sources-and-provenance paragraph with its git
+  refs and sha256 pins, ticket/decree references, and any other
+  self-referential or process passage) lives in NON-RENDERED homes:
+  LaTeX `%` comments at the original location, plus `PROGRESS.md` and
+  `.foreman/ledger.md`. It is moved, never deleted — a moved block is
+  preserved verbatim in its comment. The correspondence between
+  environment kind and Lean declaration kind, and every other
+  structural law in this document, is enforced by the gate regardless
+  of whether the rendered page describes it; a page-facing summary may
+  stay in plain book language, without tool names or script paths, when
+  it genuinely helps a reader understand the boxes.
+  Language sweep, rendered text only: no em/en dashes (LaTeX `---`/`--`
+  or literal —/–) — restructure with commas, colons, periods, or
+  parentheses (hyphens inside compound words stay; a minus sign inside
+  math is not a dash); plain words over apparatus-speak (mathematical
+  terminology of the subject itself, e.g. semiring, monad, lattice, is
+  never jargon); no AI-flavored filler ("It is worth noting",
+  "Crucially", "Note that" chains, "serves as", "plays a crucial role",
+  "underscores", "highlights", "In essence"); no aphorism/chiasmus
+  metaphors ("If X is the contract, Y is its fulfillment" — state what
+  a thing IS); no grand unearned framing ("provides the right language
+  to resolve this uniformly"); no overclaims (prose exactly as strong
+  as what is proven — the Lean-mirror principle applied to language:
+  state the `∃` you proved, not the `∀` you would like); no performative
+  paragraphs (idea-dropping that teaches nothing — delete it if the
+  story survives without it); one authorial voice throughout (no
+  contradictory stances between sections). Mathematics inside an env is
+  untouched except where a dash or a banned phrase sits in its own
+  prose connective tissue; no mathematical clause may change meaning.
+  Honesty records (errata, scope/faithfulness disclosures) still MUST
+  survive as prose — the register law changes how apparatus is written,
+  never whether a genuine mathematical caveat is disclosed.
+  Enforced by `lint-blueprint.py` (both copies): advisories on
+  rendered-text (comment-stripped) occurrences of bracket-citation
+  patterns, em/en dashes outside math (a pragmatic heuristic — it does
+  not track math-mode boundaries, since the final document contains
+  zero such occurrences anywhere at all), history markers ("Erratum",
+  "corrected upstream", "revisions up to", "git ref", "sha256",
+  "authored and verified"), and the filler-phrase list above. A blind
+  verifier reads a rendered page sample as a READER and flags apparatus
+  leakage or register violations on its own initiative.
 
 ## Work strategy
 

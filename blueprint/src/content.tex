@@ -4,48 +4,49 @@
 
 \section{Introduction}
 
-This blueprint is \textbf{version 0} of the NeSyCat library reference
-document: the itemized mathematical content of the NeSy26 paper
-[NeSy26], restated here as a standing library organized by
-mathematical structure rather than by paper section. The Lean
-formalization lives in the flat \texttt{NeSyCat.\textit{name}}
-namespace. Items accumulate \texttt{\textbackslash lean} and
-\texttt{\textbackslash leanok} marks as formalization proceeds; a
-\texttt{\textbackslash leanok} mark is only ever added once the named
-declaration(s) exist and are fully proved (no \texttt{sorry}), and
-\texttt{scripts/blueprint.sh}'s decl-check gate --- which
-\texttt{\#check}s every \texttt{\textbackslash lean}-cited name against
-the built library --- keeps the \texttt{\textbackslash lean} marks
-honest. An item's absence of either mark means exactly what it always
-meant: no Lean proof exists for it yet.
+% Apparatus (C2-E5): original opening sentence, moved verbatim.
+% This blueprint is \textbf{version 0} of the NeSyCat library reference
+% document: the itemized mathematical content of the NeSy26 paper
+% [NeSy26], restated here as a standing library organized by
+% mathematical structure rather than by paper section.
+This blueprint is the reference document for the NeSyCat library. It
+states the library's mathematics, organized by mathematical structure.
+The Lean formalization lives in the flat \texttt{NeSyCat.\textit{name}}
+namespace.
+
+Each item can carry two marks. \texttt{\textbackslash lean} names the
+Lean declaration it corresponds to. \texttt{\textbackslash leanok}
+means that declaration exists and is fully proved, with no
+\texttt{sorry}. We add \texttt{\textbackslash leanok} only once a proof
+is complete, and we check every \texttt{\textbackslash lean} name
+against the built library, so the marks stay honest. An item carrying
+neither mark has no Lean proof yet: that is all its absence ever means.
 
 Two editorial principles govern every item:
 \begin{itemize}
 \item \textbf{Natural generality.} Each item is stated at its natural
   mathematical level (for example, the weight-monad construction
-  $\MS{S}$ for any semiring $S$, not assumed commutative), with the
-  paper's concrete cases (Boolean, mass, log semirings; the $[0,1]$
-  readout) presented as instances. This document is the canonical
-  informal reference of the NeSyCat library in its own right, not a
-  restatement graded against the source text: items are stated at
-  their natural generality in the library's own voice, and a cited
-  source's narrower case then appears in-item as an instance or
-  corollary, noted as such rather than as a divergence declared
-  relative to the source.
-\item \textbf{Provenance.} Every item ends with a bracketed pointer
-  into the source, e.g.\ \texttt{[NeSy26, App.~A]}; the pointer credits
-  where the mathematical content originates, and is checked for
-  accuracy against what the source actually contains, not for whether
-  the source's own statement matches this document's verbatim.
+  $\MS{S}$ for any semiring $S$, not assumed commutative), with
+  concrete cases (Boolean, mass, log semirings; the $[0,1]$ readout)
+  presented as instances. This document is the library's own reference,
+  not a restatement of some other text: items are stated at their
+  natural generality in the library's own voice, and a narrower case
+  from elsewhere then appears in-item as an instance or corollary.
+\item \textbf{Provenance.} Every item's mathematical origin is recorded
+  next to it, in the source file, so credit is clear without cluttering
+  the page.
 \end{itemize}
+% Apparatus (C2-E5): original "Provenance" principle, moved verbatim.
+% \item \textbf{Provenance.} Every item ends with a bracketed pointer
+% into the source, e.g.\ \texttt{[NeSy26, App.~A]}; the pointer credits
+% where the mathematical content originates, and is checked for
+% accuracy against what the source actually contains, not for whether
+% the source's own statement matches this document's verbatim.
 
-Notation is simplified from the source where this costs nothing
-mathematically: plain function and vector notation replaces the
-source's Dirac bra-ket notation throughout, and composition of maps is
-written in the usual right-to-left order $g \circ f$ (``first $f$,
-then $g$'') rather than the source's left-to-right sequencing notation
-for the same composite. Neither change is a content divergence, so
-neither is separately declared below.
+We write functions and vectors directly, instead of Dirac bra-ket
+notation, since this loses nothing mathematically. We compose maps in
+the usual right-to-left order $g \circ f$ (``first $f$, then $g$''),
+rather than left-to-right sequencing.
 
 Beyond this introduction, the library is organized into five layers:
 the \textbf{categorical layer} (semiring weight monads, then categorical
@@ -60,20 +61,24 @@ An \textbf{inferential layer}, connecting proof theory to model theory,
 is reserved between the grammatical and statistical layers for future
 content.
 
-\paragraph{Sources and provenance.} This blueprint is the canonical
-informal reference document of the NeSyCat library: it is not a
-restatement of some other standing target document, and library items
-are faithful to it directly. Bracketed tags such as
-\texttt{[NeSy26, App.~A]} cite the NeSy26 paper (``NeSyCat Torch'', a
-NeSy 2026 submission) as the mathematical source for the corresponding
-item. The text this version~0 was authored and verified against is
-preserved at git ref \texttt{779b0be} of this repository
-(sha256~\texttt{845babfad280736117b84f10c66f698654a09d75cc3b4772de035a151ad62462}
-of \texttt{target/nesy26-paper.tex} as it stood at that commit); source
-documents are not vendored into this repository as standing copies ---
-where a later authoring or verification pass needs a pinned text, it is
-pinned by git ref at that moment and the ref is recorded here and in
-the campaign ledger.
+% Apparatus (C2-E5): "Sources and provenance" paragraph, moved verbatim
+% (repo bookkeeping; see PROGRESS.md / the campaign ledger for the live
+% record). Book register: provenance and pins live in source comments
+% and repo ledgers, never on the rendered page.
+% \paragraph{Sources and provenance.} This blueprint is the canonical
+% informal reference document of the NeSyCat library: it is not a
+% restatement of some other standing target document, and library items
+% are faithful to it directly. Bracketed tags such as
+% \texttt{[NeSy26, App.~A]} cite the NeSy26 paper (``NeSyCat Torch'', a
+% NeSy 2026 submission) as the mathematical source for the corresponding
+% item. The text this version~0 was authored and verified against is
+% preserved at git ref \texttt{779b0be} of this repository
+% (sha256~\texttt{845babfad280736117b84f10c66f698654a09d75cc3b4772de035a151ad62462}
+% of \texttt{target/nesy26-paper.tex} as it stood at that commit); source
+% documents are not vendored into this repository as standing copies ---
+% where a later authoring or verification pass needs a pinned text, it is
+% pinned by git ref at that moment and the ref is recorded here and in
+% the campaign ledger.
 
 Two families of binary connective recur throughout, kept visually and
 notationally apart. The \textbf{lattice connectives} $\vee,\wedge$
@@ -94,78 +99,99 @@ primitive involution (when one is assumed rather than derived) is
 plain $\neg$. Linear-logic notation such as $\multimap$, $\setminus$,
 or $\ominus$ for these connectives is never used here.
 
-One documented deviation from linear logic: our $\otimes$ is the
-\emph{multiplicative} conjunction; linear logic's
-own additive conjunction is a different connective, our $\wedge$ (the
-linear-logic dictionary later in this section shows its own glyph)
---- recorded once, here, rather than at each site the symbol is used.
-All these symbols are LaTeX macros collected in the symbol registry of
+One point of vocabulary differs from linear logic: our $\otimes$ is the
+\emph{multiplicative} conjunction, while linear logic's own additive
+conjunction is a different connective, our $\wedge$ (the linear-logic
+dictionary later in this section shows its own glyph). All these
+symbols are LaTeX macros collected in the symbol registry of
 \texttt{blueprint/src/macros/common.tex}.
 
 Four constants recur at the logical/truth-value level: the lattice
 bounds $\bot,\top$ (Definition~\ref{def:order-family}) and the monoid
-units $\dzero,\done$ of $\oplus,\otimes$ --- written in bold,
+units $\dzero,\done$ of $\oplus,\otimes$, written in bold,
 $\mathbf{0},\mathbf{1}$, since $\oplus,\otimes$ are themselves the
-semiring's operations carried to the truth-value level, the bold face
-distinguishing the unit from a plain carrier numeral. The four stay
-distinct constants nonetheless: a coincidence between a bound and a
-unit (e.g.\ on a normalized, mass-one row) is recorded as a named
-axiom, UnitBounds (Class~\ref{def:unit-bounds}), asserting
-$\dzero=\bot$ and $\done=\top$ where they hold --- never folded into
-the notation itself, so the coincidence always reads as a substantive
-fact about a particular instance, not a definitional identification.
+semiring's operations carried to the truth-value level, and the bold
+face distinguishes the unit from a plain carrier numeral. The four
+stay distinct constants nonetheless: a coincidence between a bound and
+a unit (for example, on a normalized, mass-one row) is recorded as a
+named axiom, UnitBounds (Class~\ref{def:unit-bounds}), asserting
+$\dzero=\bot$ and $\done=\top$ where they hold. We never fold this
+coincidence into the notation itself, so it always reads as a
+substantive fact about a particular instance, not a definitional
+identification.
 
-\paragraph{Blueprint-to-Lean correspondence.} Environment kind is
-exactly Lean declaration kind, one for one:
-\begin{itemize}
-\item \texttt{definition} $\leftrightarrow$ Lean \texttt{def} (or a
-  bare \texttt{structure} not registered as a type class): new
-  mathematical content that is not itself a class.
-\item \texttt{class} $\leftrightarrow$ Lean \texttt{class}: new
-  mathematical content that is a type class (a bounded lattice, a
-  semiring refinement, a mixin such as \texttt{ZeroBot}).
-\item \texttt{instance} $\leftrightarrow$ Lean \texttt{instance}: a
-  witness that a concrete carrier inhabits a class.
-\item \texttt{abbreviation} $\leftrightarrow$ Lean \texttt{abbrev}: a
-  block that introduces a \emph{name} for existing content (e.g.\
-  ``we write $\Tmon$ for $\MS{\MassS}$''). \emph{Invariant:} every
-  \texttt{abbreviation} environment carries a
-  \texttt{\textbackslash lean\{\}} mark pointing at that
-  \texttt{abbrev} --- no exceptions; three \texttt{abbreviation} blocks
-  exist in this document, \ref{abbr:tensor-monad},
-  \ref{abbr:log-tensor-monad}, and \ref{abbr:truth-space} (C2-E4a-fix
-  F-4: re-kinded from \texttt{definition}, its Lean counterpart
-  \texttt{TruthSpace} being an \texttt{abbrev}, not a \texttt{def}).
-\item \texttt{lemma} and \texttt{theorem} $\leftrightarrow$ Lean
-  \texttt{theorem} alike (Lean ranks nothing between the two keywords;
-  the rank --- cited-as-infrastructure vs.\ chapter-payoff --- lives
-  only in this document). An open \texttt{theorem} (no known proof) is
-  the one exception: its \texttt{proof} environment's body is the
-  single word ``Open.'' and it never carries \texttt{\textbackslash
-  leanok} --- there is nothing formalized to mark.
-\item Plain narrative prose, outside any environment, carries
-  everything with no Lean counterpart: provenance credits, notational
-  and usage conventions, dictionary glosses, contrasts, and forward
-  pointers. Nothing in Lean corresponds to it, and it is never wrapped
-  in its own citable environment --- the document reads as formal
-  environments floating in continuous prose, with no
-  \texttt{remark}/\texttt{example}/\texttt{conjecture} kind of its
-  own; a worked instance either witnesses a \texttt{class} (and is
-  itself an \texttt{instance} environment) or, when purely narrative,
-  lives in the surrounding prose.
-\item A LaTeX \texttt{\textbackslash newcommand} in the symbol
-  registry of \texttt{blueprint/src/macros/common.tex}
-  $\leftrightarrow$ Lean \texttt{notation}: glyphs are macros, never
-  an environment of their own, mirrored one-for-one against
-  \texttt{NeSyCat/Notation.lean}.
-\end{itemize}
-In every case, the \texttt{\textbackslash lean\{\}} marks remain the
-authoritative name-level cross-reference; this environment/kind
-agreement, together with the open-proof convention and the
-Lean-mirror-purity law on every environment's body, is enforced by
-\texttt{scripts/blueprint.sh}'s \texttt{CORRESPONDENCE} section
-(structural checks plus a Lean-kind assertion per
-\texttt{\textbackslash lean\{\}} name).
+\paragraph{How to read the boxes.} Each labeled box below matches a
+Lean declaration directly. A \texttt{definition} introduces new
+mathematical content that is not itself a structure a carrier can
+satisfy. A \texttt{class} introduces such a structure: a bounded
+lattice, a semiring refinement, a mixin such as \texttt{ZeroBot}. An
+\texttt{instance} witnesses that one concrete carrier satisfies a
+class. An \texttt{abbreviation} simply gives a name to something
+already built (for example, we write $\Tmon$ for $\MS{\MassS}$). A
+\texttt{lemma} and a \texttt{theorem} are proved the same way; this
+document uses \texttt{lemma} for supporting infrastructure and
+\texttt{theorem} for a chapter's main result. An open theorem, one with
+no known proof, still gets a \texttt{theorem} box, paired with a
+\texttt{proof} box whose entire content is the single word \emph{Open}.
+Plain prose between the boxes, like this paragraph, carries everything
+with no Lean counterpart: conventions, comparisons, and pointers
+forward and back.
+% Apparatus (C2-E5): original "Blueprint-to-Lean correspondence"
+% itemization and its enforcement sentence, moved verbatim (ticket
+% references and script/gate names are process bookkeeping, not book
+% content; the correspondence itself is still enforced regardless of
+% whether the page describes it).
+% \paragraph{Blueprint-to-Lean correspondence.} Environment kind is
+% exactly Lean declaration kind, one for one:
+% \begin{itemize}
+% \item \texttt{definition} $\leftrightarrow$ Lean \texttt{def} (or a
+%   bare \texttt{structure} not registered as a type class): new
+%   mathematical content that is not itself a class.
+% \item \texttt{class} $\leftrightarrow$ Lean \texttt{class}: new
+%   mathematical content that is a type class (a bounded lattice, a
+%   semiring refinement, a mixin such as \texttt{ZeroBot}).
+% \item \texttt{instance} $\leftrightarrow$ Lean \texttt{instance}: a
+%   witness that a concrete carrier inhabits a class.
+% \item \texttt{abbreviation} $\leftrightarrow$ Lean \texttt{abbrev}: a
+%   block that introduces a \emph{name} for existing content (e.g.\
+%   ``we write $\Tmon$ for $\MS{\MassS}$''). \emph{Invariant:} every
+%   \texttt{abbreviation} environment carries a
+%   \texttt{\textbackslash lean\{\}} mark pointing at that
+%   \texttt{abbrev} --- no exceptions; three \texttt{abbreviation} blocks
+%   exist in this document, \ref{abbr:tensor-monad},
+%   \ref{abbr:log-tensor-monad}, and \ref{abbr:truth-space} (C2-E4a-fix
+%   F-4: re-kinded from \texttt{definition}, its Lean counterpart
+%   \texttt{TruthSpace} being an \texttt{abbrev}, not a \texttt{def}).
+% \item \texttt{lemma} and \texttt{theorem} $\leftrightarrow$ Lean
+%   \texttt{theorem} alike (Lean ranks nothing between the two keywords;
+%   the rank --- cited-as-infrastructure vs.\ chapter-payoff --- lives
+%   only in this document). An open \texttt{theorem} (no known proof) is
+%   the one exception: its \texttt{proof} environment's body is the
+%   single word ``Open.'' and it never carries \texttt{\textbackslash
+%   leanok} --- there is nothing formalized to mark.
+% \item Plain narrative prose, outside any environment, carries
+%   everything with no Lean counterpart: provenance credits, notational
+%   and usage conventions, dictionary glosses, contrasts, and forward
+%   pointers. Nothing in Lean corresponds to it, and it is never wrapped
+%   in its own citable environment --- the document reads as formal
+%   environments floating in continuous prose, with no
+%   \texttt{remark}/\texttt{example}/\texttt{conjecture} kind of its
+%   own; a worked instance either witnesses a \texttt{class} (and is
+%   itself an \texttt{instance} environment) or, when purely narrative,
+%   lives in the surrounding prose.
+% \item A LaTeX \texttt{\textbackslash newcommand} in the symbol
+%   registry of \texttt{blueprint/src/macros/common.tex}
+%   $\leftrightarrow$ Lean \texttt{notation}: glyphs are macros, never
+%   an environment of their own, mirrored one-for-one against
+%   \texttt{NeSyCat/Notation.lean}.
+% \end{itemize}
+% In every case, the \texttt{\textbackslash lean\{\}} marks remain the
+% authoritative name-level cross-reference; this environment/kind
+% agreement, together with the open-proof convention and the
+% Lean-mirror-purity law on every environment's body, is enforced by
+% \texttt{scripts/blueprint.sh}'s \texttt{CORRESPONDENCE} section
+% (structural checks plus a Lean-kind assertion per
+% \texttt{\textbackslash lean\{\}} name).
 
 % ============================================================
 \section{Categorical layer}
@@ -176,13 +202,14 @@ Lean-mirror-purity law on every environment's body, is enforced by
 \label{sec:semiring-monads}
 
 This subsection develops the semiring weight monad $\MS{S}$: the
-family of ordered semirings it is built from --- lattice-semirings and
-their commutative and bounded refinements --- the monad itself, its
-laws and commutativity, and the log isomorphism linking the mass and
-log rows. Every item in this subsection is due to [NeSy26, App.~A],
-except the commutativity direction of
-Theorem~\ref{thm:semiring-monad-commutative}, credited below also to
-Coumans--Jacobs, Lem.~23.
+family of ordered semirings it is built from (lattice-semirings and
+their commutative and bounded refinements), the monad itself, its laws
+and commutativity, and the log isomorphism linking the mass and log
+rows.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% Every item in this subsection is due to [NeSy26, App.~A], except the
+% commutativity direction of Theorem~\ref{thm:semiring-monad-commutative},
+% credited below also to Coumans--Jacobs, Lem.~23.
 
 \begin{class}[Lattice-semiring]
 \label{def:lattice-semiring}
@@ -227,19 +254,21 @@ lattice-semiring whose $\otimes$ is commutative.
 \end{class}
 
 Plain (possibly noncommutative, unbounded) semirings need no separate
-name of their own above --- they are just semirings. On the general
-(possibly noncommutative) case: $\oplus$'s two directions of
+name of their own above: they are just semirings. In the general
+(possibly noncommutative) case, $\oplus$'s two directions of
 monotonicity are never independent data (a semiring's addition is
 unconditionally commutative, so right-monotonicity always follows from
 left-monotonicity), but $\otimes$'s two directions genuinely are,
-absent commutativity of $\otimes$; they collapse to one only in the
+absent commutativity of $\otimes$. They collapse to one only in the
 commutative refinement $\mathrm{LatCSRng}$. This library states the
 lattice-semiring notion at this natural level of generality, splitting
 it the way Mathlib splits \texttt{Semiring}/\texttt{CommSemiring}.
 Equivalently, $\mathrm{BLatCSRng}$ is also the bounded refinement of a
-commutative lattice-semiring (Class~\ref{def:comm-lattice-semiring});
-[NeSy26, App.~A] states the commutative case throughout, matching the
-library's three running instances.
+commutative lattice-semiring (Class~\ref{def:comm-lattice-semiring}),
+matching the library's three running instances.
+% Apparatus (C2-E5): provenance note, moved verbatim.
+% [NeSy26, App.~A] states the commutative case throughout, matching the
+% library's three running instances.
 
 % C2-E4a/A2 audit fruit (LEAD-identified): `pSum` was real, uncited
 % mathematics with neither an env nor an internal tag -- the
@@ -297,7 +326,7 @@ the semiring monad runs; in this form only the Boolean row is bounded
 \leanok
 Carrier $\BoolS = \{0,1\}$, $\bot{=}0$, $\top{=}1$,
 $\vee{=}\mathtt{or}$, $\wedge{=}\mathtt{and}$, $0{=}0$, $1{=}1$,
-$\oplus{=}\mathtt{or}$, $\otimes{=}\mathtt{and}$ --- the only bounded
+$\oplus{=}\mathtt{or}$, $\otimes{=}\mathtt{and}$: the only bounded
 row of the three.
 \uses{def:bounded-comm-lattice-semiring, lem:prob-not-semiring}
 \end{instance}
@@ -322,12 +351,12 @@ $\otimes{=}{+}$.
 \end{instance}
 
 The log row already carries $-\infty$ in-carrier as both its $\bot$ and
-its $0$ ($=\log 0$); mass and log acquire their $\top$ --- and with it
-the full bounded structure --- only in the completions $[0,\infty]$
-and $[-\infty,\infty]$, taken up together with the completion
-instances. Not among these rows: the probability row $(\ProbS,
-p{+}q{-}pq, \cdot)$ carried by $\max,\min$ as its lattice, which
-Lemma~\ref{lem:prob-not-semiring} shows is not a semiring at all.
+its $0$ ($=\log 0$). Mass and log acquire their $\top$ (and with it the
+full bounded structure) only in the completions $[0,\infty]$ and
+$[-\infty,\infty]$, taken up together with the completion instances.
+The probability row $(\ProbS, p{+}q{-}pq, \cdot)$, carried by
+$\max,\min$ as its lattice, is not among these rows: as
+Lemma~\ref{lem:prob-not-semiring} shows, it is not a semiring at all.
 
 \begin{definition}[Semiring monad $\MS{S}$]
 \label{def:semiring-monad}
@@ -346,10 +375,10 @@ for $k \colon X \to \MS{S}Y$.
 \end{definition}
 
 $\MS{S}X$ reads as the set of finitely-supported $S$-weighted formal
-combinations of elements of $X$; the sum defining $f \bind k$ is
-finite since $f$ is finitely supported, and is taken in the
-left-to-right order $f(x)\otimes k(x)(y)$ throughout --- no step needs
-$\otimes$ to commute.
+combinations of elements of $X$. The sum defining $f \bind k$ is finite
+since $f$ is finitely supported, and is taken in the left-to-right
+order $f(x)\otimes k(x)(y)$ throughout: no step needs $\otimes$ to
+commute.
 
 \begin{lemma}[Bind is matrix multiplication]
 \label{lem:bind-matrix-mult}
@@ -403,7 +432,7 @@ $(f \bind k) \bind l = f \bind (\lambda x.\, k(x) \bind l)$.
 Both sides expand, by unfolding $\bind$ twice, to a double sum over
 $S$ that is rearranged into the other order by associativity and
 commutativity of $\oplus$ together with associativity of $\otimes$
-and distributivity of $\otimes$ over $\oplus$ --- commutativity of
+and distributivity of $\otimes$ over $\oplus$; commutativity of
 $\otimes$ is never invoked.
 \end{proof}
 
@@ -430,14 +459,13 @@ unit law).
 \end{proof}
 
 Mechanism: commutativity and associativity of $\oplus$ give
-associativity and commutativity of independent binds, associativity of
-$\otimes$ gives associativity of chained binds, and distributivity of
-$\otimes$ over $\oplus$ gives associativity of $\bind$ itself ---
-exactly the proof above, restated informally: commutativity and
-associativity of $\oplus$ is ``addition marginalises'' (independent
-binds commute and associate), and associativity of $\otimes$ is
-``multiplication chains'' (chained binds associate); none of this
-needs $\otimes$ to commute.
+associativity and commutativity of independent binds; associativity of
+$\otimes$ gives associativity of chained binds; and distributivity of
+$\otimes$ over $\oplus$ gives associativity of $\bind$ itself. This is
+the proof above, said informally: commutativity and associativity of
+$\oplus$ means addition marginalizes (independent binds commute and
+associate), and associativity of $\otimes$ means multiplication chains
+(chained binds associate). None of this needs $\otimes$ to commute.
 
 \begin{abbreviation}[Tensor monad]
 \label{abbr:tensor-monad}
@@ -474,8 +502,8 @@ binding the two arguments in either order,
 which unfold pointwise to $\dstL(f,g)(x,y) = f(x)\otimes g(y)$ and
 $\dstR(f,g)(x,y) = g(y)\otimes f(x)$. Then $\MS{S}$
 (Theorem~\ref{thm:semiring-monad-laws}) is a \emph{commutative} monad
---- $\dstL(f,g) = \dstR(f,g)$ for every $X,Y,f,g$ --- \emph{if and only
-if} $S$ itself is commutative.
+($\dstL(f,g) = \dstR(f,g)$ for every $X,Y,f,g$) \emph{if and only if}
+$S$ itself is commutative.
 \uses{def:semiring-monad, thm:semiring-monad-laws}
 \end{theorem}
 
@@ -486,28 +514,28 @@ formulas $f(x)\otimes g(y)$ and $g(y)\otimes f(x)$ agree directly.
 Converse: testing $\dstL=\dstR$ at $X=Y=\{*\}$ (a one-point set) against
 the two point masses $\delta_a,\delta_b$ ($a,b\in S$) evaluates both
 sides at $(*,*)$ to $a\otimes b$, resp.\ $b\otimes a$, recovering
-$a\otimes b = b\otimes a$ for arbitrary $a,b$ --- so no weaker
-hypothesis than full commutativity of $\otimes$ suffices; even the
-single instance of $\dstL=\dstR$ at this one-point set already forces
-it.
+$a\otimes b = b\otimes a$ for arbitrary $a,b$, so no weaker hypothesis
+than full commutativity of $\otimes$ suffices; even the single instance
+of $\dstL=\dstR$ at this one-point set already forces it.
 \end{proof}
 
-This theorem's commutativity direction is also credited to
-Coumans--Jacobs, Lem.~23. It is exactly where
-$\otimes$-commutativity is first needed in this section: not for the
-monad laws of Theorem~\ref{thm:semiring-monad-laws} (which hold for a
-general, possibly noncommutative semiring), but for the monad's own
-commutativity in the technical, monad-theoretic sense above.
-Downstream, it is this monad-level commutativity --- not the bare
-monad laws --- that the lifted connectives of
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% This theorem's commutativity direction is also credited to
+% Coumans--Jacobs, Lem.~23.
+This is exactly where $\otimes$-commutativity is first needed in this
+section: not for the monad laws of Theorem~\ref{thm:semiring-monad-laws}
+(which hold for a general, possibly noncommutative semiring), but for
+the monad's own commutativity in the technical, monad-theoretic sense
+above. Downstream, it is this monad-level commutativity, not the bare
+monad laws, that the lifted connectives of
 Definition~\ref{def:lifted-connective} (built by binding several
 arguments and pushing forward along a Boolean operation, order
 immaterial only once the binds commute) and the order-irrelevance of
 independent binds in the $\Do$-notation semantics of
 Definition~\ref{def:kleisli-interpretation} both rely on. The algebras
-of $\MS{S}$ are the $S$-semimodules; this is recorded as a stretch
-target of this library, not proved here --- no Lean formalization of
-the algebras of $\MS{S}$ is claimed by this or any prior ticket.
+of $\MS{S}$ are the $S$-semimodules. This is recorded as a stretch
+target of this library, not proved here: no Lean formalization of the
+algebras of $\MS{S}$ exists yet.
 
 \begin{lemma}[Mass-one closure]
 \label{lem:dist-closure}
@@ -583,28 +611,32 @@ isomorphism), so it is a monad isomorphism $\MS{\MassS} \cong
 \subsection{Categorical signatures and CD semantics}
 \label{sec:categorical-signatures}
 
-This section replaces its previous itemization --- the NeSy26 paper's
-Tarski/Kleisli/Nesy trichotomy, its do-notation-primitive term grammar,
-and its $(D \to M\Omega) \to M\Omega$ quantifier semantics, all now
-\textbf{superseded} and retained only in this repository's git history
---- with the current NeSyCat theory, authored directly against the
-working text of \emph{NeSyCat Theory: Semantics in Kleisli Categories
-for Neuro-Symbolic AI in HaskTorch} (\textbf{NeSyCat Theory v2}), lines
-1--396 of \texttt{new.tex} in the \texttt{NeSyCat.Logics} repository
-(sha256 prefix \texttt{9a84f22551f1e9ec} of that working text, itself
-layered over \texttt{NeSyCat.Logics} git ref \texttt{1ade210}); no
-notation from the superseded §3+ of the NeSy26 paper is reused below.
-The theory is a stack of four signature/interpretation layers ---
-categorical, logical, domain, grammatical --- the last of which fixes a
-context-free term/formula grammar with an explicit substitution rule
-and interprets it in the Kleisli category of a strong monad. Every
-definition from here through the end of the Grammatical layer
-(Section~\ref{sec:syntax-semantics}) is due to \emph{NeSyCat Theory
-v2} (new.tex 1--396); from here on, $\otimes$ (rendered $\boxtimes$)
-always names the CATEGORICAL layer's object-level tensor --- of a CD
-or monoidal category, never the logical/semiring round operations of
-the sections above and below --- reserved so the two families of
-tensor never clash on the page.
+% Apparatus (C2-E5): supersession history, pinned-text provenance
+% (git refs, sha256), and the per-item source credit, moved verbatim.
+% This section replaces its previous itemization --- the NeSy26 paper's
+% Tarski/Kleisli/Nesy trichotomy, its do-notation-primitive term grammar,
+% and its $(D \to M\Omega) \to M\Omega$ quantifier semantics, all now
+% \textbf{superseded} and retained only in this repository's git history
+% --- with the current NeSyCat theory, authored directly against the
+% working text of \emph{NeSyCat Theory: Semantics in Kleisli Categories
+% for Neuro-Symbolic AI in HaskTorch} (\textbf{NeSyCat Theory v2}), lines
+% 1--396 of \texttt{new.tex} in the \texttt{NeSyCat.Logics} repository
+% (sha256 prefix \texttt{9a84f22551f1e9ec} of that working text, itself
+% layered over \texttt{NeSyCat.Logics} git ref \texttt{1ade210}); no
+% notation from the superseded §3+ of the NeSy26 paper is reused below.
+% Every definition from here through the end of the Grammatical layer
+% (Section~\ref{sec:syntax-semantics}) is due to \emph{NeSyCat Theory
+% v2} (new.tex 1--396).
+From here on, $\otimes$ (rendered $\boxtimes$) always names the
+categorical layer's object-level tensor, of a CD or monoidal category,
+never the logical or semiring round operations used above and below;
+keeping the two families of tensor visually apart keeps them from
+clashing on the page.
+
+The theory is a stack of four signature and interpretation layers:
+categorical, logical, domain, and grammatical. The last of these fixes
+a context-free term and formula grammar with an explicit substitution
+rule, and interprets it in the Kleisli category of a strong monad.
 
 \begin{definition}[Categorical signature]
 \label{def:categorical-signature}
@@ -618,7 +650,7 @@ $\mathrm{Mon} := \{\mathrm{Id}, \bigcirc\}$.
 
 \begin{definition}[CD category]
 \label{def:cd-category}
-A \textbf{CD (copy--discard) category}
+A \textbf{CD (copy-discard) category}
 $(\mathcal C, \boxtimes_{\mathcal C}, \mathrm I_{\mathcal C}, \mathsf{copy}, \mathsf{del})$
 is a symmetric monoidal category equipped with a commutative comonoid
 $\mathsf{copy}_X \colon X \to X \boxtimes_{\mathcal C} X$,
@@ -663,11 +695,14 @@ monad $\mathcal M := \mathrm{LogVec}$ for $\bigcirc$).
 \subsection{Truth-value structures}
 \label{sec:truth-structures}
 
-The lifted connective family of a truth space (Definition~\ref{def:lifted-connective}, Section~\ref{sec:truth-spaces} onward) is \emph{not} a semiring (Lemma~\ref{lem:copying-fails}, Theorem~\ref{thm:three-layers}): it is a bounded lattice carrying two monoids. This section isolates that shape abstractly, under names from the library's own naming scheme (\textbf{BLat2Mon} and its refinements), develops the linearity and De~Morgan laws such a structure can carry, and locates each running row of [NeSy26, App.~A] --- Boolean, probability, mass, log --- inside the resulting hierarchy. The connective and constant conventions above are assumed throughout, not re-explained.
+The lifted connective family of a truth space (Definition~\ref{def:lifted-connective}, Section~\ref{sec:truth-spaces} onward) is \emph{not} a semiring (Lemma~\ref{lem:copying-fails}, Theorem~\ref{thm:three-layers}): it is a bounded lattice carrying two monoids. This section isolates that shape abstractly, under names from the library's own naming scheme (\textbf{BLat2Mon} and its refinements), develops the linearity and De~Morgan laws such a structure can carry, and locates each running row (Boolean, probability, mass, log) inside the resulting hierarchy. The connective and constant conventions above are assumed throughout, not re-explained.
 
-The BLat2Mon family below is distilled from [NeSy26, App.~A]'s
-lifted-connective family, with vocabulary borrowed from linear logic
-[Girard 1987].
+The BLat2Mon family below borrows some of its vocabulary from linear
+logic.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% The BLat2Mon family below is distilled from [NeSy26, App.~A]'s
+% lifted-connective family, with vocabulary borrowed from linear logic
+% [Girard 1987].
 
 \begin{class}[Two-monoid bounded lattice]
 \label{def:blat2mon}
@@ -721,12 +756,14 @@ satisfying the linear laws of Class~\ref{def:lin-blat2mon}.
 In the commutative case the one-sided version of each linear law
 suffices, the other side following from commutativity.
 
-Classes~\ref{def:lin-blat2mon} and~\ref{def:lin-blat2cmon} are
-exactly linear logic's four linear distributions ($\otimes$ over
-$\oplus$, and linear logic's own multiplicative disjunction over its
-own additive conjunction, together with their units) [Girard 1987];
-the linear-logic dictionary later in this section spells out the
-correspondence with linear logic's own vocabulary in full.
+Classes~\ref{def:lin-blat2mon} and~\ref{def:lin-blat2cmon} are exactly
+linear logic's four linear distributions ($\otimes$ over $\oplus$, and
+linear logic's own multiplicative disjunction over its own additive
+conjunction, together with their units). The linear-logic dictionary
+later in this section spells out the correspondence with linear
+logic's own vocabulary in full.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% [Girard 1987]
 
 \begin{lemma}[Linearity gives monotonicity]
 \label{lem:lin-monotone}
@@ -775,8 +812,10 @@ $\neg(p \otimes q) = \neg q \oplus \neg p$.
 \end{class}
 
 In the commutative case, (iii) reads $\neg p \oplus \neg q$. This is
-linear negation [Girard 1987], axiomatized minimally;
+linear negation, axiomatized minimally.
 Theorem~\ref{thm:dm-presentations} below compares the presentations.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% This is linear negation [Girard 1987].
 
 \begin{lemma}[Negation is an order anti-automorphism]
 \label{lem:dm-lattice-laws}
@@ -948,7 +987,9 @@ The outer inequalities are Lemma~\ref{lem:dualabsorb-decomposition}(i)
 and (ii); the middle one is the lattice.
 \end{proof}
 
-This is the MIX rule [Girard 1987].
+This is the MIX rule.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% This is the MIX rule [Girard 1987].
 
 % C2-E4a/A1 peer-split: the former single env bundled two genuinely
 % distinct claims (part (i), a lemma about the four binary linear laws;
@@ -993,7 +1034,10 @@ structure packages into a LinBLat2Mon witness.
 \end{definition}
 
 The lemmas below realize the BLat2Mon hierarchy on the library's
-running rows, all due to [NeSy26, App.~A].
+running rows.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% The lemmas below realize the BLat2Mon hierarchy on the library's
+% running rows, all due to [NeSy26, App.~A].
 
 \begin{lemma}[The Boolean row]
 \label{lem:bool-truth-structure}
@@ -1004,7 +1048,7 @@ $(\oplus,\dzero) = (\vee,0)$ and $(\otimes,\done) = (\wedge,1)$, and
 $\neg$ is a LinBLat2CMon (Class~\ref{def:lin-blat2cmon}) with DM
 structure (Class~\ref{def:dm-structure}) and UnitBounds
 (Class~\ref{def:unit-bounds}); the connective pairs collapse,
-$\otimes = \wedge$ and $\oplus = \vee$ --- the idempotent case.
+$\otimes = \wedge$ and $\oplus = \vee$: the idempotent case.
 \uses{def:lin-blat2cmon, def:dm-structure, def:unit-bounds,
 thm:chain-lin}
 \end{lemma}
@@ -1094,8 +1138,8 @@ Lemma~\ref{lem:lifted-mass}, the slot swap
 $\neg(w_0,w_1) = (w_1,w_0)$ is a DM structure
 (Class~\ref{def:dm-structure}) and both monoids are commutative,
 but $\otimes$ is not monotone; hence, by Lemma~\ref{lem:lin-monotone},
-the linear laws fail --- the square rows are BLat2CMon-with-DM
-territory, not Lin.
+the linear laws fail: the square rows are BLat2CMon-with-DM territory,
+not Lin.
 \uses{def:order-family, lem:lifted-mass, def:blat2cmon, def:dm-structure,
 lem:lin-monotone}
 \end{theorem}
@@ -1112,7 +1156,7 @@ $(5,0) \le (10,0)$ fails in the reversed slot ($5 \ge 10$ is false).
 The mechanism is the cross term $w_0v_1$ in slot 0 of $\otimes$: raising
 the \emph{for}-weight $v_1$ raises the \emph{against}-slot of the
 output. Neither operation is monotone: $\oplus$ fails dually, via the
-cross term $w_1v_0$ in its slot 1 --- as it must, since an antitone
+cross term $w_1v_0$ in its slot 1, as it must, since an antitone
 involution exchanging the two operations
 (Lemma~\ref{lem:dm-dual-law}) makes $\oplus$ monotone if and only if
 $\otimes$ is. The counterexample persists unchanged in the bounded
@@ -1121,11 +1165,11 @@ family is Lin either.
 \end{proof}
 
 Our $\vee$ and $\wedge$ are linear logic's own \emph{additive}
-connectives; our $\otimes$ genuinely coincides with linear logic's own
+connectives. Our $\otimes$ genuinely coincides with linear logic's own
 multiplicative conjunction, but our $\oplus$ is linear logic's
 \emph{multiplicative} disjunction, \textbf{not} linear logic's own
-\emph{additive} disjunction (which is our $\vee$) --- the reason the
-dictionary below exists.
+\emph{additive} disjunction (which is our $\vee$). That mismatch is
+why the dictionary below exists.
 
 \begin{center}
 {\footnotesize\setlength{\tabcolsep}{3pt}
@@ -1137,9 +1181,9 @@ $\vee$ & $\oplus$ & additive disjunction (join) & $\bot$ & $0$ & order family (D
 $\wedge$ & \& & additive conjunction (meet) & $\top$ & $\top$ & order family (meet) \\
 $\otimes$ & $\otimes$ & multiplicative conjunction & $\done$ & $1$ & lifted connective (Definition~\ref{def:lifted-connective}) \\
 $\oplus$ & $\parr$ & multiplicative disjunction & $\dzero$ & $\bot$ & lifted connective \\
-$\neg$ & $(\cdot)^\bot$ & linear negation & --- & --- & DM structure (Class~\ref{def:dm-structure}) \\
-$\impc{\cdot}$ & $\multimap$ & linear implication & --- & --- & deferred (residuation section) \\
-$!,?$ & $!,?$ & exponentials & --- & --- & exp/log bridge (Definition~\ref{lem:log-iso}; completions) \\
+$\neg$ & $(\cdot)^\bot$ & linear negation & none & none & DM structure (Class~\ref{def:dm-structure}) \\
+$\impc{\cdot}$ & $\multimap$ & linear implication & none & none & deferred (residuation section) \\
+$!,?$ & $!,?$ & exponentials & none & none & exp/log bridge (Definition~\ref{lem:log-iso}; completions) \\
 \hline
 \end{tabular}
 }
@@ -1156,27 +1200,29 @@ $!,?$ & $!,?$ & exponentials & --- & --- & exp/log bridge (Definition~\ref{lem:l
 % macros.sty adds a dedicated LL-par command, swap this cell to it and
 % delete the old par macro from macros.sty entirely (E4).
 
-Class~\ref{def:lin-blat2mon} is exactly linear logic's four
-linear distributions; Lemma~\ref{lem:mix} is the MIX rule; linear
-implication and $*$-autonomy sit at the S/R-implication boundary,
-deferred to the residuation section [Girard 1987]. The mixed pairs
-are semirings where the pure pair is not: $(\vee, \otimes)$ is an
-idempotent semiring (dioid) --- on $[0,1]$ the Viterbi semiring ---
-and $(\wedge, \oplus)$ is its dual; the pair $(\oplus, \otimes)$ fails
-distributivity in general (linear logic's refusal to distribute
-$\otimes$ over $\oplus$: only the four laws of
-Class~\ref{def:lin-blat2mon} survive), of which
+Class~\ref{def:lin-blat2mon} is exactly linear logic's four linear
+distributions; Lemma~\ref{lem:mix} is the MIX rule; linear implication
+and $*$-autonomy sit at the S/R-implication boundary, deferred to the
+residuation section. The mixed pairs are semirings where the pure pair
+is not: $(\vee, \otimes)$ is an idempotent semiring (a dioid, the
+Viterbi semiring on $[0,1]$), and $(\wedge, \oplus)$ is its dual. The
+pair $(\oplus, \otimes)$ fails distributivity in general (linear
+logic's refusal to distribute $\otimes$ over $\oplus$: only the four
+laws of Class~\ref{def:lin-blat2mon} survive), of which
 Lemma~\ref{lem:prob-not-semiring} is the concrete probability-row
 instance. Linear logic's exponentials $!/?$ are mirrored here by the
 exp/log bridge between the mass and log rows; Definition~\ref{lem:log-iso}
 is the first ingredient, and the matter is taken up together with the
 completion instances.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% ... deferred to the residuation section [Girard 1987].
 
 % ------------------------------------------------------------
 \subsection{Truth spaces and lifted connectives}
 \label{sec:truth-spaces}
 
-This section is due to [NeSy26, App.~A] throughout.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% This section is due to [NeSy26, App.~A] throughout.
 
 \begin{abbreviation}[Truth space]
 \label{abbr:truth-space}
@@ -1190,8 +1236,11 @@ with Boolean value $0$ read as \emph{False} and $1$ as \emph{True}.
 \end{abbreviation}
 
 Abbreviation~\ref{abbr:truth-space} is stated for a general semiring
-monad $\MS{S}$; [NeSy26, App.~A] only tabulates the four instances
-$\Idmon, \Dmon, \Tmon, \LTmon$ used in the paper.
+monad $\MS{S}$; the four instances $\Idmon, \Dmon, \Tmon, \LTmon$ are
+the ones used throughout this document.
+% Apparatus (C2-E5): provenance note, moved verbatim.
+% [NeSy26, App.~A] only tabulates the four instances
+% $\Idmon, \Dmon, \Tmon, \LTmon$ used in the paper.
 
 % C2-E4a/A1 re-kind (USER-DECIDED specific): both Lean counterparts are
 % `def`-valued readout equivalences, not theorems, so this splits into
@@ -1259,10 +1308,13 @@ as the iterated bind pairing the arguments.
 \end{proof}
 
 Definition~\ref{def:lifted-connective} is stated for a general $n$-ary
-Boolean operation via the $n$-ary strength; [NeSy26, App.~A] spells out
-only the binary cases $\wedge,\vee,\oplus,\otimes$ and the unary $\neg$,
-via the equivalent ``outer product then regroup along the operation''
-description.
+Boolean operation via the $n$-ary strength; the binary cases
+$\wedge,\vee,\oplus,\otimes$ and the unary $\neg$ are the ones used
+throughout this document.
+% Apparatus (C2-E5): provenance note, moved verbatim.
+% [NeSy26, App.~A] spells out only the binary cases
+% $\wedge,\vee,\oplus,\otimes$ and the unary $\neg$, via the equivalent
+% "outer product then regroup along the operation" description.
 
 \begin{lemma}[Lifted connectives, mass coordinates]
 \label{lem:lifted-mass}
@@ -1300,13 +1352,15 @@ On the (unbounded) carrier $\MassS$ itself, $\MassS^2$ acquires bounds
 $\bot=(\infty,0)$, $\top=(0,\infty)$ only after adjoining $\infty$; the
 bounded completion is taken up together with the completion instances.
 
-\textbf{Erratum, corrected upstream.} The source's summary table
-(revisions up to 2026-08-07) listed the two unit cells of
-Lemma~\ref{lem:lifted-mass}'s row transposed; the units
-$\Ret(0)=(1,0)$, $\Ret(1)=(0,1)$ are forced by solving $e \oplus w = w$
-and $e \otimes w = w$ against the explicit formulas, agree with the
-source's own log row and one-hot text, and the erratum has been
-corrected upstream in the source paper.
+% Apparatus (C2-E5): erratum account, moved verbatim (see PROGRESS.md /
+% the campaign ledger for the honesty record).
+% \textbf{Erratum, corrected upstream.} The source's summary table
+% (revisions up to 2026-08-07) listed the two unit cells of
+% Lemma~\ref{lem:lifted-mass}'s row transposed; the units
+% $\Ret(0)=(1,0)$, $\Ret(1)=(0,1)$ are forced by solving $e \oplus w = w$
+% and $e \otimes w = w$ against the explicit formulas, agree with the
+% source's own log row and one-hot text, and the erratum has been
+% corrected upstream in the source paper.
 
 \begin{lemma}[Lifted connectives, log coordinates]
 \label{lem:lifted-log}
@@ -1364,7 +1418,7 @@ is $1-p$.
 \end{proof}
 
 This is exactly the operations of the (non-semiring) $\ProbS$ row of
-Lemma~\ref{lem:prob-not-semiring} --- derived from binding two
+Lemma~\ref{lem:prob-not-semiring}. They are derived from binding two
 independent truth values and pushing forward along the Boolean
 operation, not stipulated.
 
@@ -1387,15 +1441,19 @@ in $S$ (after adjoining $\infty$ to $S$ if needed).
 
 The order family of Definition~\ref{def:order-family} is induced by
 the order of $S$, not by the monad structure of $\MS{S}$. It is stated
-for a general lattice-semiring $S$; [NeSy26, App.~A] works the order
-out concretely only for $S \in \{\MassS, \LogS\}$
-(Lemmas~\ref{lem:lifted-mass}, \ref{lem:lifted-log}).
+for a general lattice-semiring $S$; Lemmas~\ref{lem:lifted-mass} and
+\ref{lem:lifted-log} work it out concretely for $S \in \{\MassS,
+\LogS\}$.
+% Apparatus (C2-E5): provenance note, moved verbatim.
+% [NeSy26, App.~A] works the order out concretely only for
+% $S \in \{\MassS, \LogS\}$.
 
 % ------------------------------------------------------------
 \subsection{Three layers}
 \label{sec:three-layers}
 
-This section is due to [NeSy26, App.~A] throughout.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% This section is due to [NeSy26, App.~A] throughout.
 
 \begin{lemma}[Pointwise]
 \label{lem:pointwise}
@@ -1447,19 +1505,17 @@ is exactly where commutativity of $S$ enters; the De~Morgan identities
 are a direct check on the explicit formulas of Lemma~\ref{lem:lifted-mass}.
 \end{proof}
 
-Lemma~\ref{lem:linear-lift} is stated as these concrete instances
-rather than as the source's meta-theorem over general equation schemas
-in which each variable occurs exactly once per side, per the
-commutative-monad/symmetric-monoidal argument cited there; this
-library records the theorem only at the instances it uses, not as a
-schema-level meta-theorem.
+Lemma~\ref{lem:linear-lift} is stated at these concrete instances, not
+as a general theorem over equation schemas where each variable occurs
+exactly once per side; this library records the theorem only at the
+instances it uses, not as a schema-level meta-theorem.
 
 \begin{lemma}[Copying laws do not lift]
 \label{lem:copying-fails}
 \lean{NeSyCat.exists_otimes_ne_self}
 \leanok
-Equations that duplicate a variable --- idempotence, absorption,
-lattice distributivity --- fail for the lifted family in general: in
+Equations that duplicate a variable (idempotence, absorption, lattice
+distributivity) fail for the lifted family in general: in
 $\Dmon\,\BoolS \cong \ProbS$ (Lemma~\ref{lem:lifted-prob-readout}),
 there exists $p \in (0,1)$ with $p \otimes p \ne p$, so $\otimes$ is not
 idempotent.
@@ -1485,10 +1541,10 @@ $\BoolS$. Then $\MS{S}\BoolS$ decomposes into three independent
 contributions:
 \begin{enumerate}
 \item[(i)] \emph{pointwise}: $S^{\BoolS}$ is again a lattice-semiring
-  (Lemma~\ref{lem:pointwise}), so the construction closes and
-  iterates --- $\MS{S}(\BoolS)$ can serve as the weight semiring of a
-  next layer for $S \in \{\BoolS, \MassS, \LogS\}$ (not $\ProbS$, which
-  is excluded by Lemma~\ref{lem:prob-not-semiring});
+  (Lemma~\ref{lem:pointwise}), so the construction closes and iterates:
+  $\MS{S}(\BoolS)$ can serve as the weight semiring of a next layer for
+  $S \in \{\BoolS, \MassS, \LogS\}$ (not $\ProbS$, which is excluded by
+  Lemma~\ref{lem:prob-not-semiring});
 \item[(ii)] \emph{linear/lifted}: the family $\otimes,\oplus,\neg$ with
   units $\Ret(0),\Ret(1)$ satisfies every linear Boolean law and no
   copying law (Lemmas~\ref{lem:linear-lift}, \ref{lem:copying-fails}):
@@ -1563,9 +1619,9 @@ A \textbf{domain signature} $\Sigma_\gamma$ is given by:
   \textbf{(parameter) space symbols} $\mathrm{Spc}$;
 \item a set of \textbf{function symbols} $\Fun$ with functions
   $\mathrm{dom}, \mathrm{cod} \colon \Fun \to \mathcal L(\mathrm{Mon}
-  \times \mathrm{Dom})$, mapping each function symbol to a list of pairs of
-  monad and domain symbols --- one marker per argument, so a function
-  may consume and produce a mix of plain and monadic arguments --- for
+  \times \mathrm{Dom})$, mapping each function symbol to a list of pairs
+  of monad and domain symbols (one marker per argument, so a function
+  may consume and produce a mix of plain and monadic arguments) for
   its domain and codomain respectively, and a function
   $\mathrm{par} \colon \Fun \to \mathcal L(\mathrm{Spc})$, mapping each
   function symbol to its list of parameter spaces;
@@ -1590,8 +1646,7 @@ A \textbf{domain signature} $\Sigma_\gamma$ is given by:
 For a function symbol $f \in \Fun$ with domain
 $(M_1,S_1),\ldots,(M_n,S_n)$, codomain
 $(N_1,T_1),\ldots,(N_m,T_m)$, and parameter spaces
-$\Theta_1,\ldots,\Theta_k$, this library follows the source's
-writing-layer convention and displays $f$ as
+$\Theta_1,\ldots,\Theta_k$, this library displays $f$ as
 \[
   f_{\Theta_1,\ldots,\Theta_k} \colon M_1 S_1, \ldots, M_n S_n \to N_1 T_1, \ldots, N_m T_m,
 \]
@@ -1603,8 +1658,11 @@ $x \in \Var$ over domain symbol $S$ is displayed $x \colon S$, and a
 parameter symbol $\theta \in \mathrm{Par}$ over parameter space
 $\Theta$ is displayed $\theta \colon \Theta$.
 \uses{def:domain-signature}
-[NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
+% Apparatus (C2-E5): provenance tag, moved verbatim (this env is the
+% pinned no-Lean exemption, FORMALIZE.md's Total Lean-mirror purity law;
+% its provenance still moves off the page like every other citation).
+% [NeSyCat Theory v2 (new.tex 1--396)]
 
 \begin{definition}[Domain interpretation]
 \label{def:domain-interpretation}
@@ -1698,8 +1756,8 @@ $\phi ::= \phi[x := \xi]$ & $x \in [\phi]$ & substituted formula & $\xi,\phi \to
 \hline
 \end{tabular}
 \end{center}
-the last rule --- \textbf{substitution} $\phi[x := \xi]$, for $x$ a
-free variable of $\phi$ and $\xi$ any term --- generates formulas
+the last rule (\textbf{substitution} $\phi[x := \xi]$, for $x$ a
+free variable of $\phi$ and $\xi$ any term) generates formulas
 explicitly, rather than only being a meta-level operation on already
 generated formulas.
 \uses{def:domain-signature, def:logical-signature, def:context}
@@ -1842,9 +1900,9 @@ I([\vec x])_i^{(\vec p)} \seq \sem\phi$ and
   \mathcal I([\phi]\setminus[\vec x]) \to (\mathcal M\Omega)^{\boxtimes
   |\mathcal I([\vec x])|} \to \mathcal M\Omega,
 \]
-the single-variable case $l=1$ ---with $\vec x = [x]$ and gaps
+the single-variable case $l=1$ (with $\vec x = [x]$ and gaps
 $[z_0]=[y_1,\ldots,y_{p-1}]$, $[z_1]=[y_{p+1},\ldots,y_m]$ for $x$ at
-position $p$--- recovering the familiar single-variable clause $\sem{Qx(\phi)}$.
+position $p$) recovering the familiar single-variable clause $\sem{Qx(\phi)}$.
 The substituted formula $\phi[x:=\xi]$ uses the analogous
 single-position insertion notation for the \emph{term}'s denotation: with
 $\sem\xi^{(p)} := \mathrm{id}_{\mathcal I([y_1,\ldots,y_{p-1}])} \boxtimes
@@ -1864,9 +1922,9 @@ the term itself (the dice-or-die example below).
 \uses{def:grammatical-signature, def:feed-forward, def:domain-interpretation, def:logical-interpretation, def:cd-category}
 \end{definition}
 
-Lemma~\ref{lem:quantifier-nestable} below draws on \emph{NeSyCat
-Theory v2} beyond the pinned lines 1--396.
-
+% Apparatus (C2-E5): source line-pin note, moved verbatim.
+% Lemma~\ref{lem:quantifier-nestable} below draws on \emph{NeSyCat
+% Theory v2} beyond the pinned lines 1--396.
 \begin{lemma}[Quantifier nestability]
 \label{lem:quantifier-nestable}
 Call a family $\mathcal I(Q)_n$ ($n = 1,2,\ldots$) \textbf{nestable}
@@ -1897,7 +1955,7 @@ m} \seq \mathcal I(Q)_m$ at $m = \bigl|\mathcal I([x_{p_1}])\bigr|$,
 collapses this blocked tensor into first applying the (by induction)
 iterated interpretation of $Q$ over the last $l-1$ variables within
 each block, then applying $\mathcal I(Q)_m$ over the blocks indexed by
-$x_{p_1}$ --- exactly the iterated interpretation
+$x_{p_1}$: exactly the iterated interpretation
 $\sem{Qx_{p_1}(Q\vec x'(\phi))}$ for $\vec x' = \vec x
 \setminus\{x_{p_1}\}$. Symmetry of the family absorbs the reindexing
 needed to reach any other ordering of $\vec x$, since permuting the
@@ -1911,10 +1969,12 @@ its value.
 % symmetric+nestable-implies-agreement claim; recorded here as an
 % observation, not re-argued (disclosed as this ticket's B.7 judgment
 % call, carried forward from the remark this dissolved out of).
-The four running quantifier columns --- Max, Min, the $\Sigma$--$\Pi$
-pair, and their log-column twins --- all satisfy both hypotheses of
-Lemma~\ref{lem:quantifier-nestable}; this too draws on \emph{NeSyCat
-Theory v2} beyond the pinned lines 1--396.
+The four running quantifier columns (Max, Min, the $\Sigma$-$\Pi$ pair,
+and their log-column twins) all satisfy both hypotheses of
+Lemma~\ref{lem:quantifier-nestable}.
+% Apparatus (C2-E5): source line-pin note, moved verbatim.
+% this too draws on \emph{NeSyCat Theory v2} beyond the pinned lines
+% 1--396.
 
 \textbf{Dice or die.} Let $\mathsf{dice} \colon [\,] \to \bigcirc\mathrm{Nat}$,
 $6 \colon [\,] \to \mathrm{Nat}$, ${=} \colon \mathrm{Nat}^2 \to \tau$,
@@ -1975,9 +2035,10 @@ $X$,
 \]
 \end{definition}
 
-This section is due to [NeSy26, \S 5]. The bind of
-Definition~\ref{def:batch-monad} is the \emph{diagonal}: the
-continuation at index $b$ sees only index $b$'s value.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% This section is due to [NeSy26, \S 5].
+The bind of Definition~\ref{def:batch-monad} is the \emph{diagonal}:
+the continuation at index $b$ sees only index $b$'s value.
 
 \begin{theorem}[Batch transformer]
 \label{thm:batch-transformer}
@@ -1987,8 +2048,8 @@ $\mathcal M = \Idmon$), the composite
 \[
   \Bmon\mathcal M X := \bigl(\Bidx \to \mathcal M X\bigr)
 \]
-is again a monad --- the reader monad transformer at $\Bidx$ applied to
-$\mathcal M$ --- and there are two canonical monad morphisms into it:
+is again a monad (the reader monad transformer at $\Bidx$ applied to
+$\mathcal M$), and there are two canonical monad morphisms into it:
 \[
   \mathrm{lift}_{\mathcal M} \colon \mathcal M X \to \Bmon\mathcal M X,\
   \mathrm{lift}_{\mathcal M} := \mathrm{const},
@@ -2022,10 +2083,10 @@ $\mathrm{ev}_i \colon \Bmon\mathcal M X \to \mathcal M X$,
 $m \mapsto m(i)$, is a monad morphism. Assuming in addition that every
 symbol and quantifier interpretation of
 Definition~\ref{def:domain-interpretation} used in the batched reading
-is \emph{batch-natural}, i.e.\ defined pointwise across the batch ---
-$\mathcal I^{\Bmon\mathcal M}(f) = \mathrm{lift}_{\mathcal M} \circ
+is \emph{batch-natural}, i.e.\ defined pointwise across the batch
+($\mathcal I^{\Bmon\mathcal M}(f) = \mathrm{lift}_{\mathcal M} \circ
 \mathcal I^{\mathcal M}(f)$ applied index by index, for every symbol
-$f$ --- $\mathrm{ev}_i$ commutes with the Kleisli interpretation of
+$f$), $\mathrm{ev}_i$ commutes with the Kleisli interpretation of
 feed-forward composites (grammar interpretation,
 Definition~\ref{def:kleisli-interpretation}): for a batch $s \colon
 \Bidx \to \mathcal I(S)$,
@@ -2058,7 +2119,8 @@ index rather than pointwise would break the displayed equation.
 \subsection{Bridges and normalization}
 \label{sec:bridges}
 
-This section is due to [NeSy26, App.~B draft/T3] throughout.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% This section is due to [NeSy26, App.~B draft/T3] throughout.
 
 \begin{definition}[Decode, encode, mass]
 \label{def:dec-enc-mass}
@@ -2355,7 +2417,8 @@ predicted distribution is unchanged by inserting $\nrm$.
 \subsection{Examples}
 \label{sec:examples}
 
-This subsection's examples are due to [NeSy26, App.~B draft/T3].
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% This subsection's examples are due to [NeSy26, App.~B draft/T3].
 
 \textbf{Tilt failure, exact numbers.} Let $X = Y = \{0,1\}$, $a = (0,0)$, $k(0) = (0,0)$,
 $k(1) = (\ln 100,\, 0)$ (coordinates $(\cdot_0,\cdot_1)$ as in
@@ -2393,5 +2456,6 @@ specializes on the addition step to the convolution identity
 (discrete convolution of the two digit distributions), an instance of
 Theorem~\ref{thm:pullout} at the bind $({-}\bind \Ret\circ({+}))$,
 which is mass preserving by Lemma~\ref{lem:mass-preserving-closure}
-since $\Ret\circ h$ is mass preserving for every pure $h$. This example
-is due to [NeSy26, App.~B draft/T3; \S 5].
+since $\Ret\circ h$ is mass preserving for every pure $h$.
+% Apparatus (C2-E5): provenance credit, moved verbatim.
+% This example is due to [NeSy26, App.~B draft/T3; \S 5].
