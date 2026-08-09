@@ -41,6 +41,53 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 
 ## Notes
 
+- **C2-E9 (dependency-graph kind-shape fix, 2026-08-09):** web-only,
+  no `.tex` content or Lean touched. `plastexdepgraph`'s
+  `Packages/depgraph.py` boxes only the `definition` env kind and
+  ellipses everything else, including `class` and `abbreviation` —
+  both definition-like (no proof obligations under the anatomy law) —
+  which its own hardcoded legend mislabels "theorems and lemmas". New
+  local plastex package `blueprint/src/nesycatshapes.py`, loaded via
+  `\usepackage{nesycatshapes}` in `web.tex` AFTER
+  `\usepackage[...]{blueprint}`, sets
+  `document.userdata['dep_graph']['shapes'] = {'definition': 'box',
+  'class': 'box', 'abbreviation': 'box'}` (`instance`/`lemma`/`theorem`
+  fall through to the ellipse default — `instance` DELIBERATELY stays
+  an ellipse: it discharges real proof obligations, so the theorem
+  shape is truthful there) and registers a postParse-200 callback
+  (after leanblueprint's own `make_legend`, postParse-150) rewriting
+  the two shape-legend rows in place, leaving leanblueprint's
+  appended color rows untouched. Verified in the rebuilt
+  `dep_graph_document.html`: `def:bounded-comm-lattice-semiring` (a
+  `class` node) and `abbr:log-tensor-monad`/`abbr:truth-space`
+  (`abbreviation` nodes) are `shape=box`; `inst:logS-latcsrng`/
+  `inst:massS-latcsrng`/`inst:boolw-latcsrng` (`instance` nodes) stay
+  `shape=ellipse`; the legend now reads "Boxes — definitions, classes,
+  abbreviations" / "Ellipses — lemmas, theorems, instances". Trace
+  gap found and disclosed: contra the ticket's two-way local-vs-plugin
+  dichotomy, a bare `.py` dropped into `blueprint/src/` does NOT
+  resolve on its own (`plasTeX/Context.py`'s `loadPythonPackage`
+  searches `config['general']['packages-dirs']` first, and that
+  option's default is empty — confirmed empirically: the drop-in
+  silently no-ops with "WARNING: No Python version of
+  nesycatshapes.sty was found"). Used the one-line, still-local fix
+  (`packages-dirs=.` added to `plastex.cfg`'s `[general]` section,
+  commented in place) rather than the heavier plugins=-line/
+  installable-plugin fallback. `print.tex` never `\usepackage`s
+  `blueprint`, `dep_graph`, or `nesycatshapes` (print and web are
+  fully separate LaTeX entry points), and `leanblueprint pdf` reported
+  "Nothing to do for print.tex" (`print.pdf` unchanged) — the print
+  build is structurally unaffected, not merely visually unchanged.
+  Mirrored `nesycatshapes.py` byte-identical into a NEW
+  `plugin/nesycat-lean4-harness/blueprint-scaffold/` (no such
+  "blueprint scaffold twin" location existed before this ticket — the
+  plugin was previously hooks/skills/agents only, deliberately
+  host-agnostic; this directory holds portable, non-NeSyCat-specific
+  companions a host repo's own `blueprint/src/` can copy in, with an
+  install README). `scripts/blueprint.sh` GREEN, all sentinels
+  unchanged from baseline: structure 88 environments/56 kind-checked
+  names, census 317 scanned/56 cited/261 internal/0 unclassified,
+  registry sync 9 twins, structure-mirror 15 sections/0 violations.
 - **C2-E8 (Run 6, CONNECTIVE FLOW + VISIBLE ATTRIBUTION, USER DECREE
   2026-08-09):** two style laws, calibrated against the
   ⊗-commutativity passage (the E7 flat-prose master specimen), that
