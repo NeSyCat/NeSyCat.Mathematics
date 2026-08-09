@@ -381,6 +381,50 @@ step below.
   envs do not already cover gets promoted to its own env (with a real
   proof, or the open-theorem convention's "Open." marker), not left as
   an unmarked observation.
+- **The plain-language density law (C2-E7, USER DECREE 2026-08-09).**
+  One claim per sentence. A sentence that carries two facts, a
+  hypothetical, or a proof-sketch riding along inside a parenthetical
+  or a subordinate clause gets split: state each fact on its own line,
+  in flat declaratives (has/is/contains/do), not stacked into one
+  compound sentence. This is a companion to the book register law
+  above: that law bans apparatus and filler; this law bans *density* —
+  writing that is grammatical and on-topic but crams more than a
+  reader can take in one sentence. Five register-smell classes, all
+  user-caught against this document, define the bar (full catalogue:
+  memory `nesycat-writing-style.md` items 9-13):
+  1. **Compression-stacking** — several claims, a noun-pile subject, or
+     a mid-sentence parenthetical proof-sketch, packed into one
+     sentence.
+  2. **Altitude / nominalization** — role-speak and abstract nouns
+     standing in for a plain subject-verb-object claim ("the order
+     obstruction vanishes" for "the order has no top, so the argument
+     fails").
+  3. **Significance pronouncement** — antithesis flourishes and
+     profundity clinchers ("this is structural, not accidental") that
+     announce importance instead of stating a fact.
+  4. **Program-shaped prose** — inline guards, condition-stacking, and
+     case-texture ("in the general (possibly noncommutative) case
+     ... absent commutativity of ...") that reads like a code
+     comment, not a sentence.
+  5. **Essay voice** — narrated transitions and self-referential
+     scaffolding ("taken up together with the completion instances")
+     standing in for a plain forward pointer.
+  The five classes are diagnostics for catching a bad sentence, not an
+  exhaustive checklist: the actual bar is flat declarative prose, one
+  fact per sentence, matching the voice of the library's own reference
+  source (*NeSyCat Theory v2*, `new.tex` lines 1-396). Mathematics
+  inside an env is untouched except where its own prose connective
+  tissue carries one of these patterns; no mathematical clause may
+  change meaning. Enforced by `lint-blueprint.py` (both copies):
+  advisories on a rendered-prose (comment-stripped, math-mode
+  excluded) sentence over 55 words, and on a rendered-prose sentence
+  with more than two real parenthetical groups (citation/cross-
+  reference parens such as `(Class~\ref{...})` and bare enumeration
+  markers such as `(i)` excluded — both crude, honest proxies, tuned
+  for zero false positives against the swept document, not exhaustive
+  detectors). A blind verifier reads a short rendered-page sample as a
+  READER and judges density on that sample directly, the same way it
+  already judges register.
 - **The structure-mirror law (C2-E6, USER DECREE 2026-08-09).** The
   blueprint's `\section`/`\subsection` tree and the `NeSyCat/` folder
   tree mirror each other exactly — computed and self-updating, never

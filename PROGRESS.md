@@ -41,6 +41,48 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 
 ## Notes
 
+- **C2-E7 (Run 6, THE FLAT-PROSE TRANSFUSION, USER DECREE 2026-08-09):**
+  a density pass over every rendered narrative paragraph and env-body
+  prose connective tissue in `content.tex`, on top of C2-E5's register
+  sweep. (1) **Seven LEAD-approved rewrites applied verbatim** at their
+  pinned locations (house-style/LaTeX fitting only): the
+  batch-naturality passage near `thm:pointwise-eval` (compression-
+  stacking, memory item 9); the dm-completions outlook passage near
+  `thm:no-dm-mass`/`thm:no-dm-log` (altitude/nominalization, item 10);
+  the copying-fails significance-pronouncement passage after
+  `lem:copying-fails` (item 11); the lattice-semiring
+  naming/generality passage after `def:bounded-comm-lattice-semiring`
+  (program-shaped prose, item 12); the instance-rows completion
+  passage after the three running-instance boxes (essay voice, item
+  13); the `⊗`-commutativity composite passage after
+  `thm:semiring-monad-commutative` (all five classes at once, the
+  master standard); and the Truth-value-structures section-opener
+  clause (classes 10/13). (2) **Sweep, not pattern-hunt**: roughly 35
+  further narrative paragraphs and dense proof/statement sentences
+  rewritten to the same flat standard across the Introduction, both
+  Categorical-layer subsections, all three Logical-layer subsections,
+  the Domain/Grammatical layers, and both Statistical-layer
+  subsections -- every fact preserved, no label/`\uses`/`\lean` moved.
+  (3) **Enforcement**: both `lint-blueprint.py` copies gained two
+  crude density advisories (`density_scan`, whole-document
+  paragraph-granularity, math-mode and citation-paren excluded) -- a
+  rendered-prose sentence over 55 words, and one with more than two
+  real parenthetical groups; tuned against the swept document to zero
+  false positives (documented tuning: MATH placeholders excluded from
+  the word count; `(Class~\ref{...})`-shaped citation parens and bare
+  `(i)`/`(ii)` markers excluded from the parenthetical count); RED-
+  tested against a synthetic two-violation fixture end-to-end through
+  the hook entry point, silent on the final `content.tex`.
+  `FORMALIZE.md`'s book register law gained a new plain-language
+  density law (one-claim-per-sentence clause, the five-class
+  catalogue, the tuning disclosure). (4) **Gates**: `scripts/check.sh`
+  GREEN (8684 jobs, no Lean files touched), `scripts/sorry-report.sh`
+  0/0, `scripts/blueprint.sh` GREEN and numerically unchanged from
+  baseline (88 environments, 56 kind-checked names, census 48
+  cited/255 internal/0 unclassified, registry sync OK at 9 twins,
+  structure-mirror 15 sections/0 violations), pdf+web rebuild clean,
+  overfull count unchanged at 1 hbox, 1.2pt.
+
 - **C2-E4b (Run 6, outward notation propagation, 2026-08-09):**
   the E4b half of the notation-propagation spec: macros.sty surgery,
   Lean glyph-notation removal, both papers, the hash pin, bold units,

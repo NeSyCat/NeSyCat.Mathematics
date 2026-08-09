@@ -92,6 +92,44 @@ REGISTER_FILLER_RE = re.compile(
     r'plays a crucial role|underscores|highlights|In essence',
     re.IGNORECASE)
 
+# PLAIN-LANGUAGE DENSITY (C2-E7, USER DECREE 2026-08-09): two crude,
+# honest proxies for the compression-stacking/program-shaped-prose
+# register smells (memory items 9 and 12) -- a rendered-prose sentence
+# over WORD_LIMIT words, or with more than two real parenthetical
+# groups. Both are math-mode excluded: display/inline math, and
+# citation-apparatus parens such as "(Class~\ref{...})" or a bare
+# enumeration marker "(i)"/"(ii)", are not prose stacking and are
+# stripped/ignored before either check runs. Tuned (2026-08-09) against
+# the swept content.tex to zero false positives at WORD_LIMIT=55; a
+# future legitimate long math sentence may force a higher bar or a
+# smarter split-on-$...$ heuristic -- raise the constant, don't disable
+# the check.
+DENSITY_WORD_LIMIT = 55
+DENSITY_DISPLAY_MATH_RE = re.compile(r'\\\[.*?\\\]', re.DOTALL)
+DENSITY_INLINE_MATH_RE = re.compile(r'\$[^$]*\$', re.DOTALL)
+DENSITY_BLOCK_ENV_RE = re.compile(
+    r'\\begin\{(tabular|center|align\*?|gather\*?|multline\*?|equation\*?)\}'
+    r'.*?\\end\{\1\}', re.DOTALL)
+DENSITY_DROP_CMD_RE = re.compile(
+    r'\\(label|uses|lean|leanok|ref|eqref|cite)\{[^}]*\}')
+DENSITY_UNWRAP_CMD_RE = re.compile(
+    r'\\(textbf|emph|texttt|textit|mathrm)\{([^{}]*)\}')
+DENSITY_ENV_MARKER_RE = re.compile(
+    r'\\(begin|end)\{[a-zA-Z*]+\}(\[[^\]]*\])?(\{[^}]*\})?')
+DENSITY_SENT_SPLIT_RE = re.compile(r'(?<=[.!?])\s+(?=[A-Z(])')
+DENSITY_ABBR_RE = re.compile(
+    r'\b(e\.g|i\.e|cf|resp|vs|etc|c\.f)\.', re.IGNORECASE)
+DENSITY_PAREN_GROUP_RE = re.compile(r'\(([^()]*)\)')
+DENSITY_PAREN_EXCLUDE_RE = re.compile(
+    r'^\s*(MATH\s*)?'
+    r'((Class|Definition|Lemma|Theorem|Corollary|Abbreviation|Section|'
+    r'Example)~?\s*)?'
+    r'([ivxIVX]{1,4}|[a-hA-H])?\s*(MATH\s*)?\s*$')
+# Non-prose block boundaries for grouping code_lines into paragraphs:
+# same granularity as this file's other multi-line scanners.
+DENSITY_BOUNDARY_RE = re.compile(
+    r'^\s*(\\begin\{|\\end\{|\\section\{|\\subsection\{|\\item)')
+
 # Definition-atomicity / no-examples-in-definitions (editorial decree,
 # 2026-08-09). DEFINITION_BEGIN_RE/END_RE bracket a `definition` env; the
 # two structure-introduction patterns below are the two grammatical shapes
@@ -129,6 +167,85 @@ def strip_comment(line):
             return line[:i]
         i += 1
     return line
+
+
+def density_paragraphs(raw_lines):
+    """Yield (start_line_1based, text) for maximal runs of non-blank,
+    non-env-boundary lines, with whole non-prose block environments
+    (tables, display-math wrappers) deleted first -- same granularity
+    as this file's other multi-line scanners."""
+    code_lines = [strip_comment(l) for l in raw_lines]
+    joined = "\n".join(code_lines)
+
+    def _blank(m):
+        return "\n" * m.group(0).count("\n")
+    joined = DENSITY_BLOCK_ENV_RE.sub(_blank, joined)
+    code_lines = joined.split("\n")
+    n = len(code_lines)
+    i = 0
+    while i < n:
+        if DENSITY_BOUNDARY_RE.match(code_lines[i]) or code_lines[i].strip() == "":
+            i += 1
+            continue
+        start = i
+        buf = []
+        while i < n:
+            s = code_lines[i]
+            if DENSITY_BOUNDARY_RE.match(s) or s.strip() == "":
+                break
+            buf.append(s)
+            i += 1
+        yield start + 1, "\n".join(buf)
+
+
+def density_clean(text):
+    text = DENSITY_DISPLAY_MATH_RE.sub(' MATH ', text)
+    text = DENSITY_INLINE_MATH_RE.sub(' MATH ', text)
+    text = DENSITY_DROP_CMD_RE.sub(' ', text)
+    for _ in range(2):
+        text = DENSITY_UNWRAP_CMD_RE.sub(r'\2', text)
+    text = DENSITY_ENV_MARKER_RE.sub(' ', text)
+    return text
+
+
+DENSITY_DOT_MASK = "@@DENSITYDOT@@"
+
+
+def density_sentences(text):
+    masked = DENSITY_ABBR_RE.sub(
+        lambda m: m.group(0).replace('.', DENSITY_DOT_MASK), text)
+    for p in DENSITY_SENT_SPLIT_RE.split(masked):
+        s = p.replace(DENSITY_DOT_MASK, '.').strip()
+        if s:
+            yield s
+
+
+def density_scan(raw_lines, rel_posix):
+    """PLAIN-LANGUAGE DENSITY (C2-E7): two crude advisories on rendered
+    prose -- a sentence over DENSITY_WORD_LIMIT words, or one with more
+    than two real (non-citation, non-math) parenthetical groups."""
+    out = []
+    for start, text in density_paragraphs(raw_lines):
+        cleaned = density_clean(text)
+        for sent in density_sentences(cleaned):
+            words = [w for w in re.split(r'\s+', sent) if w and w != 'MATH']
+            wc = len(words)
+            if wc > DENSITY_WORD_LIMIT:
+                out.append(
+                    f"{rel_posix}:{start}: DENSITY -- rendered-prose "
+                    f"sentence has {wc} words (over {DENSITY_WORD_LIMIT}, "
+                    "math-mode excluded) -- one claim per sentence "
+                    f"(compression-stacking, memory item 9): {sent[:100]!r}")
+            groups = DENSITY_PAREN_GROUP_RE.findall(sent)
+            real = [g for g in groups if not DENSITY_PAREN_EXCLUDE_RE.match(g)]
+            if len(real) > 2:
+                out.append(
+                    f"{rel_posix}:{start}: DENSITY -- rendered-prose "
+                    f"sentence has {len(real)} parenthetical groups (over "
+                    "2, math/citation parens excluded) -- unpack the "
+                    f"guards (program-shaped prose, memory item 12): "
+                    f"{sent[:100]!r}")
+    return out
 
 
 def main():
@@ -391,6 +508,10 @@ def main():
                 f"{rel_posix}:{idx + 1}: REGISTER -- filler phrase on the "
                 f"rendered page [matched: {fm.group(0)!r}] -- reword "
                 "plainly (book register law)")
+
+    # PLAIN-LANGUAGE DENSITY (C2-E7, USER DECREE 2026-08-09): see
+    # density_scan's docstring. Whole-document, paragraph-granularity.
+    warnings.extend(density_scan(raw_lines, rel_posix))
 
     # STRUCTURE-MIRROR advisory (C2-E6, USER DECREE 2026-08-09): a
     # \section/\subsection introduced or left without a trailing
