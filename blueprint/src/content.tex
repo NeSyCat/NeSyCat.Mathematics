@@ -1755,6 +1755,8 @@ and assigns:
 
 \begin{definition}[Context]
 \label{def:context}
+\lean{NeSyCat.Context}
+\leanok
 A \textbf{context} $\vec x$ is a finite list $[x_1,\ldots,x_n]$ of
 \emph{distinct} variable symbols from $\Var$
 (Definition~\ref{def:domain-signature}), including the empty context
@@ -1769,6 +1771,8 @@ difference) apply to them.
 
 \begin{definition}[Grammatical signature]
 \label{def:grammatical-signature}
+\lean{NeSyCat.GramSignature}
+\leanok
 A \textbf{grammatical signature} $\Sigma_\delta$ is given by a set of
 \textbf{terms} $\Xi$, with functions
 $\inn, \out \colon \Xi \to \mathcal L(\Var)$, mapping each term to a
@@ -1808,6 +1812,8 @@ generated formulas.
 
 \begin{definition}[Wire adapters and bind set]
 \label{def:wire-adapters}
+\lean{NeSyCat.adapter}
+\leanok
 Consider composable typed symbols (Definition~\ref{def:domain-signature-notation})
 $f \colon M^f_1 S_1,\ldots,M^f_n S_n \to N^f_1 T_1,\ldots,N^f_m T_m$
 and
@@ -1842,6 +1848,8 @@ $J \subseteq \{1,\ldots,m\}$.
 
 \begin{definition}[Feed-forward composite]
 \label{def:feed-forward}
+\lean{NeSyCat.feedForward}
+\leanok
 With notation as in Definition~\ref{def:wire-adapters}, let
 $J = \{j_1 < \cdots < j_r\}$ be the bind set,
 $\vec\alpha := \alpha_1 \boxtimes \cdots \boxtimes \alpha_m$, and

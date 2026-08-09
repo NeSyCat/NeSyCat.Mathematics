@@ -31,6 +31,9 @@ import NeSyCat.DomainLayer.DomainLayer
 
 -- Grammatical layer (blueprint §5)
 import NeSyCat.GrammaticalLayer.GrammaticalLayer
+import NeSyCat.GrammaticalLayer.Context
+import NeSyCat.GrammaticalLayer.Grammar
+import NeSyCat.GrammaticalLayer.WireAdapters
 
 -- Statistical layer (blueprint §6)
 import NeSyCat.StatisticalLayer.StatisticalLayer
