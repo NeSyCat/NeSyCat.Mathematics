@@ -31,6 +31,17 @@
 \usepackage{expl3}
 
 \usepackage{amssymb, amsthm, mathtools}
+% C2-E8, Law 2 (visible attribution): natbib for \citep/\citet
+% author-year citations, matching the user's own papers' citation
+% style (new.tex, nesy2026-paper.tex both auto-load natbib with no
+% explicit options -- its own default is already round-paren,
+% author-year). No \bibliographystyle/\bibliography{file} pair is
+% used: the bibliography is a hand-written thebibliography (see
+% content.tex's Bibliography section) with natbib-format \bibitem[...]
+% optional arguments, so no bibtex/biber run is required; \bibitem
+% itself writes \bibcite to the .aux on every compile, and latexmkrc's
+% automatic rerun-until-stable resolves it exactly like \ref/\label.
+\usepackage{natbib}
 \usepackage[unicode,colorlinks=true,linkcolor=blue,urlcolor=magenta, citecolor=blue]{hyperref}
 
 \usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}

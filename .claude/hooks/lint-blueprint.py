@@ -76,6 +76,16 @@ PURITY_EXEMPT_LABELS = {"def:domain-signature-notation"}
 REGISTER_CITATION_RE = re.compile(
     r'\[NeSy26|\[Girard|\[Coumans|\[NeSyCat Theory|'
     r'\[[A-Z][A-Za-z]*[- ]?[A-Za-z]*\s?\d{2,4}[,\]]')
+# C2-E8, Law 2 (visible attribution): a hand-written natbib
+# \bibitem[Author(Year)]{key} entry's OPTIONAL ARGUMENT is real,
+# required LaTeX syntax (see content.tex's Bibliography section
+# comment) -- not prose apparatus, even though it happens to look like
+# a bracket-citation tag to the pragmatic heuristic above (e.g.
+# "\bibitem[Girard(1987)]{...}" contains the literal substring
+# "[Girard"). Exempt by line prefix, checked before the citation
+# pattern only; the SAME line's dash/history/filler checks still run
+# normally against a \bibitem line's actual bibliographic text.
+BIBITEM_RE = re.compile(r'^\s*\\bibitem\b')
 # Pragmatic heuristic (disclosed in FORMALIZE.md's register law): dashes
 # are flagged wherever two or more hyphens (or a literal em/en dash
 # character) occur, with NO math-mode tracking. This is deliberately
@@ -129,6 +139,60 @@ DENSITY_PAREN_EXCLUDE_RE = re.compile(
 # same granularity as this file's other multi-line scanners.
 DENSITY_BOUNDARY_RE = re.compile(
     r'^\s*(\\begin\{|\\end\{|\\section\{|\\subsection\{|\\item)')
+
+# CONNECTIVE FLOW law (C2-E8, USER DECREE 2026-08-09): the monotone
+# drumbeat where 4+ consecutive rendered-prose sentences in one
+# paragraph all open with the same handful of subject words reads as a
+# march, not a story -- join two of them with a genuine connective
+# (since/therefore/hence/because/but/yet/however/likewise/so), or
+# reopen with a different subject. Same paragraph/sentence machinery as
+# density_scan (density_paragraphs/density_clean/density_sentences):
+# whole non-prose block envs and math are stripped first, citation/
+# label/ref/cite commands dropped, sentences split the same way.
+# Banned-opener set tuned to Law 1's own normative sentence ("The"/
+# "This"/"It", not the enforcement bullet's wider "That"/"We" draft):
+# with the wider 5-word set, the LEAD-approved ⊗-commutativity
+# specimen itself (content.tex, thm:semiring-monad-commutative's
+# follow-on prose) reads as a run of exactly 4 ("The lifted
+# connectives...", "The Do-notation...", "The algebras...", "We record
+# this...") and would false-positive against the very passage Law 1
+# calibrates against; the 3-word set (matching "consecutive sentences
+# all open with 'The'/'This'/'It'") clears it (run drops to 3) while
+# still catching every genuine march in the swept document. Disclosed
+# in the C2-E8 report; a future tightening should re-derive the
+# specimen's own flow rather than widen this set back silently.
+FLOW_OPENER_RE = re.compile(r'^(The|This|It)\b')
+
+
+def flow_scan(raw_lines, rel_posix):
+    """CONNECTIVE FLOW (C2-E8): advisory on a run of 4+ consecutive
+    rendered-prose sentences, in one paragraph, all opening with a
+    banned subject word -- see FLOW_OPENER_RE's docstring above."""
+    out = []
+
+    def _flag(start, run):
+        out.append(
+            f"{rel_posix}:{start}: FLOW -- {len(run)} consecutive "
+            "rendered-prose sentences open with The/This/It in one "
+            "paragraph -- join two with a genuine connective (since/"
+            "therefore/hence/because/but/yet/however/likewise/so) or "
+            f"reopen with a different subject: {run[0][:70]!r} ... "
+            f"{run[-1][:70]!r}")
+
+    for start, text in density_paragraphs(raw_lines):
+        cleaned = density_clean(text)
+        run = []
+        for sent in density_sentences(cleaned):
+            if FLOW_OPENER_RE.match(sent):
+                run.append(sent)
+                continue
+            if len(run) >= 4:
+                _flag(start, run)
+            run = []
+        if len(run) >= 4:
+            _flag(start, run)
+    return out
+
 
 # Definition-atomicity / no-examples-in-definitions (editorial decree,
 # 2026-08-09). DEFINITION_BEGIN_RE/END_RE bracket a `definition` env; the
@@ -482,7 +546,7 @@ def main():
     # provenance sentence between two envs is just as much a leak as one
     # inside a definition.
     for idx, line in enumerate(code_lines):
-        cm = REGISTER_CITATION_RE.search(line)
+        cm = None if BIBITEM_RE.match(line) else REGISTER_CITATION_RE.search(line)
         if cm:
             warnings.append(
                 f"{rel_posix}:{idx + 1}: REGISTER -- bracket-citation "
@@ -512,6 +576,10 @@ def main():
     # PLAIN-LANGUAGE DENSITY (C2-E7, USER DECREE 2026-08-09): see
     # density_scan's docstring. Whole-document, paragraph-granularity.
     warnings.extend(density_scan(raw_lines, rel_posix))
+
+    # CONNECTIVE FLOW (C2-E8, USER DECREE 2026-08-09): see flow_scan's
+    # docstring. Whole-document, paragraph-granularity.
+    warnings.extend(flow_scan(raw_lines, rel_posix))
 
     # STRUCTURE-MIRROR advisory (C2-E6, USER DECREE 2026-08-09): a
     # \section/\subsection introduced or left without a trailing

@@ -28,9 +28,7 @@ Two editorial principles govern every item:
   mathematical level. For example, the weight-monad construction
   $\MS{S}$ is stated for any semiring $S$, not assumed commutative.
   Concrete cases (Boolean, mass, log semirings; the $[0,1]$ readout)
-  then appear as instances. This document states each item in the
-  library's own voice, at its natural generality. A narrower case from
-  elsewhere appears in-item, as an instance or corollary.
+  then appear as instances.
 \item \textbf{Provenance.} Every item's mathematical origin is recorded
   next to it, in the source file, so credit is clear without cluttering
   the page.
@@ -49,16 +47,16 @@ rather than left-to-right sequencing.
 
 Beyond this introduction, the library has five layers. The
 \textbf{categorical layer} covers semiring weight monads, then
-categorical signatures and CD semantics. The \textbf{logical layer}
-covers truth-value structures, truth spaces and lifted connectives, the
-three-layers trichotomy, and logical signatures. The \textbf{domain
-layer} covers domain signatures and interpretations. The
-\textbf{grammatical layer} covers the term/formula grammar and its
-Kleisli interpretation. The \textbf{statistical layer} covers batching,
-the bridges/normalization theory connecting the probability and tensor
-readings, and worked examples. An \textbf{inferential layer} is
-reserved between the grammatical and statistical layers, for future
-content connecting proof theory to model theory.
+categorical signatures and CD semantics. Next, the \textbf{logical
+layer} covers truth-value structures, truth spaces and lifted
+connectives, the three-layers trichotomy, and logical signatures. The
+\textbf{domain layer} covers domain signatures and interpretations.
+Then the \textbf{grammatical layer} covers the term/formula grammar
+and its Kleisli interpretation. The \textbf{statistical layer} covers
+batching, the bridges/normalization theory connecting the probability
+and tensor readings, and worked examples. An \textbf{inferential
+layer} is reserved between the grammatical and statistical layers, for
+future content connecting proof theory to model theory.
 
 % Apparatus (C2-E5): "Sources and provenance" paragraph, moved verbatim
 % (repo bookkeeping; see PROGRESS.md / the campaign ledger for the live
@@ -200,10 +198,10 @@ forward and back.
 \label{sec:semiring-monads}
 
 This subsection develops the semiring weight monad $\MS{S}$. It builds
-$\MS{S}$ from a family of ordered semirings: lattice-semirings and
-their commutative and bounded refinements. It states the monad's laws
-and its commutativity. It gives the log isomorphism linking the mass
-and log rows.
+$\MS{S}$ from a family of ordered semirings, lattice-semirings and
+their commutative and bounded refinements, then states the monad's
+laws and its commutativity. It gives the log isomorphism linking the
+mass and log rows.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
 % Every item in this subsection is due to [NeSy26, App.~A], except the
 % commutativity direction of Theorem~\ref{thm:semiring-monad-commutative},
@@ -262,7 +260,7 @@ therefore split the classes the way Mathlib splits
 \texttt{Semiring} and \texttt{CommSemiring}. A bounded commutative
 lattice-semiring can be reached in either order: bound a commutative
 one, or make a bounded one commutative. The three running instances
-are of this last kind.
+are all commutative; only the Boolean row is also bounded.
 % Apparatus (C2-E5): provenance note, moved verbatim.
 % [NeSy26, App.~A] states the commutative case throughout, matching the
 % library's three running instances.
@@ -354,6 +352,18 @@ treat those in a later section. The probability row
 $(\ProbS,\, p+q-pq,\, \cdot)$, with $\max,\min$ as its lattice, is a
 different case: by Lemma~\ref{lem:prob-not-semiring} it is not a
 semiring at all.
+
+% Connection verified against arXiv:2410.11415 (vendored,
+% references/papers/klay-arithmetic-circuits-2410.11415.pdf and its
+% source tarball): main.tex lines 546 and 594-596, and the pseudo-code
+% appendix's log-evaluation algorithm, name exactly a real-valued
+% module and a logarithmic module (logsumexp in place of the sum); no
+% Goedel/max-min module is implemented anywhere in the paper, so no
+% Boolean-row correspondence is claimed here.
+The same two rows run in practice. The KLay circuit evaluator of
+\citet{maeneKLay2025} evaluates arithmetic circuits in exactly these
+semirings: its real module is the mass row, and its logarithmic
+module, using $\lse$ in place of the sum, is the log row.
 
 \begin{definition}[Semiring monad $\MS{S}$]
 \label{def:semiring-monad}
@@ -515,17 +525,20 @@ of $\dstL=\dstR$ at this one-point set already forces it.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
 % This theorem's commutativity direction is also credited to
 % Coumans--Jacobs, Lem.~23.
-This is the first place in the section that needs $\otimes$-commutativity.
-The monad laws of Theorem~\ref{thm:semiring-monad-laws} hold for any
-semiring. The monad's own commutativity does not: it is equivalent to
-$\otimes$-commutativity. Two later constructions depend on it. The
-lifted connectives of Definition~\ref{def:lifted-connective} bind
-several arguments and push forward along a Boolean operation; the
-order of those binds is irrelevant only when the binds commute. The
-$\Do$-notation semantics of Definition~\ref{def:kleisli-interpretation}
-likewise reorders independent binds. The algebras of $\MS{S}$ are the
-$S$-semimodules. We record this as a stretch target: it has no Lean
-formalization yet.
+This is the first place in the section that needs
+$\otimes$-commutativity. The monad laws of
+Theorem~\ref{thm:semiring-monad-laws} hold for any semiring, but
+the monad's own commutativity does not: it is equivalent to
+$\otimes$-commutativity. Two later constructions depend on it.
+The lifted connectives of Definition~\ref{def:lifted-connective}
+bind several arguments and push forward along a Boolean
+operation, so the order of those binds is irrelevant only when
+the binds commute. The $\Do$-notation semantics of
+Definition~\ref{def:kleisli-interpretation} likewise reorders
+independent binds. The algebras of $\MS{S}$ are the
+$S$-semimodules, a result of \citet{coumansJacobsScalars2013}. We
+record this as a stretch target, since it has no Lean formalization
+yet.
 
 \begin{lemma}[Mass-one closure]
 \label{lem:dist-closure}
@@ -693,16 +706,16 @@ $\mathcal M := \mathrm{LogVec}$ for $\bigcirc$.
 The lifted connective family of a truth space
 (Definition~\ref{def:lifted-connective}, Section~\ref{sec:truth-spaces}
 onward) is \emph{not} a semiring (Lemma~\ref{lem:copying-fails},
-Theorem~\ref{thm:three-layers}). It is a bounded lattice carrying two
-monoids. This section defines that structure abstractly, under names
-from the library's own naming scheme (\textbf{BLat2Mon} and its
-refinements). It proves which linearity and De~Morgan laws such a
-structure can carry, and shows which class each running row (Boolean,
-probability, mass, log) belongs to. The connective and constant
-conventions above are assumed throughout, not re-explained.
+Theorem~\ref{thm:three-layers}), but it is a bounded lattice carrying
+two monoids. This section defines that structure abstractly, under
+names from the library's own naming scheme (\textbf{BLat2Mon} and its
+refinements), and proves which linearity and De~Morgan laws such a
+structure can carry. Each running row (Boolean, probability, mass,
+log) then falls into one of these classes. The connective and
+constant conventions above are assumed throughout, not re-explained.
 
 The BLat2Mon family below borrows some of its vocabulary from linear
-logic.
+logic, due to \citet{girardLinearLogic1987}.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
 % The BLat2Mon family below is distilled from [NeSy26, App.~A]'s
 % lifted-connective family, with vocabulary borrowed from linear logic
@@ -761,11 +774,11 @@ In the commutative case, the one-sided version of each linear law
 suffices. The other side follows from commutativity.
 
 Classes~\ref{def:lin-blat2mon} and~\ref{def:lin-blat2cmon} are exactly
-linear logic's four linear distributions ($\otimes$ over $\oplus$, and
-linear logic's own multiplicative disjunction over its own additive
-conjunction, together with their units). The linear-logic dictionary
-later in this section spells out the correspondence with linear
-logic's own vocabulary in full.
+linear logic's four linear distributions~\citep{girardLinearLogic1987}
+($\otimes$ over $\oplus$, and linear logic's own multiplicative
+disjunction over its own additive conjunction, together with their
+units). The linear-logic dictionary later in this section spells out
+the correspondence with linear logic's own vocabulary in full.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
 % [Girard 1987]
 
@@ -816,7 +829,7 @@ $\neg(p \otimes q) = \neg q \oplus \neg p$.
 \end{class}
 
 In the commutative case, (iii) reads $\neg p \oplus \neg q$. This is
-linear negation, axiomatized minimally.
+linear negation~\citep{girardLinearLogic1987}, axiomatized minimally.
 Theorem~\ref{thm:dm-presentations} below compares the presentations.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
 % This is linear negation [Girard 1987].
@@ -991,7 +1004,7 @@ The outer inequalities are Lemma~\ref{lem:dualabsorb-decomposition}(i)
 and (ii); the middle one is the lattice.
 \end{proof}
 
-This is the MIX rule.
+This is the MIX rule~\citep{girardLinearLogic1987}.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
 % This is the MIX rule [Girard 1987].
 
@@ -1180,17 +1193,17 @@ why the dictionary below exists.
 \begin{center}
 {\footnotesize\setlength{\tabcolsep}{3pt}
 \begin{tabular}{llllll}
-\hline
+
 \textbf{ours} & \textbf{LL} & \textbf{name in LL} & \textbf{our unit} & \textbf{LL unit} & \textbf{realized here as} \\
 \hline
 $\vee$ & $\oplus$ & additive disjunction (join) & $\bot$ & $0$ & order family (Definition~\ref{def:order-family}, join) \\
 $\wedge$ & \& & additive conjunction (meet) & $\top$ & $\top$ & order family (meet) \\
 $\otimes$ & $\otimes$ & multiplicative conjunction & $\done$ & $1$ & lifted connective (Definition~\ref{def:lifted-connective}) \\
 $\oplus$ & $\llparr$ & multiplicative disjunction & $\dzero$ & $\bot$ & lifted connective \\
-$\neg$ & $(\cdot)^\bot$ & linear negation & none & none & DM structure (Class~\ref{def:dm-structure}) \\
-$\impc{\cdot}$ & $\multimap$ & linear implication & none & none & deferred (residuation section) \\
-$!,?$ & $!,?$ & exponentials & none & none & exp/log bridge (Definition~\ref{lem:log-iso}; completions) \\
-\hline
+$\neg$ & $(\cdot)^\bot$ & linear negation &  &  & DM structure (Class~\ref{def:dm-structure}) \\
+$\impc{\cdot}$ & $\multimap$ & linear implication &  &  & deferred (residuation section) \\
+$!,?$ & $!,?$ & exponentials &  &  & exp/log bridge (Definition~\ref{lem:log-iso}; completions) \\
+
 \end{tabular}
 }
 \end{center}
@@ -2217,7 +2230,7 @@ $Z(\Ret_{\Tmon}(x)) = e^0 + \sum_{x'\ne x}e^{-\infty} = 1$.
 exact only over the true log semiring $\LogS = \mathbb R \cup
 \{-\infty\}$ of Class~\ref{def:lattice-semiring}. The numerical
 $\epsilon$-floor implementation substitutes a large negative finite
-number for $-\infty$. It satisfies these identities only up to
+number for $-\infty$, so it satisfies these identities only up to
 $O(\epsilon)$ error. The reason: $\Ret_{\Tmon}(x)$ genuinely needs a
 $-\infty$ coordinate, not merely a small one, at every $x' \ne x$, for
 $\enc\circ\Ret_{\Dmon} = \Ret_{\Tmon}$ to hold on the nose.
@@ -2481,3 +2494,42 @@ Lemma~\ref{lem:mass-preserving-closure}, since $\Ret\circ h$ is mass
 preserving for every pure $h$.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
 % This example is due to [NeSy26, App.~B draft/T3; \S 5].
+
+% ============================================================
+% Bibliography (C2-E8, Law 2: visible attribution). Plain-LaTeX
+% thebibliography, not a BibTeX/biber-generated one: no
+% \bibliographystyle/\bibliography{file} pair runs an external
+% bibliography-processing PROGRAM. \citep/\citet author-year citations
+% (matching the user's own papers' convention) are natbib's real
+% commands on print.tex's xelatex+latexmk path (verified: builds
+% clean, "Maene et al. (2025)"/"(Girard, 1987)"-style text in the
+% built PDF, no undefined-citation warnings). On web.tex's plasTeX
+% path \citep/\citet instead FALL BACK to plain-LaTeX \cite (disclosed
+% fallback, not a silent degrade -- see web.tex's own comment for the
+% root cause: plasTeX's natbib.py needs an already-resolved *.aux from
+% a real BibTeX/LaTeX pass, which this single-pass web build never
+% produces, so natbib's own \citep/\citet render an empty
+% <span class="cite"></span> there, reproduced directly before this
+% fallback was added). Each \bibitem below carries its natbib-format
+% optional argument by hand (the "Author(Year)" shape natbib's own
+% docs specify for a manually-written bibliography, i.e. one with no
+% BibTeX-generated .aux \bibcite entries to read instead); this same
+% optional argument is also exactly what the web engine's plain \cite
+% fallback displays (plasTeX's un-overridden Base bibliography module
+% renders it directly, no aux round-trip needed), so one \bibitem line
+% serves both engines' citation text, just styled differently
+% ("(Girard, 1987)" on print vs. "[Girard(1987)]" on web). Only the
+% sources actually credited by name in the running prose above are
+% listed here; a source that stays in a % comment (NeSy26
+% self-citation, pins, git refs, errata) is not, since it never
+% renders. Key naming: camelCase authorTitleYear, matching the
+% sibling NeSyCat.Logics papers' own additional_citations.bib scheme
+% where a key already exists there (coumansJacobsScalars2013, verbatim
+% match); girardLinearLogic1987 and maeneKLay2025 are this
+% document's own first use of those two sources, named the same way.
+\section*{Bibliography}
+\begin{thebibliography}{9}
+\bibitem[Girard(1987)]{girardLinearLogic1987} Jean-Yves Girard. Linear logic. \textit{Theoretical Computer Science}, 50(1), pages 1 to 101, 1987.
+\bibitem[Coumans and Jacobs(2013)]{coumansJacobsScalars2013} Dion Coumans and Bart Jacobs. Scalars, monads, and categories. In Chris Heunen, Mehrnoosh Sadrzadeh, and Edward Grefenstette, editors, \textit{Quantum Physics and Linguistics: A Compositional, Diagrammatic Discourse}. Oxford University Press, 2013. arXiv:1003.0585.
+\bibitem[Maene et~al.(2025)]{maeneKLay2025} Jaron Maene, Vincent Derkinderen, and Pedro Zuidberg Dos Martires. KLay: accelerating arithmetic circuits for neurosymbolic AI. In \textit{International Conference on Learning Representations (ICLR)}, 2025. arXiv:2410.11415.
+\end{thebibliography}

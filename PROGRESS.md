@@ -41,6 +41,108 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 
 ## Notes
 
+- **C2-E8 (Run 6, CONNECTIVE FLOW + VISIBLE ATTRIBUTION, USER DECREE
+  2026-08-09):** two style laws, calibrated against the
+  ⊗-commutativity passage (the E7 flat-prose master specimen), that
+  revise C2-E5's book register and C2-E7's density law rather than
+  reopen them. **Law 1 (connective flow)**: joined a run of 4+
+  consecutive rendered-prose sentences opening with "The"/"This"/"It"
+  at 4 locations (Introduction's five-layers paragraph, the semiring
+  weight monad subsection opener, the Truth-value-structures section
+  opener, the log-normalizer scope-disclosure paragraph) with genuine
+  connectives (sequential "next"/"then" for the layer stack, "so" for
+  a real cause-effect pair, "but" for a real contrast); applied the
+  spec's LEAD-approved ⊗-commutativity specimen verbatim
+  (LaTeX-fit only). **Law 2 (visible attribution)**: walked every
+  `%`-comment citation block E5 created; restored book-style prose
+  attribution + a new `\citep`/`\citet` bibliography (natbib
+  author-year, matching the user's own papers) for genuinely external
+  results — Girard's linear logic (4 sites: vocabulary, the four
+  linear distributions, linear negation, the MIX rule) and the
+  Coumans–Jacobs $S$-semimodules fact (the ticket's own canonical
+  instance, landed via the Law-1 specimen); classified every other
+  `%` block as apparatus (git refs/sha256/errata, explicitly still
+  banned) or as document-history self-citation (blanket "this
+  section is due to NeSy26/NeSyCat Theory v2" statements — NOT the
+  same thing as crediting an external author, so left as comments,
+  disclosed as the one genuinely judgment-call classification in the
+  ticket report). **Two mid-run LEAD riders**, both verified against
+  a vendored paper before writing anything (never invented): a
+  one-sentence KLay connection note (after the three running-instance
+  envs) crediting `\citet{maeneKLay2025}`'s real/log modules as this
+  library's mass/log rows — checked directly against
+  `references/papers/klay-arithmetic-circuits-2410.11415`'s source;
+  the paper implements no Gödel/max-min module, so no Boolean-row
+  correspondence is claimed (a drafted clause to that effect was
+  declined, disclosed in the report); and a natbib citation-mechanism
+  switch (bare `\cite` → `\citep`/`\citet`, author-year, camelCase
+  authorTitleYear keys) with a discovered, disclosed toolchain split:
+  natbib's `\citep`/`\citet` render correctly under print.tex's
+  xelatex+latexmk (verified in the built PDF: "Maene et al. (2025)",
+  "(Girard, 1987)", etc., no undefined-citation warnings), but render
+  BLANK under web.tex's plasTeX (its `natbib.py` needs an
+  already-resolved `.aux` from a real BibTeX/LaTeX pass, which this
+  single-pass web build never produces — reproduced directly as an
+  empty `<span class="cite"></span>` before the fix); web.tex's
+  `\citep`/`\citet` fall back to plain-LaTeX `\cite` instead (plasTeX's
+  un-overridden Base bibliography module renders `\bibitem`'s own
+  optional "[Author(Year)]" label directly, no aux needed) — disclosed
+  fallback, not a silent degrade, verified in the rebuilt web/index.html
+  (zero blank citation spans). New `lint-blueprint.py` (both copies,
+  byte-identical) advisory, `flow_scan`/`FLOW_OPENER_RE`: 4+ consecutive
+  rendered-prose sentences opening with "The"/"This"/"It" in one
+  paragraph — deliberately narrower than a first "The/This/That/It/We"
+  draft, since the wider set false-positives against the very
+  ⊗-commutativity specimen Law 1 calibrates against (disclosed at the
+  regex's definition); also exempted `\bibitem[...]`'s own optional
+  argument from the pre-existing bracket-citation advisory (it
+  incidentally matches "[Girard"/"[Coumans" as literal text, but is
+  required LaTeX syntax, not prose apparatus). Two riders: (a)
+  `content.tex`'s `def:bounded-comm-lattice-semiring`-adjacent sentence
+  ("The three running instances are of this last kind.", withheld by
+  C2-H2 as mathematically false) replaced with "The three running
+  instances are all commutative; only the Boolean row is also bounded."
+  — matches the instance envs and the later corrected section, applied.
+  (b) `blueprint/src/macros/common.tex`'s stale registry-comment
+  inventory (flagged but out of scope for C2-H2) synced to
+  `NeSyCat/Notation.lean`'s actual current surface: `\parr` marked
+  RETIRED (no Lean twin, ever) rather than "planned"; `\AndC` marked
+  RETIRED rather than describing a shipped glyph that was deleted at
+  C2-E4b; `\dzero`/`\done` corrected from "scoped notation" claims to
+  "live field, no notation glyph shipped"; `\negc`'s note extended to
+  record that the primitive involution `DMStructure.dneg` is live now
+  as a plain name (the `¬` overload was tried and reverted); a stale
+  `Remark~rem:connective-conventions` reference (remarks are abolished)
+  dropped. `scripts/blueprint.sh`'s CENSUS section's `BlueprintAttr`
+  exemption narrowed from the WHOLE module to exactly the one
+  declaration `registerTagAttribute` creates
+  (`blueprintInternalAttr`) — verified via a direct scratch dump that
+  the module's other constant, `initialize`'s auto-generated private
+  `initFn` helper, is already caught by stage (i)'s
+  `Lean.Name.isBlackListed`, needing no exemption of its own;
+  RED-tested with a scratch decl added to (then reverted from) the
+  real `NeSyCat/BlueprintAttr.lean` (net zero diff after revert):
+  census correctly flagged it (318 scanned, 1 unclassified,
+  `CORRESPONDENCE census violations: ... c2e8_red_test_scratch is
+  neither cited ... nor tagged`); sentinel unchanged after the
+  narrowing (317/56/261/0). **One concern, disclosed rather than
+  guessed through**: the `FORMALIZE.md` law-text additions (both laws
+  under "Blueprint structural laws", plus the "Local reference texts"
+  Tooling note) could not be committed — `.claude/hooks/guard-scope.py`
+  hard-denies Edit/Write on `FORMALIZE.md` while `.claude/grind-mode`
+  is armed (confirmed armed throughout this ticket, a real permission-
+  system state, not routed around); the exact patch text is prepared
+  verbatim at `.foreman/scratch/C2-E8-FORMALIZE-patch.md` for
+  application once grind mode clears. Gates: `scripts/check.sh` GREEN
+  (no Lean files touched besides the reverted RED-test scratch decl),
+  `scripts/sorry-report.sh` 0/0, `scripts/blueprint.sh` BLUEPRINT:
+  GREEN and numerically unchanged (88 environments, 56 kind-checked
+  names, kernel-truth OK, census 317/56/261/0, registry sync OK at 9
+  twins, structure-mirror 15/0), pdf+web rebuilt (23-page PDF, one
+  residual overfull hbox at 1.2pt unchanged from baseline; the
+  bibliography section legitimately added pages), both lint-blueprint
+  copies silent on the final document.
+
 - **C2-H2 (Run 6, HARDENING SLATE):** a reference-manual audit riders
   ticket, mostly mechanical/infrastructure, one genuine experiment, one
   disclosed scope conflict. (1) **Env-fold census replaces the regex

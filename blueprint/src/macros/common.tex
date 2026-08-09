@@ -151,37 +151,57 @@
 \makeatother
 % ===== END SHARED-MACRO IMPORT =====
 
-% ===== SYMBOL INVENTORY (mirror: NeSyCat/Notation.lean, future) =====
+% ===== SYMBOL INVENTORY (mirror: NeSyCat/Notation.lean) =====
 % Purely organizational, no rendering effect: this registry mirrors,
-% macro-by-macro, what a future `NeSyCat/Notation.lean` would declare as
-% Lean `notation`/`scoped` twins; that file does not exist yet, and no
-% `\lean{}` mark attaches to any macro here (symbols are not citable
-% objects --- see the Blueprint-to-Lean correspondence paragraph in
-% content.tex). Every entry below is defined centrally in
-% NeSyCat.Logics/macros.sty (see the import above); this block carries
-% no \newcommand of its own.
+% macro-by-macro, what `NeSyCat/Notation.lean` declares as the Lean
+% `notation`/`scoped` twin registry (C2-E8 sync: that file exists now
+% -- it did not when this comment was first written -- and its own
+% "Twin registry" section, checked mechanically by
+% `scripts/blueprint.sh`'s registry-sync gate against every
+% `% Lean:`-tagged macro in `NeSyCat.Logics/macros.sty`, is the
+% authoritative source this block mirrors); no `\lean{}` mark attaches
+% to any macro here (symbols are not citable objects --- see the
+% Blueprint-to-Lean correspondence paragraph in content.tex). Every
+% entry below is defined centrally in NeSyCat.Logics/macros.sty (see
+% the import above); this block carries no \newcommand of its own.
 %   \seq    Lean: scoped notation (planned), mirrors mathlib's `≫`      -- def: macros.sty
 %   \seqop  Lean: scoped infixl (planned) "⋗", feed-forward composite   -- def: macros.sty
-%   \bind   Lean: scoped infixl (planned) "≫=", Kleisli bind            -- def: macros.sty
+%   \bind   Lean: NeSyCat.bind (live function; the "≫=" scoped infix
+%           notation itself is still planned)                          -- def: macros.sty
 %   \sem    Lean: scoped notation (planned) "⟦_⟧"                       -- def: macros.sty
-%   \parr   Lean: scoped infixl (planned), or-like lifted connective    -- def: macros.sty
+%   \parr   RETIRED, no Lean twin (ever): our own voice never spells
+%           this glyph, only the round \otimes/\oplus; \llparr (below
+%           in macros.sty) is a display-only linear-logic dictionary
+%           device, not one of our own operators, so it carries no
+%           "Lean:" tag either                                         -- def: macros.sty
 %   \Rel, \Var, \Fun, \Conn, \inn, \out (domain-signature vocabulary)   -- def: macros.sty
 % ===== END SYMBOL INVENTORY =====
 
 % ----------------------------------------------------------------------
-% Local truth-value connectives (Table 3, Remark~rem:connective-conventions
-% in content.tex): migrated into NeSyCat.Logics/macros.sty (M5 Part A, user
-% decree "migrate now"), alongside the shared-symbol inventory above --- so
-% this block is now pointer comments only, no \newcommand of its own (same
-% convention as the SYMBOL INVENTORY block above). \parr is the and/or-like
-% counterpart of \AndC and was already in that inventory (papers use it via
-% cmll).
+% Local truth-value connectives (Table 3 of content.tex): migrated into
+% NeSyCat.Logics/macros.sty (M5 Part A, user decree "migrate now"),
+% alongside the shared-symbol inventory above --- so this block is now
+% pointer comments only, no \newcommand of its own (same convention as
+% the SYMBOL INVENTORY block above). The scoped-glyph question for the
+% truth-value monoid connectives ($\oplus$/$\otimes$) is CLOSED (tried
+% and reverted twice: C2-E4a, then again at maximum notation priority,
+% C2-H2 item 4): plain Lean field names are the shipped surface, never
+% a notation glyph, and this is not expected to be revisited.
 % ----------------------------------------------------------------------
-%   \AndC   Lean: scoped infixl " & "                          -- def: macros.sty
-%   \dzero  Lean: scoped notation "0̇"                          -- def: macros.sty
-%   \done   Lean: scoped notation "1̇"                          -- def: macros.sty
-%   \impc   Lean: scoped notation:25 a " →[" c "] " b           -- def: macros.sty
-%   \negc   Lean: scoped prefix:75 "¬[" c "] "                  -- def: macros.sty
+%   \AndC   RETIRED (C2-E4b): both the LaTeX macro and its "Lean:" tag
+%           are deleted together; our own voice writes the round
+%           $\otimes$ directly, never a linear-logic-style glyph macro -- def: macros.sty
+%   \dzero  Lean: NeSyCat.BLat2Mon.dzero (live field; the bold render
+%           is a LaTeX-only markup choice, no notation glyph shipped)   -- def: macros.sty
+%   \done   Lean: NeSyCat.BLat2Mon.done (live field; the bold render
+%           is a LaTeX-only markup choice, no notation glyph shipped)   -- def: macros.sty
+%   \impc   Lean: scoped notation:25 a " →[" c "] " b (planned)         -- def: macros.sty
+%   \negc   Lean: scoped prefix:75 "¬[" c "] " (planned); the
+%           *primitive* involution NeSyCat.DMStructure.dneg is live
+%           now as a plain field name (no notation glyph shipped: the
+%           C2-T1/C2-H2 `¬` overload attempts were both tried and
+%           reverted, same empirical-fallback shape as $\oplus$/$\otimes$
+%           above)                                                      -- def: macros.sty
 %   \actop  Lean: scoped infixr (planned) " • " --- actegory action (Definition~def:categorical-interpretation) -- def: macros.sty
 
 % Monadic programming notation.

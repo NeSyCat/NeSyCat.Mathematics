@@ -7,6 +7,32 @@
 \documentclass{report}
 
 \usepackage{amssymb, amsthm, amsmath}
+% C2-E8, Law 2 (visible attribution): \citep/\citet fallback, NOT
+% \usepackage{natbib}, on this engine only -- disclosed fallback, not
+% a silent degrade. natbib itself loads fine under plasTeX (a real
+% Packages/natbib.py plugin exists, no crash), but its \citep/\citet
+% render BLANK here: plasTeX's natbib.py overrides \bibitem's loading
+% to read already-resolved `\bibcite{key}{label}` entries from a
+% *.aux file (the same mechanism a real BibTeX run leaves behind),
+% via `tex.loadAuxiliaryFile()`; this repo's web build never runs
+% BibTeX and plasTeX processes web.tex as a single pass with no
+% matching aux file, so the lookup finds nothing and the citation
+% renders empty (reproduced directly: `<span class="cite"></span>` in
+% the built web/index.html, checked before this fallback was added).
+% print.tex's xelatex+latexmk path has no such problem (latexmk's
+% automatic rerun-until-stable resolves \bibitem's own \bibcite aux
+% write on pass two, same mechanism as \ref/\label) and keeps the
+% real \usepackage{natbib}. Here, \citep/\citet instead fall back to
+% the plain LaTeX-kernel \cite, which plasTeX's *un*-overridden Base
+% bibliography module renders directly from \bibitem's own optional
+% "[Author(Year)]" argument (no aux round-trip needed) -- verified
+% this renders the same author-year text as the print build, just
+% without natbib's own "et al."/single-citation-list formatting
+% niceties. content.tex's calls stay \citep{key}/\citet{key}
+% unchanged on both engines; only which engine's package provides
+% them differs, and only here.
+\providecommand{\citep}[1]{\cite{#1}}
+\providecommand{\citet}[1]{\cite{#1}}
 \usepackage{hyperref}
 \usepackage[showmore, dep_graph, thms=definition+class+instance+abbreviation+lemma+theorem]{blueprint}
 

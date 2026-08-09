@@ -71,9 +71,12 @@
 #              class, collected via `Lean.getStructureParentInfo` over
 #              every NeSyCat structure/class (projFn names not already
 #              caught by (iv), e.g. a second `extends` parent's `.toFoo`).
-#      The root plumbing module `NeSyCat/BlueprintAttr.lean` (the
-#      attribute's own definition, which cannot self-tag) is exempted by
-#      module name, the same way STRUCTURE-MIRROR exempts the Introduction.
+#      The `blueprintInternalAttr` declaration itself in
+#      `NeSyCat/BlueprintAttr.lean` (the attribute's own definition, which
+#      cannot self-tag) is exempted by declaration name, the same way
+#      STRUCTURE-MIRROR exempts the Introduction (C2-E8: narrowed from a
+#      whole-module exemption, so any OTHER declaration later added to
+#      that file is counted like any other NeSyCat declaration).
 #      What survives all five filters is real, human-authored content:
 #      classes, instances (named, anonymous, or `(priority := ...)`),
 #      defs, theorems, lemmas — exactly what the OLD regex census tried
@@ -713,12 +716,24 @@ CENSUS_EXTRA_AUX_SUFFIXES = [
     "injEq", "sizeOf_spec", "sizeOf_eq", "brecOn", "binductionOn",
     "below", "ibelow", "ctorIdx",
 ]
-# The attribute's own defining module: exempted the same way
+# The attribute's own defining declaration: exempted the same way
 # STRUCTURE-MIRROR exempts the Introduction (it cannot self-tag -- applying
 # `@[blueprint_internal]` requires the attribute to already be registered,
 # which is circular on its own `initialize ... ← registerTagAttribute ...`
-# line).
-CENSUS_EXEMPT_MODULES = {"NeSyCat.BlueprintAttr"}
+# line). C2-E8 narrowing: this used to exempt the WHOLE
+# `NeSyCat.BlueprintAttr` MODULE (any future declaration added to that
+# file would have been silently invisible to the census); narrowed to
+# exempt exactly the ONE declaration `registerTagAttribute` creates,
+# `blueprintInternalAttr` itself (verified directly against a scratch
+# `#eval` dump of every constant in that module: `initialize x : T ←
+# v` also emits a private `initFn` helper,
+# `_private.NeSyCat.BlueprintAttr.0.initFn...`, but that one is already
+# caught by stage (i)'s `Lean.Name.isBlackListed` -- confirmed
+# `isBlackListed = true` on it directly -- so it needs no exemption of
+# its own). A future declaration added to `BlueprintAttr.lean` is now
+# counted like any other NeSyCat declaration, per the ticket's own
+# RED-check requirement.
+CENSUS_EXEMPT_DECLS = {"blueprintInternalAttr"}
 
 
 def cmd_emit_census_lean():
@@ -735,8 +750,8 @@ def cmd_emit_census_lean():
     print("  | .str _ s => censusExtraAuxSuffixes.any (· == s)")
     print("  | _ => false")
     print()
-    exempt = ", ".join(f"`{m}" for m in sorted(CENSUS_EXEMPT_MODULES))
-    print(f"def censusExemptModules : List Name := [{exempt}]")
+    exempt = ", ".join(f"`{m}" for m in sorted(CENSUS_EXEMPT_DECLS))
+    print(f"def censusExemptDecls : List Name := [{exempt}]")
     print()
     print("#eval show MetaM Unit from do")
     print("  let env <- getEnv")
@@ -758,7 +773,7 @@ def cmd_emit_census_lean():
     print("    | some idx =>")
     print("      let modName := env.header.moduleNames[idx]!")
     print("      if modName.getRoot == `NeSyCat "
-          "&& !censusExemptModules.contains modName then")
+          "&& !censusExemptDecls.contains name then")
     print("        let isCtor := match info with")
     print("          | .ctorInfo _ => true")
     print("          | _ => false")
