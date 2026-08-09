@@ -16,7 +16,7 @@ Blueprint items `lem:dm-lattice-laws`, `lem:dm-dual-law`, `lem:dm-unit-swap`,
 ## The DM lemma family (`[DMStructure α]`)
 
 `dneg_inf`/`dneg_sup`/`dneg_bot`/`dneg_top` (`lem:dm-lattice-laws`),
-`dneg_parr` (`lem:dm-dual-law`), `dneg_done`/`dneg_dzero`
+`dneg_oplus` (`lem:dm-dual-law`), `dneg_done`/`dneg_dzero`
 (`lem:dm-unit-swap`), `dneg_maps_units` (`lem:dm-maps-units`) — all proved
 at class level, over an ambient `[DMStructure α]`, matching the blueprint's
 own generality ("for a DM structure ...").
@@ -32,10 +32,10 @@ shorter here (the `OrderIso`'s `map_rel_iff'` obligation fights the
 `OrderDual` defeq-unfolding the same amount of work the direct antisymmetry
 argument needs anyway).
 
-**Helper for `lem:dm-unit-swap`**: `parr_unit_eq_dzero`, the private
+**Helper for `lem:dm-unit-swap`**: `oplus_unit_eq_dzero`, the private
 two-sided-unit-is-`dzero` fact the blueprint's proof invokes ("`¬done` is a
 two-sided `⅋`-unit, and monoid units are unique"): `e = e ⅋ dzero = dzero`,
-the first `=` from the *right*-unit law for `dzero` (`BLat2Mon.parr_dzero`),
+the first `=` from the *right*-unit law for `dzero` (`BLat2Mon.oplus_dzero`),
 the second from `e`'s own *left*-unit hypothesis instantiated at `dzero`
 — so, mechanically, only the left-unit hypothesis is consumed, but both are
 kept as parameters to match the blueprint's own "two-sided" framing (the
@@ -46,13 +46,13 @@ computations `¬done ⅋ p = p` and `p ⅋ ¬done = p`).
 
 Stated as `List.TFAE [Antitone n, (lattice DM law), DMFullCalculus n]` over
 raw data `[BLat2Mon α]`, `n : α → α`, `hinv : ∀ p, n (n p) = p`,
-`hand : ∀ p q, n (andC p q) = parr (n q) (n p)` — the `Mathlib`
+`hand : ∀ p q, n (otimes p q) = oplus (n q) (n p)` — the `Mathlib`
 `tfae_have`/`tfae_finish` tactic pair handles the three-cycle bookkeeping
 directly, no manual `List.Chain` plumbing needed (the encoding latitude the
 pin allows; the fallback three-implication-cycle was not needed). `(a)⇒(c)`
 builds `letI : DMStructure α := ⟨n, hinv, hanti, hand⟩` and assembles the
 `DMFullCalculus` tuple purely from the class-level family lemmas above
-(`dneg_inf`, `dneg_sup`, `dneg_bot`, `dneg_top`, `hand` itself, `dneg_parr`,
+(`dneg_inf`, `dneg_sup`, `dneg_bot`, `dneg_top`, `hand` itself, `dneg_oplus`,
 `dneg_done`, `dneg_dzero`, `hanti`) — no proof is duplicated. `(c)⇒(b)` is
 the first `DMFullCalculus` field, literally `hc.1`. `(b)⇒(a)` is the
 blueprint's own two-liner.
@@ -119,15 +119,15 @@ theorem dneg_top : dneg (⊤ : α) = ⊥ := by
   rwa [dneg_dneg] at h
 
 /-- Blueprint `lem:dm-dual-law` (the dual De Morgan law): for a DM
-structure, `dneg (parr p q) = andC (dneg q) (dneg p)`. Proof: applying axiom
+structure, `dneg (oplus p q) = otimes (dneg q) (dneg p)`. Proof: applying axiom
 (iii) at `(dneg q, dneg p)` and involution gives
-`dneg (andC (dneg q) (dneg p)) = parr p q`; applying `dneg` to both sides
+`dneg (otimes (dneg q) (dneg p)) = oplus p q`; applying `dneg` to both sides
 and involution again recovers the claim. -/
-theorem dneg_parr (p q : α) : dneg (parr p q) = andC (dneg q) (dneg p) := by
-  have h : dneg (andC (dneg q) (dneg p)) = parr p q := by
-    rw [dneg_andC, dneg_dneg, dneg_dneg]
-  calc dneg (parr p q) = dneg (dneg (andC (dneg q) (dneg p))) := by rw [h]
-    _ = andC (dneg q) (dneg p) := dneg_dneg _
+theorem dneg_oplus (p q : α) : dneg (oplus p q) = otimes (dneg q) (dneg p) := by
+  have h : dneg (otimes (dneg q) (dneg p)) = oplus p q := by
+    rw [dneg_otimes, dneg_dneg, dneg_dneg]
+  calc dneg (oplus p q) = dneg (dneg (otimes (dneg q) (dneg p))) := by rw [h]
+    _ = otimes (dneg q) (dneg p) := dneg_dneg _
 
 omit [DMStructure α] in
 /-- A two-sided `⅋`-unit equals `dzero` — the blueprint's `lem:dm-unit-swap`
@@ -138,25 +138,25 @@ left-unit hypothesis instantiated at `dzero`. Both hypotheses are kept
 though only the left one is consumed here. -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
-private theorem parr_unit_eq_dzero {e : α}
-    (hl : ∀ p, parr e p = p) (_hr : ∀ p, parr p e = p) : e = dzero :=
-  (BLat2Mon.parr_dzero e).symm.trans (hl dzero)
+private theorem oplus_unit_eq_dzero {e : α}
+    (hl : ∀ p, oplus e p = p) (_hr : ∀ p, oplus p e = p) : e = dzero :=
+  (BLat2Mon.oplus_dzero e).symm.trans (hl dzero)
 
 /-- Blueprint `lem:dm-unit-swap` (negation swaps `done` to `dzero`): for a
 DM structure, `dneg done = dzero`. Proof: `dneg done` is a two-sided
-`⅋`-unit — `dneg done ⅋ p = dneg (andC (dneg p) done) = dneg (dneg p) = p`
-and symmetrically — so `parr_unit_eq_dzero` applies. -/
+`⅋`-unit — `dneg done ⅋ p = dneg (otimes (dneg p) done) = dneg (dneg p) = p`
+and symmetrically — so `oplus_unit_eq_dzero` applies. -/
 theorem dneg_done : dneg (done : α) = dzero := by
-  apply parr_unit_eq_dzero
+  apply oplus_unit_eq_dzero
   · intro p
-    calc parr (dneg done) p = parr (dneg done) (dneg (dneg p)) := by rw [dneg_dneg]
-      _ = dneg (andC (dneg p) done) := (dneg_andC (dneg p) done).symm
-      _ = dneg (dneg p) := by rw [BLat2Mon.andC_done]
+    calc oplus (dneg done) p = oplus (dneg done) (dneg (dneg p)) := by rw [dneg_dneg]
+      _ = dneg (otimes (dneg p) done) := (dneg_otimes (dneg p) done).symm
+      _ = dneg (dneg p) := by rw [BLat2Mon.otimes_done]
       _ = p := dneg_dneg p
   · intro p
-    calc parr p (dneg done) = parr (dneg (dneg p)) (dneg done) := by rw [dneg_dneg]
-      _ = dneg (andC done (dneg p)) := (dneg_andC done (dneg p)).symm
-      _ = dneg (dneg p) := by rw [BLat2Mon.done_andC]
+    calc oplus p (dneg done) = oplus (dneg (dneg p)) (dneg done) := by rw [dneg_dneg]
+      _ = dneg (otimes done (dneg p)) := (dneg_otimes done (dneg p)).symm
+      _ = dneg (dneg p) := by rw [BLat2Mon.done_otimes]
       _ = p := dneg_dneg p
 
 /-- Blueprint `lem:dm-unit-swap` (negation swaps `dzero` to `done`), the
@@ -168,19 +168,19 @@ theorem dneg_dzero : dneg (dzero : α) = done := by
   exact h.symm
 
 /-- Blueprint `lem:dm-maps-units` (negation maps invertibles to
-invertibles): for a DM structure, if `p` is `andC`-invertible then `dneg p`
-is `parr`-invertible, with witness `dneg q` for any `andC`-inverse `q` of
-`p`. Proof: applying `dneg` and axiom (iii) to `andC q p = done` and
-`andC p q = done` gives both `parr`-inverse equations directly, the
+invertibles): for a DM structure, if `p` is `otimes`-invertible then `dneg p`
+is `oplus`-invertible, with witness `dneg q` for any `otimes`-inverse `q` of
+`p`. Proof: applying `dneg` and axiom (iii) to `otimes q p = done` and
+`otimes p q = done` gives both `oplus`-inverse equations directly, the
 `dneg done = dzero` step via `dneg_done`. No Mathlib `IsUnit` — that
 machinery is `Monoid`-bundled, and `BLat2Mon` deliberately is not
 (`NeSyCat/Truth/BLat2Mon.lean`'s module doc comment). -/
-theorem dneg_maps_units {p : α} (h : ∃ q, andC p q = done ∧ andC q p = done) :
-    ∃ q', parr (dneg p) q' = dzero ∧ parr q' (dneg p) = dzero := by
+theorem dneg_maps_units {p : α} (h : ∃ q, otimes p q = done ∧ otimes q p = done) :
+    ∃ q', oplus (dneg p) q' = dzero ∧ oplus q' (dneg p) = dzero := by
   obtain ⟨q, hpq, hqp⟩ := h
   refine ⟨dneg q, ?_, ?_⟩
-  · rw [← dneg_andC q p, hqp]; exact dneg_done
-  · rw [← dneg_andC p q, hpq]; exact dneg_done
+  · rw [← dneg_otimes q p, hqp]; exact dneg_done
+  · rw [← dneg_otimes p q, hpq]; exact dneg_done
 
 end DMFamily
 
@@ -203,30 +203,30 @@ def DMFullCalculus (n : α → α) : Prop :=
   (∀ p q : α, n (p ⊔ q) = n p ⊓ n q) ∧
   (n (⊥ : α) = ⊤) ∧
   (n (⊤ : α) = ⊥) ∧
-  (∀ p q : α, n (andC p q) = parr (n q) (n p)) ∧
-  (∀ p q : α, n (parr p q) = andC (n q) (n p)) ∧
+  (∀ p q : α, n (otimes p q) = oplus (n q) (n p)) ∧
+  (∀ p q : α, n (oplus p q) = otimes (n q) (n p)) ∧
   (n (done : α) = dzero) ∧
   (n (dzero : α) = done) ∧
   Antitone n
 
 /-- Blueprint `thm:dm-presentations` (Presentations of De Morgan
 structure): over a BLat2Mon, given `n` satisfying the DM axioms (i)
-`n (n p) = p` and (iii) `n (andC p q) = parr (n q) (n p)`, the following
+`n (n p) = p` and (iii) `n (otimes p q) = oplus (n q) (n p)`, the following
 are equivalent: (a) `n` is antitone; (b) `n (p ⊓ q) = n p ⊔ n q` for all
 `p, q`; (c) the full De Morgan calculus (`DMFullCalculus n`) — and each
 presentation yields all of it. (a)⇒(c): `letI : DMStructure α :=
 ⟨n, hinv, hanti, hand⟩` and cite the class-level family
-(`dneg_inf`/`dneg_sup`/`dneg_bot`/`dneg_top`/`hand`/`dneg_parr`/
+(`dneg_inf`/`dneg_sup`/`dneg_bot`/`dneg_top`/`hand`/`dneg_oplus`/
 `dneg_done`/`dneg_dzero`/`hanti`) verbatim, no re-proof. (c)⇒(b) is the
 first `DMFullCalculus` field. (b)⇒(a): if `p ≤ q` then `p = p ⊓ q`, so
 `n p = n (p ⊓ q) = n p ⊔ n q ≥ n q`. -/
 theorem dm_presentations (n : α → α)
-    (hinv : ∀ p, n (n p) = p) (hand : ∀ p q, n (andC p q) = parr (n q) (n p)) :
+    (hinv : ∀ p, n (n p) = p) (hand : ∀ p q, n (otimes p q) = oplus (n q) (n p)) :
     List.TFAE [Antitone n, (∀ p q : α, n (p ⊓ q) = n p ⊔ n q), DMFullCalculus n] := by
   tfae_have 1 → 3 := by
     intro hanti
     letI : DMStructure α := ⟨n, hinv, fun p q h => hanti h, hand⟩
-    exact ⟨dneg_inf, dneg_sup, dneg_bot, dneg_top, hand, dneg_parr, dneg_done, dneg_dzero, hanti⟩
+    exact ⟨dneg_inf, dneg_sup, dneg_bot, dneg_top, hand, dneg_oplus, dneg_done, dneg_dzero, hanti⟩
   tfae_have 3 → 2 := fun hc => hc.1
   tfae_have 2 → 1 := by
     intro hb p q hpq

@@ -390,22 +390,6 @@ $\bigoplus_{x'}\delta_x(x')\otimes k(x')(y)$ collapses to its single
 nonzero term at $x'=x$ by the unit laws of $S$.
 \end{proof}
 
-\begin{lemma}[Right unit law]
-\label{lem:bind-right-unit}
-\lean{NeSyCat.bind_ret}
-\leanok
-$f \bind \Ret = f$.
-\uses{def:semiring-monad}
-\end{lemma}
-
-\begin{proof}
-\leanok
-Unfolding $\bind$ from Definition~\ref{def:semiring-monad}, the sum
-$\bigoplus_x f(x)\otimes\delta_x(y)$ collapses to $f(y)$ by the unit
-laws of $S$ (a distributivity-free identity, same shape as the left
-unit law).
-\end{proof}
-
 \begin{lemma}[Associativity of bind]
 \label{lem:bind-assoc}
 \lean{NeSyCat.bind_assoc}
@@ -425,18 +409,24 @@ $\otimes$ is never invoked.
 
 \begin{theorem}[Semiring monad laws]
 \label{thm:semiring-monad-laws}
+\lean{NeSyCat.semiring_monad_laws}
+\leanok
 For every semiring $S$, $(\MS{S}, \Ret, \bind)$ of
 Definition~\ref{def:semiring-monad} is a monad on $\mathrm{Set}$: the
-left/right unit laws and associativity of $\bind$
-(Lemmas~\ref{lem:bind-left-unit}, \ref{lem:bind-right-unit},
-\ref{lem:bind-assoc}) hold for every, possibly noncommutative, $S$.
-\uses{def:semiring-monad, lem:bind-left-unit, lem:bind-right-unit, lem:bind-assoc}
+left unit law (Lemma~\ref{lem:bind-left-unit}), the right unit law
+$f \bind \Ret = f$, and associativity of $\bind$
+(Lemma~\ref{lem:bind-assoc}) hold for every, possibly noncommutative, $S$.
+\uses{def:semiring-monad, lem:bind-left-unit, lem:bind-assoc}
 \end{theorem}
 
 \begin{proof}
-Immediate from Lemmas~\ref{lem:bind-left-unit} (left unit),
-\ref{lem:bind-right-unit} (right unit), and \ref{lem:bind-assoc}
-(associativity).
+\leanok
+Left unit and associativity are Lemmas~\ref{lem:bind-left-unit} and
+\ref{lem:bind-assoc}. For the right unit law: unfolding $\bind$ from
+Definition~\ref{def:semiring-monad}, the sum
+$\bigoplus_x f(x)\otimes\delta_x(y)$ collapses to $f(y)$ by the unit
+laws of $S$ (a distributivity-free identity, same shape as the left
+unit law).
 \end{proof}
 
 Mechanism: commutativity and associativity of $\oplus$ give
@@ -740,7 +730,7 @@ correspondence with linear logic's own vocabulary in full.
 
 \begin{lemma}[Linearity gives monotonicity]
 \label{lem:lin-monotone}
-\lean{NeSyCat.andC_le_andC_left}
+\lean{NeSyCat.otimes_le_otimes_left}
 \leanok
 In a LinBLat2Mon (Class~\ref{def:lin-blat2mon}), $\otimes$ and
 $\oplus$ are monotone in each argument.
@@ -757,7 +747,7 @@ meet-preservation), are dual.
 
 \begin{lemma}[Lax dual preservations]
 \label{lem:lin-lax-duals}
-\lean{NeSyCat.andC_inf_le}
+\lean{NeSyCat.otimes_inf_le}
 \leanok
 In a LinBLat2Mon, the dual preservations hold laxly:
 $p \otimes (q \wedge r) \le (p \otimes q) \wedge (p \otimes r)$ and
@@ -808,7 +798,7 @@ each bound to the other.
 
 \begin{lemma}[The dual De Morgan law]
 \label{lem:dm-dual-law}
-\lean{NeSyCat.dneg_parr}
+\lean{NeSyCat.dneg_oplus}
 \leanok
 For a DM structure, $\neg(p \oplus q) = \neg q \otimes \neg p$.
 \uses{def:dm-structure}
@@ -916,7 +906,7 @@ level to two.
 
 \begin{lemma}[Unit bounds via mixed absorption]
 \label{lem:dualabsorb-decomposition}
-\lean{NeSyCat.done_eq_top_iff_andC_le_inf}
+\lean{NeSyCat.done_eq_top_iff_otimes_le_inf}
 \leanok
 In a LinBLat2Mon (Class~\ref{def:lin-blat2mon}):
 \begin{enumerate}
@@ -1007,7 +997,7 @@ running rows, all due to [NeSy26, App.~A].
 
 \begin{lemma}[The Boolean row]
 \label{lem:bool-truth-structure}
-\lean{NeSyCat.BoolW.parr_eq_sup}
+\lean{NeSyCat.BoolW.oplus_eq_sup}
 \leanok
 $\BoolS$ with its lattice $(\wedge,\vee,0,1)$, monoids
 $(\oplus,\dzero) = (\vee,0)$ and $(\otimes,\done) = (\wedge,1)$, and
@@ -1027,7 +1017,7 @@ Theorem~\ref{thm:chain-lin} on the two-element chain.
 
 \begin{lemma}[The probability row]
 \label{lem:unit-interval-truth-structure}
-\lean{NeSyCat.unitInterval.coe_parr}
+\lean{NeSyCat.unitInterval.coe_oplus}
 \leanok
 $\ProbS = [0,1]$ with lattice $(\min,\max,0,1)$, monoids
 $(\oplus,\dzero) = (p+q-pq,\ 0)$ and $(\otimes,\done) = (pq,\ 1)$, and
@@ -1096,7 +1086,7 @@ instances in a later section.
 
 \begin{theorem}[The mass square is not linear]
 \label{thm:square-not-lin}
-\lean{NeSyCat.andSq_not_lin}
+\lean{NeSyCat.otimesSq_not_lin}
 \leanok
 On $\MassS^2$ with the order family (slot $0$ reversed,
 Definition~\ref{def:order-family}) and the lifted operations of
@@ -1276,7 +1266,7 @@ description.
 
 \begin{lemma}[Lifted connectives, mass coordinates]
 \label{lem:lifted-mass}
-\lean{NeSyCat.twoSlot_andM_mass}
+\lean{NeSyCat.twoSlot_otimesM_mass}
 \leanok
 On $\Tmon\,\BoolS \cong \MassS^2$ (coordinates $(w_0,w_1)$, slot $0$
 the weight against, slot $1$ the weight for), the lifted family of
@@ -1320,7 +1310,7 @@ corrected upstream in the source paper.
 
 \begin{lemma}[Lifted connectives, log coordinates]
 \label{lem:lifted-log}
-\lean{NeSyCat.twoSlot_andM_log}
+\lean{NeSyCat.twoSlot_otimesM_log}
 \leanok
 On $\LTmon\,\BoolS \cong \LogS^2$ (coordinates $(a_0,a_1)$, the
 $\log$-image of Lemma~\ref{lem:lifted-mass} under
@@ -1353,7 +1343,7 @@ $\max,\min$ pass through unchanged.
 
 \begin{lemma}[Lifted connectives, the {$[0,1]$} readout is derived]
 \label{lem:lifted-prob-readout}
-\lean{NeSyCat.distReadout_andD}
+\lean{NeSyCat.distReadout_otimesD}
 \leanok
 Under the $\Dmon$ readout $p := w_1$ (so $w_0 = 1-p$, the mass-one
 slice $Z(w) = w_0+w_1=1$ of Lemma~\ref{lem:lifted-mass}), the lifted
@@ -1429,7 +1419,7 @@ products); all structure is inherited componentwise.
 
 \begin{lemma}[Linear laws lift]
 \label{lem:linear-lift}
-\lean{NeSyCat.andM_assoc}
+\lean{NeSyCat.otimesM_assoc}
 \leanok
 For a commutative semiring $S$, the lifted family
 $(\MS{S}\BoolS, \oplus, \Ret(0))$ and $(\MS{S}\BoolS, \otimes, \Ret(1))$ of
@@ -1466,7 +1456,7 @@ schema-level meta-theorem.
 
 \begin{lemma}[Copying laws do not lift]
 \label{lem:copying-fails}
-\lean{NeSyCat.exists_andC_ne_self}
+\lean{NeSyCat.exists_otimes_ne_self}
 \leanok
 Equations that duplicate a variable --- idempotence, absorption,
 lattice distributivity --- fail for the lifted family in general: in

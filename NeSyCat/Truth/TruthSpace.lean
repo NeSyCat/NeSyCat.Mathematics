@@ -298,14 +298,14 @@ the lifted family's multiplicative connective, `lift₂` of `BoolW`'s own `⊗
 = ∧` (`NeSyCat/Monad/LatticeSemiring.lean`). -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
-noncomputable def andM (a b : MS S BoolW) : MS S BoolW := lift₂ (· * ·) a b
+noncomputable def otimesM (a b : MS S BoolW) : MS S BoolW := lift₂ (· * ·) a b
 
 /-- Blueprint `def:lifted-connective` (the `⅋`-lift, "certain disjunction"):
 the lifted family's additive connective, `lift₂` of `BoolW`'s own
 `⊕ = ∨`. -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
-noncomputable def parrM (a b : MS S BoolW) : MS S BoolW := lift₂ (· + ·) a b
+noncomputable def oplusM (a b : MS S BoolW) : MS S BoolW := lift₂ (· + ·) a b
 
 /-- Boolean negation on `BoolW`, stated via a `BoolW`-native `ite` rather
 than `Bool.not`/`!` (a disclosed encoding choice): composing `!` — which

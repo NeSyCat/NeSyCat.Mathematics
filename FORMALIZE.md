@@ -215,6 +215,46 @@ step below.
   the declaration, `\leanok` statement-side, proof env where
   theorem-kind (example: `def:psum`, the probabilistic sum, found this
   way and given a `definition` env).
+- **The calibrated reuse/fold principle (C2-E4c, USER DECREE
+  2026-08-09).** A result folds into its consumer as a PROOF STEP — in
+  Lean AND LaTeX together, the same bijection-preserving move at both
+  layers at once (the Lean declaration is deleted and its proof is
+  absorbed inline into the consumer's `proof` env; the LaTeX `lemma`
+  env is deleted and its own `proof` env's text is absorbed into the
+  consumer's `proof` env) — only when BOTH hold: (a) it is TRIVIAL (a
+  one-liner that just unfolds a definition against a couple of
+  standard lemmas) AND (b) it is SINGLE-PURPOSE (exists only to feed
+  one theorem, zero other call sites anywhere in the library). A
+  result with independent mathematical interest ("a nice result")
+  KEEPS its lemma-hood regardless of current use count — future reuse
+  cannot be known in advance, and quotability is itself a reason for a
+  result to exist as its own named declaration (USER calibration
+  2026-08-09: "don't make it too strict" — this is deliberately NOT a
+  blanket "fold every zero-use lemma" rule). Worked example
+  (`NeSyCat.bind_ret`, C2-E4c): `ret_bind` and `bind_assoc` each have
+  5+/4+ further call sites in `NeSyCat/Truth/*.lean`'s truth-space
+  machinery, so both STAY independent lemmas; `bind_ret` has zero uses
+  anywhere outside its own statement, and its proof is a one-line
+  `Finsupp` unfold — it FOLDS into `semiring_monad_laws`, a single
+  bundled theorem whose proof cites `ret_bind`/`bind_assoc` verbatim
+  and proves the (former `bind_ret`) right-unit law inline as one
+  conjunct; `content.tex`'s `lem:bind-right-unit` env and its `proof`
+  env are deleted, their content absorbed into
+  `thm:semiring-monad-laws`'s own (now `\lean`/`\leanok`-marked)
+  statement and proof envs. Enforcement: the census report (below,
+  `scripts/blueprint.sh`) gains an ADVISORY line listing cited
+  theorem/lemma-kind declarations with zero further code uses anywhere
+  in `NeSyCat/` (mechanical: a grep-based use count, excluding the
+  declaration's own signature line) — a surfacing tool, NEVER an
+  automatic mandate. Every fold is individually adjudicated by
+  LEAD/user against the two criteria above; a name appearing on the
+  advisory list is a folding CANDIDATE for disclosure and discussion,
+  not a violation, and a fresh lemma with zero uses so far may simply
+  be awaiting its first consumer. Verifier checklists inherit this: a
+  blind verifier MUST NOT flag an un-folded zero-use lemma as a
+  finding on its own; it may only flag a fold that was performed
+  without satisfying both criteria, or a criteria-satisfying case the
+  ticket disclosed but silently declined to fold.
 - **The three-shape witness doctrine.** A worked instance dissolved
   out of the old `example` kind (per the retriage rule above) takes
   one of three shapes, all via NAMED Lean declarations (never Lean's

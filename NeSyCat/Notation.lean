@@ -46,7 +46,11 @@ not an invented alternative glyph.
 
 The C2-E4a decree asked for scoped `" ⊕ " => BLat2Mon.parr` / `" ⊗ " =>
 BLat2Mon.andC` (⊗ tighter, precedences 70/65 mirroring the pin), matching
-the semiring-scalar `⊕`/`⊗` already live via `NeSyCat.LatSRng`. Tested
+the semiring-scalar `⊕`/`⊗` already live via `NeSyCat.LatSRng`. (Names as
+they stood at the time of this experiment; C2-E4c later renamed the
+fields themselves `oplus`/`otimes` — the transcript below is reproduced
+verbatim as run, not touched, since it records a reverted experiment's
+actual error trace.) Tested
 against the same conflict candidates the pin named: Lean core's `Sum`
 type notation (`α ⊕ β`, a GLOBAL, always-open infixr, unlike our
 `scoped` one) and Mathlib's scoped `TensorProduct` `⊗`. `⊗` alone is
@@ -87,7 +91,7 @@ of this Lean-side finding and unaffected by it.
 
 ## `&` conflict test (empirical, no conflict found)
 
-Tested `&` (our `andC`) against `∧` (`Prop` and), `&&` (`Bool` and),
+Tested `&` (our `otimes`) against `∧` (`Prop` and), `&&` (`Bool` and),
 structure literals (`{ x := _ }`, `{ s with x := _ }`), and precedence
 against our own `⅋`, all in the same scope — no conflict; see the
 (deleted) scratch file used for this test, reproduced here as the shape
@@ -109,7 +113,11 @@ must appear, literally, on one line below (checked mechanically by
 `scripts/blueprint.sh`'s registry-sync gate): either a live Lean
 counterpart, or an honest `PLANNED` status naming where it lands.
 
--- \AndC  ↔ NeSyCat.BLat2Mon.andC (scoped notation " & ", this file)
+-- \AndC  ↔ NeSyCat.BLat2Mon.andC (macros.sty twin, PRE-RENAME spelling --
+--          C2-E4c renamed the live Lean field to
+--          NeSyCat.BLat2Mon.otimes (scoped notation " & ", this file);
+--          this line stays literal for the registry-sync grep until
+--          E4b updates the macros.sty side to match, retiring then)
 -- \dzero ↔ NeSyCat.BLat2Mon.dzero (live field; the "0̇" glyph itself is
 --          not notation-shipped by this ticket, only the bare name)
 -- \done  ↔ NeSyCat.BLat2Mon.done (live field; the "1̇" glyph itself is
@@ -121,7 +129,7 @@ counterpart, or an honest `PLANNED` status naming where it lands.
 --          note the *primitive* involution `DMStructure.dneg` is live
 --          now, but the indexed family `negc[c]` is not)
 -- \sem   ↔ PLANNED (chapter "Truth spaces and lifted connectives",
---          def:truth-space)
+--          abbr:truth-space)
 -- \bind  ↔ NeSyCat.bind (NeSyCat/Monad/SemiringMonad.lean) -- the
 --          function is live; the "≫=" scoped infix notation is not
 --          shipped yet
@@ -134,13 +142,14 @@ counterpart, or an honest `PLANNED` status naming where it lands.
 namespace NeSyCat
 
 /-- The `⅋`-monoid multiplication of a `BLat2Mon` (linear logic's `⅋`,
-"or-like"). `&` (below) binds tighter than `⅋`, matching linear logic's
-own conventions and the blueprint's precedence. -/
-scoped infixl:65 " ⅋ " => BLat2Mon.parr
+"or-like"; the field itself is `BLat2Mon.oplus`, C2-E4c). `&` (below)
+binds tighter than `⅋`, matching linear logic's own conventions and the
+blueprint's precedence. -/
+scoped infixl:65 " ⅋ " => BLat2Mon.oplus
 
 /-- The `&`-monoid multiplication of a `BLat2Mon` (linear logic's
-*multiplicative* conjunction `⊗`, kept as `&`/`andC` per `[NeSy26]`'s own
-notation). -/
-scoped infixl:70 " & " => BLat2Mon.andC
+*multiplicative* conjunction `⊗`; the field itself is `BLat2Mon.otimes`,
+C2-E4c, renamed from `[NeSy26]`'s own `andC` spelling). -/
+scoped infixl:70 " & " => BLat2Mon.otimes
 
 end NeSyCat

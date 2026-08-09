@@ -661,6 +661,9 @@ def cmd_census(content_tex_path, repo_root):
     n_cited = 0
     n_internal = 0
     unclassified = []
+    cited_theorem_decls = []  # (relpath, name) for cited theorem/lemma-kind
+                               # decls -- feeds the reuse-principle advisory
+                               # below.
     for relpath in CENSUS_FILES:
         path = os.path.join(repo_root, relpath)
         if not os.path.isfile(path):
@@ -699,6 +702,8 @@ def cmd_census(content_tex_path, repo_root):
                 n_internal += 1
             elif bare in cited or name in cited:
                 n_cited += 1
+                if m.group(1) in ("theorem", "lemma"):
+                    cited_theorem_decls.append((relpath, name))
             else:
                 unclassified.append(f"{relpath}: {name}")
             pending_internal = False
@@ -709,6 +714,75 @@ def cmd_census(content_tex_path, repo_root):
     for u in unclassified:
         print("VIOL\t" + f"census: {u} is neither cited by any env's "
               "\\lean{} nor tagged `-- blueprint: internal (...)`")
+
+    # ADVISORY (C2-E4c, FORMALIZE.md's calibrated reuse/fold principle):
+    # a grep-based use count of every cited theorem/lemma-kind declaration
+    # across the WHOLE NeSyCat/ tree (not just CENSUS_FILES), surfacing
+    # zero-further-use folding CANDIDATES. This is deliberately advisory
+    # only -- never a gate violation, never affects the exit code -- since
+    # the reuse principle requires a lemma be BOTH trivial AND
+    # single-purpose before folding, and this mechanical count can only
+    # ever check the second half; every fold is individually adjudicated
+    # by LEAD/user, and a fresh lemma with zero uses so far may simply be
+    # awaiting its first consumer. Comments are stripped before counting
+    # (same block/line-comment tracking as the census scan above): a
+    # doc-comment cross-reference ("...companion of `foo`...") or another
+    # declaration's own doc string mentioning a name is not a CODE use,
+    # and counting it as one would silently hide real folding candidates
+    # (exactly the failure mode this advisory exists to surface).
+    def strip_comments(src):
+        out_lines = []
+        in_block = False
+        for raw_line in src.split('\n'):
+            if in_block:
+                if "-/" in raw_line:
+                    in_block = False
+                    raw_line = raw_line.split("-/", 1)[1]
+                else:
+                    continue
+            # Strip any number of block comments starting on this line.
+            while "/-" in raw_line:
+                before, _, after = raw_line.partition("/-")
+                if "-/" in after:
+                    _, _, after = after.partition("-/")
+                    raw_line = before + after
+                else:
+                    raw_line = before
+                    in_block = True
+                    break
+            if not in_block:
+                raw_line = raw_line.split("--", 1)[0]
+            out_lines.append(raw_line)
+        return "\n".join(out_lines)
+
+    lean_root = os.path.join(repo_root, "NeSyCat")
+    corpus_parts = []
+    if os.path.isdir(lean_root):
+        for dirpath, _dirnames, filenames in os.walk(lean_root):
+            for fn in sorted(filenames):
+                if fn.endswith(".lean"):
+                    with open(os.path.join(dirpath, fn),
+                              encoding="utf-8") as fh:
+                        corpus_parts.append(strip_comments(fh.read()))
+    corpus = "\n".join(corpus_parts)
+    zero_use = []
+    for relpath, name in cited_theorem_decls:
+        bare = name.split('.')[-1]
+        pat = re.compile(r'(?<![\w])' + re.escape(bare) + r'(?![\w])')
+        # count includes the declaration's own signature-line occurrence,
+        # so <=1 total occurrence means zero USES elsewhere.
+        if len(pat.findall(corpus)) <= 1:
+            zero_use.append(f"{relpath}: {bare}")
+    print(f"ADVISORY-SUMMARY\t{len(cited_theorem_decls)} cited "
+          f"theorem/lemma declarations checked, {len(zero_use)} with "
+          "zero further code uses (folding candidates per FORMALIZE.md's "
+          "calibrated reuse principle; advisory only, never a gate "
+          "violation)")
+    for z in zero_use:
+        print("ADVISORY\t" + f"census: {z} has zero code uses outside "
+              "its own declaration -- a folding candidate, not a "
+              "violation; every fold is individually adjudicated")
+
     return 1 if unclassified else 0
 
 
@@ -789,6 +863,10 @@ if [ "$CENSUS_STATUS" -ne 0 ]; then
   printf '%s\n' "$CENSUS_OUT" | grep "^VIOL${TAB}" | sed -E "s/^VIOL${TAB}/  - /"
   fail 1
 fi
+# ADVISORY only (C2-E4c calibrated reuse principle): zero-further-use
+# cited theorem/lemma folding candidates, never a gate violation.
+printf '%s\n' "$CENSUS_OUT" | grep "^ADVISORY-SUMMARY${TAB}" | sed -E "s/^ADVISORY-SUMMARY${TAB}/reuse-advisory: /"
+printf '%s\n' "$CENSUS_OUT" | grep "^ADVISORY${TAB}" | sed -E "s/^ADVISORY${TAB}/  - /"
 
 echo "==> registry sync (macros.sty <-> NeSyCat/Notation.lean)"
 MACROS_STY="$REPO_ROOT/../NeSyCat.Logics/macros.sty"

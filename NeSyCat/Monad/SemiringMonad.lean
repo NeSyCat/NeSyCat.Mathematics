@@ -17,8 +17,14 @@ finitely supported functions `X → S`, realized as Mathlib's `Finsupp` type
 `X →₀ S` (used here as background finite-support machinery: the monad
 structure itself is stated and proved by hand below, not cited from an
 existing Mathlib instance — no `Monad`/`bind` instance for `Finsupp` of this
-shape exists upstream). The three monad laws (`ret_bind`, `bind_ret`,
-`bind_assoc`) are proved directly from `Finsupp.sum`/scalar-action lemmas,
+shape exists upstream). The three monad laws — left unit (`ret_bind`),
+right unit, and associativity (`bind_assoc`) — are bundled into
+`semiring_monad_laws` (C2-E4c: the right unit law folds in as an inline
+proof step there, per the calibrated reuse principle, rather than keeping
+its own zero-further-uses `bind_ret` declaration; `ret_bind`/`bind_assoc`
+keep their independent lemma-hood, each with further call sites in
+`NeSyCat/Truth/*.lean`). All three are proved directly from
+`Finsupp.sum`/scalar-action lemmas,
 matching the blueprint's proof sketch: the two unit laws each use only a
 unit law of `S`, and associativity of `bind` expands, on both sides, to a
 double sum over `S` rearranged by associativity of `+`
@@ -91,18 +97,6 @@ theorem ret_bind (x : X) (k : X → MS S Y) : bind (ret x) k = k x := by
   rw [Finsupp.sum_single_index (zero_smul S (k x))]
   exact one_smul S (k x)
 
-/-- Blueprint `thm:semiring-monad-laws` (bind_ret): the right unit law,
-`f bind ret = f`, using only the unit law `w * 1 = w` of `S` (via
-`Finsupp.smul_single'` and `Finsupp.sum_single`). -/
-theorem bind_ret (f : MS S X) : bind f ret = f := by
-  unfold bind ret
-  have hpt : (fun (x : X) (w : S) => w • Finsupp.single x (1 : S)) =
-      fun (x : X) (w : S) => Finsupp.single x w := by
-    funext x w
-    rw [Finsupp.smul_single', mul_one]
-  rw [hpt]
-  exact Finsupp.sum_single f
-
 /-- Blueprint `thm:semiring-monad-laws` (bind_assoc): associativity,
 `(f bind k) bind l = f bind (fun x => k x bind l)`. The double sum on each
 side is rearranged into the other order by `Finsupp.sum_sum_index`
@@ -122,6 +116,36 @@ theorem bind_assoc (f : MS S X) (k : X → MS S Y) (l : Y → MS S Z) :
   refine Finsupp.sum_congr fun y _ => ?_
   rw [mul_smul]
 
+/-- Blueprint `thm:semiring-monad-laws` (the three monad laws, bundled):
+for every semiring `S`, `(MS S, ret, bind)` is a monad on `Set` — the
+left unit law, the right unit law, and associativity of `bind` hold for
+every, possibly noncommutative, `S`. The left unit law and associativity
+are cited verbatim from `ret_bind`/`bind_assoc` (each an independently
+`\lean`-cited lemma with further call sites throughout
+`NeSyCat/Truth/*.lean`'s truth-space machinery, so each KEEPS its own
+lemma-hood — the calibrated reuse principle's "stays a lemma" branch,
+`FORMALIZE.md`). The right unit law, `f bind ret = f`, is proved INLINE
+here rather than as its own top-level declaration (the former
+`bind_ret`, now folded): it is both TRIVIAL (a one-liner unfolding
+`bind`/`ret` against `Finsupp.smul_single'`/`Finsupp.sum_single`, using
+only the unit law `w * 1 = w` of `S`) and SINGLE-PURPOSE (existed only to
+feed this theorem, zero other call sites) — the calibrated reuse
+principle's "folds" branch. -/
+theorem semiring_monad_laws :
+    (∀ (x : X) (k : X → MS S Y), bind (ret x) k = k x) ∧
+      (∀ f : MS S X, bind f ret = f) ∧
+      (∀ (f : MS S X) (k : X → MS S Y) (l : Y → MS S Z),
+        bind (bind f k) l = bind f (fun x => bind (k x) l)) := by
+  refine ⟨ret_bind, ?_, bind_assoc⟩
+  intro f
+  unfold bind ret
+  have hpt : (fun (x : X) (w : S) => w • Finsupp.single x (1 : S)) =
+      fun (x : X) (w : S) => Finsupp.single x w := by
+    funext x w
+    rw [Finsupp.smul_single', mul_one]
+  rw [hpt]
+  exact Finsupp.sum_single f
+
 /-! ### `thm:semiring-monad-commutative`: the double-strength/interchange maps
 
 A monad `M` is *commutative* (in the technical, monad-theoretic sense) when
@@ -129,8 +153,8 @@ its two double-strength maps `M X × M Y → M (X × Y)` — bind the first
 argument then the second, versus bind the second then the first — agree.
 For `MS S` these are `dstL`/`dstR` below; `thm:semiring-monad-commutative`
 shows they agree for every `X Y f g` iff `S` itself is commutative. This is
-independent of the monad laws proved above (`ret_bind`/`bind_ret`/
-`bind_assoc` hold for every semiring `S`): commutativity of `⊗` is not
+independent of the monad laws proved above (`semiring_monad_laws` holds
+for every semiring `S`): commutativity of `⊗` is not
 needed to make `MS S` a monad, only to make that monad *commutative*. -/
 
 /-- A small local helper: a `Finsupp.sum` guarded by `x = a`, whose summand
@@ -228,7 +252,7 @@ exactly: this is Kock's theorem that a commutative-monad structure on a
 Jacobs Lem.~23: the two double-strengths agree iff `S` is commutative).
 
 This is exactly where `⊗`-commutativity is first needed in this file: not
-for the monad laws (`ret_bind`/`bind_ret`/`bind_assoc`, proved above for a
+for the monad laws (`semiring_monad_laws`, proved above for a
 general semiring), but for the monad's own commutativity. Downstream, it is
 the monad's commutativity — not the bare monad laws — that the lifted
 connectives of chapter 2 (`def:lifted-connective`) and the

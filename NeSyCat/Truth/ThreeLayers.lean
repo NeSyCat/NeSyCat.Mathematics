@@ -46,13 +46,13 @@ below).
 
 Over `[CommSemiring S]` (the `163adf1`-patched blueprint hypothesis): the
 lifted family's monoid laws (associativity, commutativity, two-sided units)
-for `⅋`/`\&` (`parrM`/`andM`), plus the De Morgan involution package for `¬`
+for `⅋`/`\&` (`oplusM`/`otimesM`), plus the De Morgan involution package for `¬`
 (`negM`), stated as EQUATIONAL LEMMAS on `MS S BoolW` — no
 `Lattice`/`BLat2Mon`/`Monoid`-style instance is registered on `MS S BoolW`
 or `Finsupp`, matching the hard rail. Proved by two-slot transport: each
 identity is checked after applying the (injective) `twoSlot` equivalence,
 reducing to an equation in `S` closed by `ring` — exactly `lem:lifted-mass`'s
-own explicit formulas (`twoSlot_andM`/`twoSlot_parrM`/`twoSlot_negM`), the
+own explicit formulas (`twoSlot_otimesM`/`twoSlot_oplusM`/`twoSlot_negM`), the
 blueprint's own sanctioned proof route ("Directly from Lemma
 lem:lifted-mass"). Associativity needs no commutativity of `S` at all (the
 same six/four cross terms appear on both sides, `ring`-provably equal via
@@ -60,7 +60,7 @@ only the semiring axioms); commutativity of `⅋`/`\&` is exactly the one
 place `S`'s own `mul_comm` enters the argument — this is the concrete,
 routing-formula-level shadow of `thm:semiring-monad-commutative`'s
 `dstL = dstR ↔ S` commutative (`NeSyCat/Monad/SemiringMonad.lean`): the two
-independent binds building `parrM`/`andM` from their two arguments agree in
+independent binds building `oplusM`/`otimesM` from their two arguments agree in
 either order exactly because `S`'s multiplication does, the same fact
 `dst_comm` packages at the level of the general strength maps `dstL`/`dstR`.
 
@@ -68,11 +68,11 @@ either order exactly because `S`'s multiplication does, the same fact
 
 The fair-coin witness (`fairCoin : Dist BoolW`, mass `½`/`½`, built directly
 from `distReadout.symm` on the readout `½ : unitInterval`) has
-`andD fairCoin fairCoin ≠ fairCoin`, via `distReadout_andD` reducing this to
+`otimesD fairCoin fairCoin ≠ fairCoin`, via `distReadout_otimesD` reducing this to
 `(1/2 : unitInterval) * (1/2) ≠ (1/2 : unitInterval)` — `norm_num` on the
 real coercions. The blueprint's own general statement ("fail in general.
 Witness: …") is additionally recorded at `unitInterval` level as an
-`∃`-statement (`exists_andC_ne_self`), matching its stated shape rather than
+`∃`-statement (`exists_otimes_ne_self`), matching its stated shape rather than
 strengthening it to a `∀`.
 
 ## `thm:three-layers`
@@ -88,10 +88,10 @@ semiring" both already witnessed there); (iii) is `def:order-family`
 (`NeSyCat/Truth/Lifted.lean`, already `\leanok`) plus three boundary
 witnesses proved here: `order_iff_inf_eq_left` (order-generation, `u ≤ v ↔
 u ⊓ v = u`, any lattice), the `𝔹`-coincidence (already `lem:bool-truth-structure`'s
-`BoolW.parr_eq_sup`/`BoolW.andC_eq_inf` — cited, not reproved: "the carrier is
+`BoolW.oplus_eq_sup`/`BoolW.otimes_eq_inf` — cited, not reproved: "the carrier is
 idempotent, on `𝔹` itself" reads as `S := BoolW`, where the lifted family's
 *definitional source* on `BoolW` collapses onto the lattice, not a claim
-about `MS BoolW BoolW`'s own `andM`/`parrM` pointwise agreeing with
+about `MS BoolW BoolW`'s own `otimesM`/`oplusM` pointwise agreeing with
 `orderMeet`/`orderJoin` — the latter is false in general, checked and
 rejected before writing this file, the disprove-guard in action), and
 units-vs-bounds: the positive witness is `unitInterval`'s own `UnitBounds`
@@ -299,25 +299,25 @@ package below. -/
 
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
-theorem andM_apply_zero (w v : MS S BoolW) :
-    andM w v 0 = w 0 * v 0 + w 0 * v 1 + w 1 * v 0 :=
-  congrArg Prod.fst (twoSlot_andM w v)
+theorem otimesM_apply_zero (w v : MS S BoolW) :
+    otimesM w v 0 = w 0 * v 0 + w 0 * v 1 + w 1 * v 0 :=
+  congrArg Prod.fst (twoSlot_otimesM w v)
 
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
-theorem andM_apply_one (w v : MS S BoolW) : andM w v 1 = w 1 * v 1 :=
-  congrArg Prod.snd (twoSlot_andM w v)
+theorem otimesM_apply_one (w v : MS S BoolW) : otimesM w v 1 = w 1 * v 1 :=
+  congrArg Prod.snd (twoSlot_otimesM w v)
 
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
-theorem parrM_apply_zero (w v : MS S BoolW) : parrM w v 0 = w 0 * v 0 :=
-  congrArg Prod.fst (twoSlot_parrM w v)
+theorem oplusM_apply_zero (w v : MS S BoolW) : oplusM w v 0 = w 0 * v 0 :=
+  congrArg Prod.fst (twoSlot_oplusM w v)
 
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
-theorem parrM_apply_one (w v : MS S BoolW) :
-    parrM w v 1 = w 0 * v 1 + w 1 * v 0 + w 1 * v 1 :=
-  congrArg Prod.snd (twoSlot_parrM w v)
+theorem oplusM_apply_one (w v : MS S BoolW) :
+    oplusM w v 1 = w 0 * v 1 + w 1 * v 0 + w 1 * v 1 :=
+  congrArg Prod.snd (twoSlot_oplusM w v)
 
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
@@ -355,84 +355,84 @@ variable {R : Type*} [CommSemiring R]
 `[CommSemiring S]`) -/
 
 /-- Blueprint `lem:linear-lift` (`\&` associativity): proved by `twoSlot`
-transport — both sides expand, via `andM_apply_zero`/`andM_apply_one`, to
+transport — both sides expand, via `otimesM_apply_zero`/`otimesM_apply_one`, to
 the same sum of three-fold products, `ring`-closed with no need for `S`'s
 commutativity (matching the blueprint proof: associativity uses only the
 semiring axioms of `S`). -/
-theorem andM_assoc (a b c : MS R BoolW) : andM (andM a b) c = andM a (andM b c) := by
+theorem otimesM_assoc (a b c : MS R BoolW) : otimesM (otimesM a b) c = otimesM a (otimesM b c) := by
   apply twoSlot.injective
-  rw [twoSlot_andM, twoSlot_andM, andM_apply_zero, andM_apply_one, andM_apply_zero,
-    andM_apply_one]
+  rw [twoSlot_otimesM, twoSlot_otimesM, otimesM_apply_zero, otimesM_apply_one, otimesM_apply_zero,
+    otimesM_apply_one]
   ext <;> ring
 
 /-- Blueprint `lem:linear-lift` (`\&` commutativity): the one identity that
 genuinely needs `S`'s own `mul_comm` — the concrete, routing-formula-level
 shadow of `thm:semiring-monad-commutative`'s `dstL = dstR ↔ S` commutative
 (`NeSyCat/Monad/SemiringMonad.lean`'s `dst_comm`): the two independent
-binds building `andM` from its arguments agree in either order exactly
+binds building `otimesM` from its arguments agree in either order exactly
 because `*` does on `S`. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
-theorem andM_comm (a b : MS R BoolW) : andM a b = andM b a := by
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
+theorem otimesM_comm (a b : MS R BoolW) : otimesM a b = otimesM b a := by
   apply twoSlot.injective
-  rw [twoSlot_andM, twoSlot_andM]
+  rw [twoSlot_otimesM, twoSlot_otimesM]
   ext <;> ring
 
 /-- Blueprint `lem:linear-lift` (`\&` left unit): `Ret(1) \& w = w`. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
-theorem ret_one_andM (w : MS R BoolW) : andM (ret 1) w = w := by
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
+theorem ret_one_otimesM (w : MS R BoolW) : otimesM (ret 1) w = w := by
   apply twoSlot.injective
-  rw [twoSlot_andM, ret_one_apply_zero, ret_one_apply_one]
+  rw [twoSlot_otimesM, ret_one_apply_zero, ret_one_apply_one]
   ext <;> simp
 
 /-- Blueprint `lem:linear-lift` (`\&` right unit): `w \& Ret(1) = w`. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
-theorem andM_ret_one (w : MS R BoolW) : andM w (ret 1) = w := by
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
+theorem otimesM_ret_one (w : MS R BoolW) : otimesM w (ret 1) = w := by
   apply twoSlot.injective
-  rw [twoSlot_andM, ret_one_apply_zero, ret_one_apply_one]
+  rw [twoSlot_otimesM, ret_one_apply_zero, ret_one_apply_one]
   ext <;> simp
 
-/-- Blueprint `lem:linear-lift` (`⅋` associativity), dual to `andM_assoc`. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
-theorem parrM_assoc (a b c : MS R BoolW) : parrM (parrM a b) c = parrM a (parrM b c) := by
+/-- Blueprint `lem:linear-lift` (`⅋` associativity), dual to `otimesM_assoc`. -/
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
+theorem oplusM_assoc (a b c : MS R BoolW) : oplusM (oplusM a b) c = oplusM a (oplusM b c) := by
   apply twoSlot.injective
-  rw [twoSlot_parrM, twoSlot_parrM, parrM_apply_zero, parrM_apply_one, parrM_apply_zero,
-    parrM_apply_one]
+  rw [twoSlot_oplusM, twoSlot_oplusM, oplusM_apply_zero, oplusM_apply_one, oplusM_apply_zero,
+    oplusM_apply_one]
   ext <;> ring
 
-/-- Blueprint `lem:linear-lift` (`⅋` commutativity), dual to `andM_comm` —
+/-- Blueprint `lem:linear-lift` (`⅋` commutativity), dual to `otimesM_comm` —
 again the one place `S`'s commutativity enters, matching the blueprint's
 "commutativity of `⅋, \&` specifically needs … `dstL = dstR`" proof note. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
-theorem parrM_comm (a b : MS R BoolW) : parrM a b = parrM b a := by
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
+theorem oplusM_comm (a b : MS R BoolW) : oplusM a b = oplusM b a := by
   apply twoSlot.injective
-  rw [twoSlot_parrM, twoSlot_parrM]
+  rw [twoSlot_oplusM, twoSlot_oplusM]
   ext <;> ring
 
 /-- Blueprint `lem:linear-lift` (`⅋` left unit): `Ret(0) ⅋ w = w`. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
-theorem ret_zero_parrM (w : MS R BoolW) : parrM (ret 0) w = w := by
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
+theorem ret_zero_oplusM (w : MS R BoolW) : oplusM (ret 0) w = w := by
   apply twoSlot.injective
-  rw [twoSlot_parrM, ret_zero_apply_zero, ret_zero_apply_one]
+  rw [twoSlot_oplusM, ret_zero_apply_zero, ret_zero_apply_one]
   ext <;> simp
 
 /-- Blueprint `lem:linear-lift` (`⅋` right unit): `w ⅋ Ret(0) = w`. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
-theorem parrM_ret_zero (w : MS R BoolW) : parrM w (ret 0) = w := by
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
+theorem oplusM_ret_zero (w : MS R BoolW) : oplusM w (ret 0) = w := by
   apply twoSlot.injective
-  rw [twoSlot_parrM, ret_zero_apply_zero, ret_zero_apply_one]
+  rw [twoSlot_oplusM, ret_zero_apply_zero, ret_zero_apply_one]
   ext <;> simp
 
 /-! ### `¬` is a De Morgan involution between them (general `[Semiring S]`,
 no commutativity needed) -/
 
 /-- Blueprint `lem:linear-lift` (De Morgan involution): `¬¬w = w`. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
 theorem negM_negM (w : MS S BoolW) : negM (negM w) = w := by
   apply twoSlot.injective
   rw [twoSlot_negM, negM_apply_zero, negM_apply_one, twoSlot_apply]
 
 /-- Blueprint `lem:linear-lift` (De Morgan, unit swap): `¬ Ret(0) = Ret(1)`. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
 theorem negM_ret_zero : (negM (ret 0) : MS S BoolW) = ret 1 := by
   apply twoSlot.injective
   rw [twoSlot_negM, ret_zero_apply_zero, ret_zero_apply_one, twoSlot_ret_one]
@@ -441,13 +441,13 @@ theorem negM_ret_zero : (negM (ret 0) : MS S BoolW) = ret 1 := by
 \& ¬v`. Unlike `negM_negM`/`negM_ret_zero` above, this identity's cross
 terms reorder as `w0v1+w1v0` vs. `w1v0+w0v1` — an `+`-only reordering that
 holds at any `[Semiring S]` — but it is stated under `[CommSemiring R]`
-alongside `negM_andM` (which does need `mul_comm`) to keep
+alongside `negM_otimesM` (which does need `mul_comm`) to keep
 `lem:linear-lift`'s De Morgan package at one uniform hypothesis, matching
 the blueprint's own single-item bundling. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
-theorem negM_parrM (w v : MS R BoolW) : negM (parrM w v) = andM (negM w) (negM v) := by
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
+theorem negM_oplusM (w v : MS R BoolW) : negM (oplusM w v) = otimesM (negM w) (negM v) := by
   apply twoSlot.injective
-  rw [twoSlot_negM, twoSlot_andM, parrM_apply_zero, parrM_apply_one, negM_apply_zero,
+  rw [twoSlot_negM, twoSlot_otimesM, oplusM_apply_zero, oplusM_apply_one, negM_apply_zero,
     negM_apply_one, negM_apply_zero, negM_apply_one]
   ext <;> ring
 
@@ -455,10 +455,10 @@ theorem negM_parrM (w v : MS R BoolW) : negM (parrM w v) = andM (negM w) (negM v
 ¬v ⅋ ¬w`. This one genuinely needs `R`'s `mul_comm` (`w1*v1 = v1*w1` in the
 first coordinate), the De Morgan identity where `S`'s commutativity is
 load-bearing, not merely convenient. -/
--- blueprint: internal (A1 bijection-law companion of `andM_assoc`, content.tex lem:linear-lift)
-theorem negM_andM (w v : MS R BoolW) : negM (andM w v) = parrM (negM v) (negM w) := by
+-- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
+theorem negM_otimesM (w v : MS R BoolW) : negM (otimesM w v) = oplusM (negM v) (negM w) := by
   apply twoSlot.injective
-  rw [twoSlot_negM, twoSlot_parrM, andM_apply_zero, andM_apply_one, negM_apply_zero,
+  rw [twoSlot_negM, twoSlot_oplusM, otimesM_apply_zero, otimesM_apply_one, negM_apply_zero,
     negM_apply_one, negM_apply_zero, negM_apply_one]
   ext <;> ring
 
@@ -473,47 +473,47 @@ open scoped unitInterval
 /-- The fair-coin witness: the `Dist BoolW` value with mass `½`/`½`,
 constructed directly as `distReadout.symm` of the readout point `½`. -/
 -- blueprint: internal (A1 bijection-law companion of
--- `exists_andC_ne_self`, content.tex lem:copying-fails)
+-- `exists_otimes_ne_self`, content.tex lem:copying-fails)
 noncomputable def fairCoin : Dist BoolW := distReadout.symm ⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩
 
 -- blueprint: internal (A1 bijection-law companion of
--- `exists_andC_ne_self`, content.tex lem:copying-fails)
+-- `exists_otimes_ne_self`, content.tex lem:copying-fails)
 theorem distReadout_fairCoin :
     distReadout fairCoin = (⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩ : _root_.unitInterval) :=
   Equiv.apply_symm_apply _ _
 
 /-- Blueprint `lem:copying-fails` (fair-coin witness): the `Dist`-restricted
-`\&`-lift is not idempotent at the fair coin — `andD ρ ρ ≠ ρ`. Proved via
-the readout homomorphism `distReadout_andD`: `readout (ρ andD ρ) = ½ * ½ =
+`\&`-lift is not idempotent at the fair coin — `otimesD ρ ρ ≠ ρ`. Proved via
+the readout homomorphism `distReadout_otimesD`: `readout (ρ otimesD ρ) = ½ * ½ =
 ¼ ≠ ½ = readout ρ`, `norm_num` on the real/`unitInterval` coercions. -/
 -- blueprint: internal (A1 bijection-law companion of
--- `exists_andC_ne_self`, content.tex lem:copying-fails)
-theorem andD_fairCoin_ne : andD fairCoin fairCoin ≠ fairCoin := by
+-- `exists_otimes_ne_self`, content.tex lem:copying-fails)
+theorem otimesD_fairCoin_ne : otimesD fairCoin fairCoin ≠ fairCoin := by
   intro h
-  have hread : distReadout (andD fairCoin fairCoin) = distReadout fairCoin := by rw [h]
-  rw [distReadout_andD, distReadout_fairCoin] at hread
-  have hcoe : ((BLat2Mon.andC
+  have hread : distReadout (otimesD fairCoin fairCoin) = distReadout fairCoin := by rw [h]
+  rw [distReadout_otimesD, distReadout_fairCoin] at hread
+  have hcoe : ((BLat2Mon.otimes
       (⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩ : _root_.unitInterval)
       (⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩ : _root_.unitInterval) :
       _root_.unitInterval) : ℝ) =
       ((⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩ : _root_.unitInterval) : ℝ) :=
     congrArg _ hread
-  norm_num [BLat2Mon.andC] at hcoe
+  norm_num [BLat2Mon.otimes] at hcoe
 
 /-- Blueprint `lem:copying-fails` (general clause, `∃`-form matching the
 blueprint's own "fail in general. Witness: …" statement shape): `\&` is not
 idempotent — some `p` strictly between `0` and `1` has `p \& p ≠ p`,
 witnessed by `p = 1/2` (`p \& p = p² ≠ p` since `p ∈ \{0,1\}` would be
 needed for equality, `norm_num`). -/
-theorem exists_andC_ne_self :
-    ∃ p : _root_.unitInterval, (0 : ℝ) < p ∧ (p : ℝ) < 1 ∧ BLat2Mon.andC p p ≠ p := by
+theorem exists_otimes_ne_self :
+    ∃ p : _root_.unitInterval, (0 : ℝ) < p ∧ (p : ℝ) < 1 ∧ BLat2Mon.otimes p p ≠ p := by
   refine ⟨⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩, by norm_num, by norm_num, fun h => ?_⟩
-  have hcoe : ((BLat2Mon.andC (⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩ : _root_.unitInterval)
+  have hcoe : ((BLat2Mon.otimes (⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩ : _root_.unitInterval)
       (⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩ : _root_.unitInterval) :
       _root_.unitInterval) : ℝ) =
       ((⟨(1 : ℝ) / 2, by norm_num, by norm_num⟩ : _root_.unitInterval) : ℝ) :=
     congrArg _ h
-  norm_num [BLat2Mon.andC] at hcoe
+  norm_num [BLat2Mon.otimes] at hcoe
 
 end CopyingFails
 
@@ -563,13 +563,13 @@ theorem order_iff_inf_eq_left {α : Type*} [Lattice α] (u v : α) : u ≤ v ↔
   inf_eq_left.symm
 
 /-! **𝔹-coincidence.** "They coincide exactly where the carrier is
-idempotent, on `𝔹` itself" is `BoolW.parr_eq_sup`/`BoolW.andC_eq_inf`
+idempotent, on `𝔹` itself" is `BoolW.oplus_eq_sup`/`BoolW.otimes_eq_inf`
 (`NeSyCat/Truth/BoolInstance.lean`, already `\leanok` under
 `lem:bool-truth-structure`) — cited, not reproved: this is a statement about
 `BoolW`'s own `BLat2Mon` structure collapsing onto its lattice ops when the
 carrier `S := BoolW` is idempotent, not a claim that `MS BoolW BoolW`'s
-lifted `andM`/`parrM` pointwise agree with `orderMeet`/`orderJoin` in
-general (checked by hand and found FALSE — e.g. `andM` at `w₀=1,v₀=0,w₁=0,
+lifted `otimesM`/`oplusM` pointwise agree with `orderMeet`/`orderJoin` in
+general (checked by hand and found FALSE — e.g. `otimesM` at `w₀=1,v₀=0,w₁=0,
 v₁=0` gives coordinate `0`, but `orderMeet`'s `w₀ ⊔ v₀` gives `1` — before
 writing this file, the disprove-guard in action: the correct reading routes
 through `BoolW`'s own instance, not the monad-lifted family at `S := BoolW`). -/

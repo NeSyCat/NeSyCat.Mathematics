@@ -19,11 +19,15 @@ bounded lattice carrying two monoids, with no distributivity assumed between
 the three structures. This file isolates that shape abstractly.
 
 **Why explicit operation fields, not `Monoid` instances.** A single carrier
-here bears *two* independent monoid structures — `(parr, dzero)` (linear
-logic's `⅋`, "or-like") and `(andC, done)` (linear logic's multiplicative
-`⊗`, kept as `&`/`andC` per `[NeSy26]`'s own notation) — and Mathlib's
+here bears *two* independent monoid structures — `(oplus, dzero)` (linear
+logic's `⅋`, "or-like") and `(otimes, done)` (linear logic's multiplicative
+`⊗`, notated `&` at the term level; the field itself is named `otimes`,
+not `[NeSy26]`'s own `andC` spelling — USER DECREE 2026-08-09, C2-E4c: the
+glyph-carrying operator symbol and the paper's own field name are
+independent choices, and the field is renamed to match the operator it
+denotes one-to-one) — and Mathlib's
 `Monoid` typeclass can be registered at most once per type. So `BLat2Mon`
-carries `parr`/`dzero`/`andC`/`done` as explicit fields (over an ambient
+carries `oplus`/`dzero`/`otimes`/`done` as explicit fields (over an ambient
 `[Lattice α] [BoundedOrder α]`, *not* extended — `BoolW` already carries
 its own lattice/`BoundedOrder` instances, and extending here would create
 diamonds), rather than deriving from two separately-registered `Monoid α`
@@ -47,39 +51,40 @@ namespace NeSyCat
 /-- Blueprint `def:blat2mon` (Two-monoid bounded lattice): a **BLat2Mon** is
 a set carrying a bounded lattice `(⊓, ⊔, ⊥, ⊤)` (via the ambient
 `[Lattice α] [BoundedOrder α]`) together with two monoid structures
-`(parr, dzero)` and `(andC, done)`; unlike a lattice-semiring
+`(oplus, dzero)` and `(otimes, done)`; unlike a lattice-semiring
 (`NeSyCat.LatSRng`), no distributivity of any kind is assumed between the
 three structures. Distilled from `[NeSy26, App. A]` (the lifted-connective
 family); vocabulary from linear logic (Girard 1987). -/
 class BLat2Mon (α : Type*) [Lattice α] [BoundedOrder α] where
   /-- The `⅋`-monoid multiplication (linear logic's `⅋`, "or-like"). -/
-  parr : α → α → α
+  oplus : α → α → α
   /-- The `⅋`-unit (linear logic's `⊥`, the blueprint's `0̇`). -/
   dzero : α
   /-- The `&`-monoid multiplication (linear logic's *multiplicative*
-  conjunction `⊗`; kept as `&`/`andC` per `[NeSy26]`'s notation, see the
-  linear-logic dictionary table in `blueprint/src/content.tex`,
+  conjunction `⊗`, notated `&` at the term level; field renamed `otimes`
+  from `[NeSy26]`'s `andC` spelling, C2-E4c — see the linear-logic
+  dictionary table in `blueprint/src/content.tex`,
   §"Truth-value structures"). -/
-  andC : α → α → α
+  otimes : α → α → α
   /-- The `&`-unit (linear logic's `1`, the blueprint's `1̇`). -/
   done : α
-  parr_assoc : ∀ p q r, parr (parr p q) r = parr p (parr q r)
-  dzero_parr : ∀ p, parr dzero p = p
-  parr_dzero : ∀ p, parr p dzero = p
-  andC_assoc : ∀ p q r, andC (andC p q) r = andC p (andC q r)
-  done_andC : ∀ p, andC done p = p
-  andC_done : ∀ p, andC p done = p
+  oplus_assoc : ∀ p q r, oplus (oplus p q) r = oplus p (oplus q r)
+  dzero_oplus : ∀ p, oplus dzero p = p
+  oplus_dzero : ∀ p, oplus p dzero = p
+  otimes_assoc : ∀ p q r, otimes (otimes p q) r = otimes p (otimes q r)
+  done_otimes : ∀ p, otimes done p = p
+  otimes_done : ∀ p, otimes p done = p
 
 /-- Blueprint `def:blat2cmon` (Commutative two-monoid bounded lattice): a
-**BLat2CMon** is a `BLat2Mon` whose two monoids `(parr, dzero)` and
-`(andC, done)` are both commutative. -/
+**BLat2CMon** is a `BLat2Mon` whose two monoids `(oplus, dzero)` and
+`(otimes, done)` are both commutative. -/
 class BLat2CMon (α : Type*) [Lattice α] [BoundedOrder α] extends BLat2Mon α where
-  parr_comm : ∀ p q, parr p q = parr q p
-  andC_comm : ∀ p q, andC p q = andC q p
+  oplus_comm : ∀ p q, oplus p q = oplus q p
+  otimes_comm : ∀ p q, otimes p q = otimes q p
 
 /-- Blueprint `def:lin-blat2mon` (Linear two-monoid lattice): a
-**LinBLat2Mon** is a `BLat2Mon` in which `andC` preserves finite joins in
-each argument and `parr` preserves finite meets in each argument: binary
+**LinBLat2Mon** is a `BLat2Mon` in which `otimes` preserves finite joins in
+each argument and `oplus` preserves finite meets in each argument: binary
 (`p & (q ⊔ r) = (p & q) ⊔ (p & r)` and its left-argument twin, dually for
 `⅋` and `⊓`) and nullary (`p & ⊥ = ⊥` annihilation, `p ⅋ ⊤ = ⊤` absorption,
 both two-sided). These are exactly the four linear distributions of linear
@@ -87,22 +92,22 @@ logic (`⊗` over `⊕`, `⅋` over `&`, together with their units), transported
 along the linear-logic dictionary table of `blueprint/src/content.tex`,
 §"Truth-value structures" (Girard 1987). -/
 class LinBLat2Mon (α : Type*) [Lattice α] [BoundedOrder α] extends BLat2Mon α where
-  /-- `andC` preserves finite joins in its right argument. -/
-  andC_sup : ∀ p q r, andC p (q ⊔ r) = andC p q ⊔ andC p r
-  /-- `andC` preserves finite joins in its left argument. -/
-  sup_andC : ∀ p q r, andC (p ⊔ q) r = andC p r ⊔ andC q r
-  /-- `parr` preserves finite meets in its right argument. -/
-  parr_inf : ∀ p q r, parr p (q ⊓ r) = parr p q ⊓ parr p r
-  /-- `parr` preserves finite meets in its left argument. -/
-  inf_parr : ∀ p q r, parr (p ⊓ q) r = parr p r ⊓ parr q r
-  /-- Annihilation: `andC` kills `⊥` on the right. -/
-  andC_bot : ∀ p, andC p ⊥ = ⊥
-  /-- Annihilation: `andC` kills `⊥` on the left. -/
-  bot_andC : ∀ p, andC ⊥ p = ⊥
-  /-- Absorption: `parr` saturates to `⊤` on the right. -/
-  parr_top : ∀ p, parr p ⊤ = ⊤
-  /-- Absorption: `parr` saturates to `⊤` on the left. -/
-  top_parr : ∀ p, parr ⊤ p = ⊤
+  /-- `otimes` preserves finite joins in its right argument. -/
+  otimes_sup : ∀ p q r, otimes p (q ⊔ r) = otimes p q ⊔ otimes p r
+  /-- `otimes` preserves finite joins in its left argument. -/
+  sup_otimes : ∀ p q r, otimes (p ⊔ q) r = otimes p r ⊔ otimes q r
+  /-- `oplus` preserves finite meets in its right argument. -/
+  oplus_inf : ∀ p q r, oplus p (q ⊓ r) = oplus p q ⊓ oplus p r
+  /-- `oplus` preserves finite meets in its left argument. -/
+  inf_oplus : ∀ p q r, oplus (p ⊓ q) r = oplus p r ⊓ oplus q r
+  /-- Annihilation: `otimes` kills `⊥` on the right. -/
+  otimes_bot : ∀ p, otimes p ⊥ = ⊥
+  /-- Annihilation: `otimes` kills `⊥` on the left. -/
+  bot_otimes : ∀ p, otimes ⊥ p = ⊥
+  /-- Absorption: `oplus` saturates to `⊤` on the right. -/
+  oplus_top : ∀ p, oplus p ⊤ = ⊤
+  /-- Absorption: `oplus` saturates to `⊤` on the left. -/
+  top_oplus : ∀ p, oplus ⊤ p = ⊤
 
 /-- Blueprint `def:lin-blat2cmon` (Commutative linear two-monoid lattice): a
 **LinBLat2CMon** is a `BLat2CMon` satisfying the `LinBLat2Mon` laws (a
@@ -120,7 +125,7 @@ class DMStructure (α : Type*) [Lattice α] [BoundedOrder α] [BLat2Mon α] wher
   dneg : α → α
   dneg_dneg : ∀ p, dneg (dneg p) = p
   dneg_antitone : ∀ p q : α, p ≤ q → dneg q ≤ dneg p
-  dneg_andC : ∀ p q, dneg (BLat2Mon.andC p q) = BLat2Mon.parr (dneg q) (dneg p)
+  dneg_otimes : ∀ p q, dneg (BLat2Mon.otimes p q) = BLat2Mon.oplus (dneg q) (dneg p)
 
 /-- Blueprint `def:zero-bot` (Unit-bound mixin, ZeroBot): for a
 `BLat2Mon`, **ZeroBot** demands `dzero = ⊥`. A `Prop`-class: it asserts a
@@ -155,81 +160,84 @@ variable {α : Type*} [Lattice α] [BoundedOrder α] [LinBLat2Mon α]
 /-! ### `lem:lin-monotone`: linearity gives monotonicity
 
 Blueprint proof: if `p ≤ q` then `q = p ⊔ q`, so
-`andC q r = andC (p ⊔ q) r = andC p r ⊔ andC q r ≥ andC p r`; the other
-argument, and `parr` (via `p = p ⊓ q` and meet-preservation), are dual. Four
+`otimes q r = otimes (p ⊔ q) r = otimes p r ⊔ otimes q r ≥ otimes p r`; the other
+argument, and `oplus` (via `p = p ⊓ q` and meet-preservation), are dual. Four
 argument-versions (fixed element named per the side it sits on, mirroring
 `NeSyCat.LatSRng.add_le_add_left`/`add_le_add_right`). -/
 
-/-- Blueprint `lem:lin-monotone` (`andC` monotone, fixed element on the
-left): if `p ≤ q` then `andC r p ≤ andC r q`. -/
-theorem andC_le_andC_left {p q : α} (h : p ≤ q) (r : α) :
-    andC r p ≤ andC r q := by
-  calc andC r p ≤ andC r p ⊔ andC r q := le_sup_left
-    _ = andC r (p ⊔ q) := (LinBLat2Mon.andC_sup r p q).symm
-    _ = andC r q := by rw [sup_eq_right.mpr h]
+/-- Blueprint `lem:lin-monotone` (`otimes` monotone, fixed element on the
+left): if `p ≤ q` then `otimes r p ≤ otimes r q`. -/
+theorem otimes_le_otimes_left {p q : α} (h : p ≤ q) (r : α) :
+    otimes r p ≤ otimes r q := by
+  calc otimes r p ≤ otimes r p ⊔ otimes r q := le_sup_left
+    _ = otimes r (p ⊔ q) := (LinBLat2Mon.otimes_sup r p q).symm
+    _ = otimes r q := by rw [sup_eq_right.mpr h]
 
-/-- Blueprint `lem:lin-monotone` (`andC` monotone, fixed element on the
-right): if `p ≤ q` then `andC p r ≤ andC q r`. -/
+/-- Blueprint `lem:lin-monotone` (`otimes` monotone, fixed element on the
+right): if `p ≤ q` then `otimes p r ≤ otimes q r`. -/
 -- blueprint: internal (A1 bijection-law companion of
--- `andC_le_andC_left`, content.tex lem:lin-monotone)
-theorem andC_le_andC_right {p q : α} (h : p ≤ q) (r : α) :
-    andC p r ≤ andC q r := by
-  calc andC p r ≤ andC p r ⊔ andC q r := le_sup_left
-    _ = andC (p ⊔ q) r := (LinBLat2Mon.sup_andC p q r).symm
-    _ = andC q r := by rw [sup_eq_right.mpr h]
+-- `otimes_le_otimes_left`, content.tex lem:lin-monotone)
+theorem otimes_le_otimes_right {p q : α} (h : p ≤ q) (r : α) :
+    otimes p r ≤ otimes q r := by
+  calc otimes p r ≤ otimes p r ⊔ otimes q r := le_sup_left
+    _ = otimes (p ⊔ q) r := (LinBLat2Mon.sup_otimes p q r).symm
+    _ = otimes q r := by rw [sup_eq_right.mpr h]
 
-/-- Blueprint `lem:lin-monotone` (`parr` monotone, fixed element on the
-left): if `p ≤ q` then `parr r p ≤ parr r q`. -/
+/-- Blueprint `lem:lin-monotone` (`oplus` monotone, fixed element on the
+left): if `p ≤ q` then `oplus r p ≤ oplus r q`. -/
 -- blueprint: internal (A1 bijection-law companion of
--- `andC_le_andC_left`, content.tex lem:lin-monotone)
-theorem parr_le_parr_left {p q : α} (h : p ≤ q) (r : α) :
-    parr r p ≤ parr r q := by
-  calc parr r p = parr r (p ⊓ q) := by rw [inf_eq_left.mpr h]
-    _ = parr r p ⊓ parr r q := LinBLat2Mon.parr_inf r p q
-    _ ≤ parr r q := inf_le_right
+-- `otimes_le_otimes_left`, content.tex lem:lin-monotone)
+theorem oplus_le_oplus_left {p q : α} (h : p ≤ q) (r : α) :
+    oplus r p ≤ oplus r q := by
+  calc oplus r p = oplus r (p ⊓ q) := by rw [inf_eq_left.mpr h]
+    _ = oplus r p ⊓ oplus r q := LinBLat2Mon.oplus_inf r p q
+    _ ≤ oplus r q := inf_le_right
 
-/-- Blueprint `lem:lin-monotone` (`parr` monotone, fixed element on the
-right): if `p ≤ q` then `parr p r ≤ parr q r`. -/
+/-- Blueprint `lem:lin-monotone` (`oplus` monotone, fixed element on the
+right): if `p ≤ q` then `oplus p r ≤ oplus q r`. -/
 -- blueprint: internal (A1 bijection-law companion of
--- `andC_le_andC_left`, content.tex lem:lin-monotone)
-theorem parr_le_parr_right {p q : α} (h : p ≤ q) (r : α) :
-    parr p r ≤ parr q r := by
-  calc parr p r = parr (p ⊓ q) r := by rw [inf_eq_left.mpr h]
-    _ = parr p r ⊓ parr q r := LinBLat2Mon.inf_parr p q r
-    _ ≤ parr q r := inf_le_right
+-- `otimes_le_otimes_left`, content.tex lem:lin-monotone)
+theorem oplus_le_oplus_right {p q : α} (h : p ≤ q) (r : α) :
+    oplus p r ≤ oplus q r := by
+  calc oplus p r = oplus (p ⊓ q) r := by rw [inf_eq_left.mpr h]
+    _ = oplus p r ⊓ oplus q r := LinBLat2Mon.inf_oplus p q r
+    _ ≤ oplus q r := inf_le_right
 
 /-! ### `lem:lin-lax-duals`: lax dual preservations
 
 Blueprint proof: `q ⊓ r ≤ q` and `q ⊓ r ≤ r`, so monotonicity
-(`lem:lin-monotone`) gives `andC p (q ⊓ r) ≤ andC p q` and `≤ andC p r`,
-hence `≤` their meet; dually for `parr`. -/
+(`lem:lin-monotone`) gives `otimes p (q ⊓ r) ≤ otimes p q` and `≤ otimes p r`,
+hence `≤` their meet; dually for `oplus`. -/
 
-/-- Blueprint `lem:lin-lax-duals` (`andC` laxly preserves meets, right
-argument): `andC p (q ⊓ r) ≤ andC p q ⊓ andC p r`. -/
-theorem andC_inf_le (p q r : α) :
-    andC p (q ⊓ r) ≤ andC p q ⊓ andC p r :=
-  le_inf (andC_le_andC_left inf_le_left p) (andC_le_andC_left inf_le_right p)
+/-- Blueprint `lem:lin-lax-duals` (`otimes` laxly preserves meets, right
+argument): `otimes p (q ⊓ r) ≤ otimes p q ⊓ otimes p r`. -/
+theorem otimes_inf_le (p q r : α) :
+    otimes p (q ⊓ r) ≤ otimes p q ⊓ otimes p r :=
+  le_inf (otimes_le_otimes_left inf_le_left p) (otimes_le_otimes_left inf_le_right p)
 
-/-- Blueprint `lem:lin-lax-duals` (`andC` laxly preserves meets, left
-argument): `andC (q ⊓ r) p ≤ andC q p ⊓ andC r p`. -/
--- blueprint: internal (A1 bijection-law companion of `andC_inf_le`, content.tex lem:lin-lax-duals)
-theorem inf_andC_le (p q r : α) :
-    andC (q ⊓ r) p ≤ andC q p ⊓ andC r p :=
-  le_inf (andC_le_andC_right inf_le_left p) (andC_le_andC_right inf_le_right p)
+/-- Blueprint `lem:lin-lax-duals` (`otimes` laxly preserves meets, left
+argument): `otimes (q ⊓ r) p ≤ otimes q p ⊓ otimes r p`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `otimes_inf_le`, content.tex lem:lin-lax-duals)
+theorem inf_otimes_le (p q r : α) :
+    otimes (q ⊓ r) p ≤ otimes q p ⊓ otimes r p :=
+  le_inf (otimes_le_otimes_right inf_le_left p) (otimes_le_otimes_right inf_le_right p)
 
-/-- Blueprint `lem:lin-lax-duals` (`parr` laxly preserves joins, right
-argument): `parr p q ⊔ parr p r ≤ parr p (q ⊔ r)`. -/
--- blueprint: internal (A1 bijection-law companion of `andC_inf_le`, content.tex lem:lin-lax-duals)
-theorem le_parr_sup (p q r : α) :
-    parr p q ⊔ parr p r ≤ parr p (q ⊔ r) :=
-  sup_le (parr_le_parr_left le_sup_left p) (parr_le_parr_left le_sup_right p)
+/-- Blueprint `lem:lin-lax-duals` (`oplus` laxly preserves joins, right
+argument): `oplus p q ⊔ oplus p r ≤ oplus p (q ⊔ r)`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `otimes_inf_le`, content.tex lem:lin-lax-duals)
+theorem le_oplus_sup (p q r : α) :
+    oplus p q ⊔ oplus p r ≤ oplus p (q ⊔ r) :=
+  sup_le (oplus_le_oplus_left le_sup_left p) (oplus_le_oplus_left le_sup_right p)
 
-/-- Blueprint `lem:lin-lax-duals` (`parr` laxly preserves joins, left
-argument): `parr q p ⊔ parr r p ≤ parr (q ⊔ r) p`. -/
--- blueprint: internal (A1 bijection-law companion of `andC_inf_le`, content.tex lem:lin-lax-duals)
-theorem le_sup_parr (p q r : α) :
-    parr q p ⊔ parr r p ≤ parr (q ⊔ r) p :=
-  sup_le (parr_le_parr_right le_sup_left p) (parr_le_parr_right le_sup_right p)
+/-- Blueprint `lem:lin-lax-duals` (`oplus` laxly preserves joins, left
+argument): `oplus q p ⊔ oplus r p ≤ oplus (q ⊔ r) p`. -/
+-- blueprint: internal (A1 bijection-law companion of
+-- `otimes_inf_le`, content.tex lem:lin-lax-duals)
+theorem le_sup_oplus (p q r : α) :
+    oplus q p ⊔ oplus r p ≤ oplus (q ⊔ r) p :=
+  sup_le (oplus_le_oplus_right le_sup_left p) (oplus_le_oplus_right le_sup_right p)
 
 end LinearLemmas
 
