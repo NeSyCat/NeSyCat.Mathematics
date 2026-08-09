@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
-import NeSyCat.Truth.BLat2Mon
-import NeSyCat.Truth.Chain
+import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
+import NeSyCat.LogicalLayer.TruthStructures.Chain
 
 /-!
 # The probability row: `unitInterval` as a `LinBLat2CMon` with DM structure
@@ -29,7 +29,7 @@ subtype throughout, rather than needing a separate membership argument on
 the real-number formula.
 
 **Routing through `thm:chain-lin`.** The `LinBLat2Mon unitInterval`
-instance is built via `LinBLat2Mon.ofChain` (`NeSyCat/Truth/Chain.lean`),
+instance is built via `LinBLat2Mon.ofChain` (`NeSyCat/LogicalLayer/TruthStructures/Chain.lean`),
 not by proving the eight linear laws directly — this is the blueprint's
 own proof of this item ("Theorem~`thm:chain-lin` applies"), and exercises
 the instance-diamond wrinkle noted there: Lean resolves `Lattice

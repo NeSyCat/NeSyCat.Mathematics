@@ -2,7 +2,7 @@
 % It will be used both by the web and the print version.
 % It should *not* include the \begin{document}
 
-\section{Introduction}
+\section{Introduction}  % lean-dir: -
 
 % Apparatus (C2-E5): original opening sentence, moved verbatim.
 % This blueprint is \textbf{version 0} of the NeSyCat library reference
@@ -103,8 +103,8 @@ One point of vocabulary differs from linear logic: our $\otimes$ is the
 \emph{multiplicative} conjunction, while linear logic's own additive
 conjunction is a different connective, our $\wedge$ (the linear-logic
 dictionary later in this section shows its own glyph). All these
-symbols are LaTeX macros collected in the symbol registry of
-\texttt{blueprint/src/macros/common.tex}.
+symbols are LaTeX macros collected in the library's symbol registry.
+% Symbol registry file: blueprint/src/macros/common.tex.
 
 Four constants recur at the logical/truth-value level: the lattice
 bounds $\bot,\top$ (Definition~\ref{def:order-family}) and the monoid
@@ -194,11 +194,11 @@ forward and back.
 % \texttt{\textbackslash lean\{\}} name).
 
 % ============================================================
-\section{Categorical layer}
+\section{Categorical layer}  % lean-dir: CategoricalLayer
 \label{sec:categorical-layer}
 
 % ============================================================
-\subsection{Semiring weight monads}
+\subsection{Semiring weight monads}  % lean-dir: CategoricalLayer/SemiringMonads
 \label{sec:semiring-monads}
 
 This subsection develops the semiring weight monad $\MS{S}$: the
@@ -608,7 +608,7 @@ isomorphism), so it is a monad isomorphism $\MS{\MassS} \cong
 \end{proof}
 
 % ------------------------------------------------------------
-\subsection{Categorical signatures and CD semantics}
+\subsection{Categorical signatures and CD semantics}  % lean-dir: CategoricalLayer/Signatures
 \label{sec:categorical-signatures}
 
 % Apparatus (C2-E5): supersession history, pinned-text provenance
@@ -629,9 +629,8 @@ isomorphism), so it is a monad isomorphism $\MS{\MassS} \cong
 % v2} (new.tex 1--396).
 From here on, $\otimes$ (rendered $\boxtimes$) always names the
 categorical layer's object-level tensor, of a CD or monoidal category,
-never the logical or semiring round operations used above and below;
-keeping the two families of tensor visually apart keeps them from
-clashing on the page.
+never the logical or semiring round operations used above and below,
+so the two families of tensor stay visually distinct throughout.
 
 The theory is a stack of four signature and interpretation layers:
 categorical, logical, domain, and grammatical. The last of these fixes
@@ -689,10 +688,10 @@ $\mathcal C := \mathbf{Tens}$, $\mathcal A := \mathbf{Tens}$, and the
 monad $\mathcal M := \mathrm{LogVec}$ for $\bigcirc$).
 
 % ============================================================
-\section{Logical layer}
+\section{Logical layer}  % lean-dir: LogicalLayer
 \label{sec:logical-layer}
 
-\subsection{Truth-value structures}
+\subsection{Truth-value structures}  % lean-dir: LogicalLayer/TruthStructures
 \label{sec:truth-structures}
 
 The lifted connective family of a truth space (Definition~\ref{def:lifted-connective}, Section~\ref{sec:truth-spaces} onward) is \emph{not} a semiring (Lemma~\ref{lem:copying-fails}, Theorem~\ref{thm:three-layers}): it is a bounded lattice carrying two monoids. This section isolates that shape abstractly, under names from the library's own naming scheme (\textbf{BLat2Mon} and its refinements), develops the linearity and De~Morgan laws such a structure can carry, and locates each running row (Boolean, probability, mass, log) inside the resulting hierarchy. The connective and constant conventions above are assumed throughout, not re-explained.
@@ -1218,7 +1217,7 @@ completion instances.
 % ... deferred to the residuation section [Girard 1987].
 
 % ------------------------------------------------------------
-\subsection{Truth spaces and lifted connectives}
+\subsection{Truth spaces and lifted connectives}  % lean-dir: LogicalLayer/TruthSpaces
 \label{sec:truth-spaces}
 
 % Apparatus (C2-E5): provenance credit, moved verbatim.
@@ -1449,7 +1448,7 @@ for a general lattice-semiring $S$; Lemmas~\ref{lem:lifted-mass} and
 % $S \in \{\MassS, \LogS\}$.
 
 % ------------------------------------------------------------
-\subsection{Three layers}
+\subsection{Three layers}  % lean-dir: LogicalLayer/ThreeLayers
 \label{sec:three-layers}
 
 % Apparatus (C2-E5): provenance credit, moved verbatim.
@@ -1571,7 +1570,7 @@ construction of Definition~\ref{def:order-family}.
 \end{proof}
 
 % ------------------------------------------------------------
-\subsection{Logical signatures}
+\subsection{Logical signatures}  % lean-dir: LogicalLayer/LogicalSignatures
 \label{sec:logical-signatures}
 
 \begin{definition}[Logical signature]
@@ -1608,7 +1607,7 @@ $\mathcal I(M)$.
 \end{definition}
 
 % ============================================================
-\section{Domain layer}
+\section{Domain layer}  % lean-dir: DomainLayer
 \label{sec:domain-layer}
 
 \begin{definition}[Domain signature]
@@ -1707,7 +1706,7 @@ and assigns:
 \end{definition}
 
 % ============================================================
-\section{Grammatical layer}
+\section{Grammatical layer}  % lean-dir: GrammaticalLayer
 \label{sec:syntax-semantics}
 
 \begin{definition}[Context]
@@ -2016,10 +2015,10 @@ $\tfrac16\cdot\tfrac12=\tfrac1{12}$: the substituted formula copies the
 
 
 % ============================================================
-\section{Statistical layer}
+\section{Statistical layer}  % lean-dir: StatisticalLayer
 \label{sec:statistical-layer}
 
-\subsection{Batching}
+\subsection{Batching}  % lean-dir: StatisticalLayer/Batching
 \label{sec:batching}
 
 \begin{definition}[Batch monad]
@@ -2116,7 +2115,7 @@ morphism alone); a symbol interpretation chosen independently per batch
 index rather than pointwise would break the displayed equation.
 
 % ------------------------------------------------------------
-\subsection{Bridges and normalization}
+\subsection{Bridges and normalization}  % lean-dir: StatisticalLayer/BridgesNormalization
 \label{sec:bridges}
 
 % Apparatus (C2-E5): provenance credit, moved verbatim.
@@ -2414,7 +2413,7 @@ predicted distribution is unchanged by inserting $\nrm$.
 \end{proof}
 
 % ------------------------------------------------------------
-\subsection{Examples}
+\subsection{Examples}  % lean-dir: StatisticalLayer/Examples
 \label{sec:examples}
 
 % Apparatus (C2-E5): provenance credit, moved verbatim.

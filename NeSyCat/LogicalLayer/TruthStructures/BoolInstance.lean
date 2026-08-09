@@ -3,15 +3,15 @@ Copyright (c) 2026 The NeSyCat Project (Daniel Romero Schellhorn). All rights re
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
-import NeSyCat.Truth.BLat2Mon
-import NeSyCat.Monad.LatticeSemiring
+import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
+import NeSyCat.CategoricalLayer.SemiringMonads.LatticeSemiring
 
 /-!
 # The Boolean row of the `BLat2Mon` hierarchy
 
 Blueprint item `lem:bool-truth-structure` (`blueprint/src/content.tex`,
 §"Truth-value structures", `[NeSy26, App. A]`): `BoolW` (see
-`NeSyCat/Monad/LatticeSemiring.lean`), with `oplus := ⊔`, `dzero := ⊥`,
+`NeSyCat/CategoricalLayer/SemiringMonads/LatticeSemiring.lean`), with `oplus := ⊔`, `dzero := ⊥`,
 `otimes := ⊓`, `done := ⊤`, and `dneg := !·`, is a `LinBLat2CMon` with a
 `DMStructure` and `UnitBounds` (`ZeroBot`/`OneTop`); the connective pairs
 *collapse* onto the lattice/bound structure already on `BoolW` — the

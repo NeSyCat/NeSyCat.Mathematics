@@ -26,6 +26,18 @@
 #      skip -- the same convention as a justified never-lose-work
 #      line-count decrease.
 #
+# SECOND LAW (generic twin, C2-E6 STRUCTURE-MIRROR ENFORCEMENT): for a
+# host repo that mirrors its blueprint's \section/\subsection tree onto
+# its Lean source tree, every \section/\subsection may carry a trailing
+# `% lean-dir: <path>` tag naming its Lean-source folder (relative to
+# the repo's single auto-discovered Lean source root -- the lone
+# top-level directory containing any *.lean file, skipping VCS/build/
+# tooling directories; ambiguous or absent, this law simply no-ops,
+# since it is opt-in convention, not every leanblueprint repo's own).
+# When tags ARE present, every tagged path must exist as a folder and
+# every folder under the Lean root must be tagged by some section --
+# pure text + filesystem, no Lean elaboration.
+#
 # Host repos that want this gate: copy this file to
 # .git/hooks/commit-msg and chmod +x it (a repo's own hook install is
 # never done automatically by a plugin). Repos without a
@@ -55,6 +67,97 @@ command -v git >/dev/null 2>&1 || exit 0
 
 CONTENT_TEX="$REPO_ROOT/blueprint/src/content.tex"
 [ -f "$CONTENT_TEX" ] || exit 0  # no blueprint here -- nothing to enforce.
+
+# LAW 2: STRUCTURE-MIRROR (generic twin). Runs unconditionally
+# (independent of the feedback-loop law below and its exit-0
+# short-circuits), against the working tree. No-ops (never blocks) when
+# no section carries any `% lean-dir:` tag at all -- opt-in convention.
+python3 - "$CONTENT_TEX" "$REPO_ROOT" << 'PYEOF'
+import os
+import re
+import sys
+
+content_tex, repo_root = sys.argv[1], sys.argv[2]
+
+STRUCTURE_MIRROR_RE = re.compile(
+    r"^\\(section|subsection)\{([^}]*)\}"
+    r"(?:\s*%\s*lean-dir:\s*(\S+))?\s*$")
+
+sections = []  # (kind, title, tag)
+with open(content_tex, encoding="utf-8", errors="replace") as fh:
+    for line in fh:
+        m = STRUCTURE_MIRROR_RE.match(line.rstrip("\n"))
+        if m:
+            sections.append(m.groups())
+
+if not any(tag is not None for _k, _t, tag in sections):
+    sys.exit(0)  # opt-in convention unused by this repo -- vacuous.
+
+# Auto-discover the Lean source root: the lone top-level directory
+# (excluding VCS/build/tooling directories) containing any *.lean file.
+SKIP = {".git", ".lake", "lake-packages", "build", "blueprint", "scripts",
+        ".github", ".claude", "plugin", ".venvs", ".foreman"}
+candidates = []
+for entry in sorted(os.listdir(repo_root)):
+    if entry.startswith(".") or entry in SKIP:
+        continue
+    p = os.path.join(repo_root, entry)
+    if not os.path.isdir(p):
+        continue
+    found = False
+    for _dirpath, _dirnames, filenames in os.walk(p):
+        if any(f.endswith(".lean") for f in filenames):
+            found = True
+            break
+    if found:
+        candidates.append(entry)
+
+if len(candidates) != 1:
+    sys.exit(0)  # ambiguous/no Lean root -- can't check, don't block.
+lean_root = os.path.join(repo_root, candidates[0])
+
+violations = []
+declared = set()
+for kind, title, tag in sections:
+    if tag is None:
+        violations.append(
+            f"untagged section: \\{kind}{{{title}}} carries no "
+            "'% lean-dir: <path>' tag")
+        continue
+    if tag == "-":
+        continue
+    declared.add(tag)
+    if not os.path.isdir(os.path.join(lean_root, tag)):
+        violations.append(
+            f"tagged-but-missing folder: \\{kind}{{{title}}} tags "
+            f"'{tag}' but {candidates[0]}/{tag}/ does not exist")
+
+for dirpath, dirnames, _filenames in os.walk(lean_root):
+    dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+    rel = os.path.relpath(dirpath, lean_root)
+    if rel == ".":
+        continue
+    rel = rel.replace(os.sep, "/")
+    if rel not in declared:
+        violations.append(
+            f"orphan folder: {candidates[0]}/{rel}/ has no matching "
+            "'% lean-dir:' tag in content.tex")
+
+if violations:
+    print("commit-msg: STRUCTURE-MIRROR LAW VIOLATED", file=sys.stderr)
+    print("", file=sys.stderr)
+    for v in violations:
+        print(f"  - {v}", file=sys.stderr)
+    print("", file=sys.stderr)
+    print("Fix content.tex's '% lean-dir:' tags or the Lean folder tree", file=sys.stderr)
+    print("so they mirror each other exactly, then redo this commit.", file=sys.stderr)
+    sys.exit(1)
+sys.exit(0)
+PYEOF
+STRUCTURE_MIRROR_STATUS=$?
+if [ "$STRUCTURE_MIRROR_STATUS" -ne 0 ]; then
+  exit "$STRUCTURE_MIRROR_STATUS"
+fi
 
 # 1. Staged Lean files, added/copied/modified/renamed.
 STAGED_LEAN=()

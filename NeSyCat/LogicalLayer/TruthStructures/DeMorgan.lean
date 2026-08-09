@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
-import NeSyCat.Truth.BLat2Mon
+import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
 
 /-!
 # The De Morgan calculus and its presentations
@@ -174,7 +174,7 @@ is `oplus`-invertible, with witness `dneg q` for any `otimes`-inverse `q` of
 `otimes p q = done` gives both `oplus`-inverse equations directly, the
 `dneg done = dzero` step via `dneg_done`. No Mathlib `IsUnit` — that
 machinery is `Monoid`-bundled, and `BLat2Mon` deliberately is not
-(`NeSyCat/Truth/BLat2Mon.lean`'s module doc comment). -/
+(`NeSyCat/LogicalLayer/TruthStructures/BLat2Mon.lean`'s module doc comment). -/
 theorem dneg_maps_units {p : α} (h : ∃ q, otimes p q = done ∧ otimes q p = done) :
     ∃ q', oplus (dneg p) q' = dzero ∧ oplus q' (dneg p) = dzero := by
   obtain ⟨q, hpq, hqp⟩ := h

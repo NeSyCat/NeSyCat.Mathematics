@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
-import NeSyCat.Monad.LogIso
-import NeSyCat.Truth.BLat2Mon
-import NeSyCat.Truth.Lifted
+import NeSyCat.CategoricalLayer.SemiringMonads.LogIso
+import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
+import NeSyCat.LogicalLayer.TruthSpaces.Lifted
 
 /-!
 # No De Morgan structure on the unbounded rows, and the square is not linear
@@ -20,7 +20,7 @@ Blueprint items `thm:no-dm-mass`, `thm:no-dm-log`, `thm:square-not-lin`
 The Lean theorem is the *core order fact* — "there is no involutive
 antitone map on `ℝ≥0`/`LogS`" — not a `¬ ∃ (DMStructure carrier), ...`
 statement. This is not a weakening: a `DMStructure` mixin
-(`NeSyCat/Truth/BLat2Mon.lean`) is only *statable* over a `[BLat2Mon α]`
+(`NeSyCat/LogicalLayer/TruthStructures/BLat2Mon.lean`) is only *statable* over a `[BLat2Mon α]`
 instance, which itself demands `[Lattice α] [BoundedOrder α]`; `ℝ≥0` and
 `LogS` carry no `BoundedOrder` instance at all (both are unbounded above,
 matching `inst:massS-latcsrng`/`inst:logS-latcsrng`'s own honesty about
@@ -38,7 +38,7 @@ class could even be posed.
 
 ## `thm:square-not-lin` (PINNED shape: raw ops on `ℝ≥0ᵒᵈ × ℝ≥0`)
 
-The carrier is `NeSyCat/Truth/Lifted.lean`'s order-family type at
+The carrier is `NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`'s order-family type at
 `S := ℝ≥0`, i.e. `ℝ≥0ᵒᵈ × ℝ≥0` with Mathlib's product lattice — genuinely
 *not* a `BLat2Mon` instance: the hard rail forbids registering one (the
 carrier is unbounded above in slot `1`, so the class does not even apply —
@@ -46,7 +46,7 @@ part of the theorem's own content, "the square rows are BLat2Mon-with-DM
 territory, not Lin", is precisely that no bounded/linear structure can be
 built here). `otimesSq`/`oplusSq` are the raw two-slot formulas of
 `lem:lifted-mass`'s `twoSlot_otimesM_mass`/`twoSlot_oplusM_mass`
-(`NeSyCat/Truth/Lifted.lean`) transported through the `toDual`/`ofDual`
+(`NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`) transported through the `toDual`/`ofDual`
 wrappers of slot `0`; `swapSq` is the slot swap of `def:order-family`'s
 `orderedTwoSlot`. These are *defined* directly by formula (not derived via
 `orderedTwoSlot`/`otimesM` transport) and are *provably* the same operations —
@@ -93,7 +93,7 @@ theorem no_antitone_involution_nnreal :
 /-- Every element of `WithBot ℝ` has a strictly greater element: `⊥` is
 beaten by any real coercion, and a finite `a` is beaten by `a + 1`. The
 `WithBot ℝ`-level fact underlying `no_antitone_involution_logS` (`LogS`'s
-own order is literally `WithBot ℝ`'s, via `NeSyCat/Monad/LogIso.lean`'s
+own order is literally `WithBot ℝ`'s, via `NeSyCat/CategoricalLayer/SemiringMonads/LogIso.lean`'s
 `instLatticeLogS`), proved entirely at the `WithBot ℝ` level per that
 file's own "build at `WithBot ℝ`, cast once" technique note. -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
@@ -104,7 +104,8 @@ private theorem withBot_real_not_bddAbove (t : WithBot ℝ) : ∃ b : WithBot �
   | coe a => exact ⟨((a + 1 : ℝ) : WithBot ℝ), by exact_mod_cast lt_add_one a⟩
 
 /-- Blueprint `thm:no-dm-log` (No De Morgan structure on the log row, core
-order fact): on `LogS` (`= ℝ ∪ {-∞}`, `NeSyCat/Monad/LogIso.lean`) there is
+order fact): on `LogS` (`= ℝ ∪ {-∞}`,
+`NeSyCat/CategoricalLayer/SemiringMonads/LogIso.lean`) there is
 no involutive antitone map. Proof: as in `no_antitone_involution_nnreal`,
 `n ⊥` would be an upper bound for every `p : LogS`; but `WithBot ℝ` (hence
 `LogS`, the same order) has no top element (`withBot_real_not_bddAbove`).
@@ -126,7 +127,7 @@ theorem no_antitone_involution_logS :
 carried through the `toDual`/`ofDual` wrappers of the order-family type
 (`def:order-family`). Provably equal to the lift `otimesM` transported through
 `orderedTwoSlot` — `lem:lifted-mass`'s `twoSlot_otimesM_mass`
-(`NeSyCat/Truth/Lifted.lean`) is exactly this formula at the un-dualized
+(`NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`) is exactly this formula at the un-dualized
 `twoSlot` — but defined directly by formula here, not via that transport,
 per the ticket's own pin. -/
 -- blueprint: internal (A1 bijection-law companion of

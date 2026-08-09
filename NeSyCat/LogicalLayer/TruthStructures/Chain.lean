@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
-import NeSyCat.Truth.BLat2Mon
+import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
 
 /-!
 # Chains are linear, unit-bound decompositions, and MIX

@@ -375,6 +375,34 @@ step below.
   "authored and verified"), and the filler-phrase list above. A blind
   verifier reads a rendered page sample as a READER and flags apparatus
   leakage or register violations on its own initiative.
+- **The structure-mirror law (C2-E6, USER DECREE 2026-08-09).** The
+  blueprint's `\section`/`\subsection` tree and the `NeSyCat/` folder
+  tree mirror each other exactly — computed and self-updating, never
+  hand-maintained. Every `\section`/`\subsection` in `content.tex`
+  carries a trailing `% lean-dir: <FolderName>` comment naming the
+  `NeSyCat/<FolderName>/` folder it lives in; the Introduction alone
+  may tag `% lean-dir: -` (no Lean home), the one permitted opt-out.
+  Folders are named after blueprint structure, not blueprint numbers
+  (Lean identifiers ban a leading digit, and a reserved future layer
+  would renumber a later one) — the section number lives in the
+  folder's own root module's module-doc header instead. Every folder
+  under `NeSyCat/` — including one with no formalized content yet —
+  carries exactly one root module file `<FolderName>.lean` (copyright
+  header plus a module-doc citing its blueprint section number and
+  title; an empty folder's says "No Lean content yet"), imported by
+  `NeSyCat.lean` so `scripts/check.sh` compiles the whole mirror, empty
+  folders included. Three violation shapes are possible: an untagged
+  section, a tag naming a folder that does not exist, and a folder with
+  no tag naming it (the allowlist: root `Notation.lean`/`Basic.lean`
+  and the root module files themselves, none of which is a folder).
+  Enforced twice, identically, both pure text-plus-filesystem checks
+  with no Lean elaboration: `scripts/blueprint.sh`'s CORRESPONDENCE
+  `structure-mirror` subsection (prints the derived tree), and
+  `scripts/git-hooks/commit-msg` (+ its `.git/hooks/` install and the
+  plugin's generic twin) as an unconditional commit-time gate, with no
+  `Blueprint-sync:` escape hatch — a mismatched tree may never even be
+  committed. `lint-blueprint.py` (both copies) additionally advises,
+  non-blocking, the instant an edit leaves a section untagged.
 
 ## Work strategy
 

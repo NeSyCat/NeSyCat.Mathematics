@@ -3,13 +3,13 @@ Copyright (c) 2026 The NeSyCat Project (Daniel Romero Schellhorn). All rights re
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
-import NeSyCat.Truth.BLat2Mon
+import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
 
 /-!
 # Scoped notation for the truth-value connectives
 
 Scoped notation only — no theory lives here (that's
-`NeSyCat/Truth/BLat2Mon.lean` and friends). Notation is `scoped` inside
+`NeSyCat/LogicalLayer/TruthStructures/BLat2Mon.lean` and friends). Notation is `scoped` inside
 `namespace NeSyCat`: automatically active for any `NeSyCat/*.lean` file
 that reopens `namespace NeSyCat` (once this file is imported), opt-in
 elsewhere via `open scoped NeSyCat`.
@@ -38,8 +38,8 @@ looking identical). The identical statement typechecks immediately with
 `¬` replaced by the qualified name `DMStructure.dneg`, isolating the
 overload as the cause. Per the pin's own fallback protocol: **no `¬`
 overload is shipped**; `DMStructure.dneg` remains the working name
-everywhere (as already used throughout `NeSyCat/Truth/BLat2Mon.lean` and
-`NeSyCat/Truth/BoolInstance.lean`). Flagged for LEAD/user adjudication,
+everywhere (as already used throughout `NeSyCat/LogicalLayer/TruthStructures/BLat2Mon.lean` and
+`NeSyCat/LogicalLayer/TruthStructures/BoolInstance.lean`). Flagged for LEAD/user adjudication,
 not an invented alternative glyph.
 
 ## The `⊕`/`⊗` swap was tried and reverted (C2-E4a, empirical fallback)
@@ -74,7 +74,7 @@ theorem foo {α : Type*} [Lattice α] [BoundedOrder α] [BLat2Mon α] (p q : α)
 
 With no expected type available to anchor elaboration (the ordinary
 shape of a bare equation in a `theorem`/`lemma` statement -- exactly
-how essentially every existing lemma in `NeSyCat/Truth/*.lean` is
+how essentially every existing lemma in `NeSyCat/LogicalLayer/**/*.lean` is
 written, e.g. `dneg (dneg p) = p` with no type ascription), Lean tries
 Sum's global `⊕` notation for `p ⊕ q` before our scoped one, reads `p`
 as a *type* argument to `Sum`, and the whole elaboration poisons --
@@ -130,7 +130,7 @@ counterpart, or an honest `PLANNED` status naming where it lands.
 --          now, but the indexed family `negc[c]` is not)
 -- \sem   ↔ PLANNED (chapter "Truth spaces and lifted connectives",
 --          abbr:truth-space)
--- \bind  ↔ NeSyCat.bind (NeSyCat/Monad/SemiringMonad.lean) -- the
+-- \bind  ↔ NeSyCat.bind (NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean) -- the
 --          function is live; the "≫=" scoped infix notation is not
 --          shipped yet
 -- \seq   ↔ PLANNED (diagrammatic composition, category-theoretic

@@ -34,7 +34,7 @@ while mass and log are not (no in-carrier `⊤` without adjoining `∞`). So
 `LatCSRng`.
 
 This file delivers two of the three running instances (Boolean, mass); the
-third (log) is delivered separately, in `NeSyCat/Monad/LogIso.lean`
+third (log) is delivered separately, in `NeSyCat/CategoricalLayer/SemiringMonads/LogIso.lean`
 (`instLatCSRngLogS`), by transport along the log isomorphism, see the note
 below. It also proves that
 `([0,1], p ⊕ q := p+q-pq, ·, 0, 1)` is *not* a semiring, witnessing the
@@ -258,7 +258,7 @@ noncomputable instance instLatCSRngNNReal : LatCSRng ℝ≥0 where
   mul_comm := mul_comm
 
 /-! The log instance (`lse`, `+`) is deliberately **not** provided here: per
-the blueprint it is delivered separately, in `NeSyCat/Monad/LogIso.lean`
+the blueprint it is delivered separately, in `NeSyCat/CategoricalLayer/SemiringMonads/LogIso.lean`
 (`instLatCSRngLogS`), by transporting the mass instance along the log
 isomorphism (`lem:log-iso`). -/
 

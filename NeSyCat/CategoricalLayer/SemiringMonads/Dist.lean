@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
-import NeSyCat.Monad.SemiringMonad
+import NeSyCat.CategoricalLayer.SemiringMonads.SemiringMonad
 
 /-!
 # The distribution monad `Dist`
@@ -28,8 +28,8 @@ computation, `∑_y (ρ >>= k)(y) = ∑_y ∑_x ρ(x) k(x)(y) = ∑_x ρ(x) ∑_
 real-valued measure, built over `ENNReal` and Mathlib's `MeasureTheory`
 machinery, whereas `Dist`
 here is the *finitely*-supported mass-one slice of the semiring monad `MS
-ℝ≥0` of `NeSyCat/Monad/SemiringMonad.lean` (a `Finsupp`, `X →₀ ℝ≥0`, with no
-measure-theoretic apparatus at all). The two types serve analogous
+ℝ≥0` of `NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean` (a
+`Finsupp`, `X →₀ ℝ≥0`, with no measure-theoretic apparatus at all). The two types serve analogous
 mathematical roles (a probability distribution on `X`) but are genuinely
 different constructions with different carriers and different closure
 properties (finite vs. countable support); `PMF` is background/comparison

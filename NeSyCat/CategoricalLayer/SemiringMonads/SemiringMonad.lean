@@ -23,7 +23,7 @@ right unit, and associativity (`bind_assoc`) — are bundled into
 proof step there, per the calibrated reuse principle, rather than keeping
 its own zero-further-uses `bind_ret` declaration; `ret_bind`/`bind_assoc`
 keep their independent lemma-hood, each with further call sites in
-`NeSyCat/Truth/*.lean`). All three are proved directly from
+`NeSyCat/LogicalLayer/**/*.lean`). All three are proved directly from
 `Finsupp.sum`/scalar-action lemmas,
 matching the blueprint's proof sketch: the two unit laws each use only a
 unit law of `S`, and associativity of `bind` expands, on both sides, to a
@@ -49,8 +49,9 @@ commutativity: `dstL = dstR` for every `X Y f g` iff `S` is commutative
 (`MS` at the log semiring) is deliberately **not** provided here: per the
 blueprint, the log semiring itself only arrives by transporting the mass
 semiring along the log isomorphism (`lem:log-iso`), which is ticket C1-T3's
-job — the same deferral `NeSyCat/Monad/LatticeSemiring.lean` records for the
-log lattice-semiring instance, not this one.
+job — the same deferral
+`NeSyCat/CategoricalLayer/SemiringMonads/LatticeSemiring.lean` records
+for the log lattice-semiring instance, not this one.
 -/
 
 namespace NeSyCat
@@ -122,7 +123,7 @@ left unit law, the right unit law, and associativity of `bind` hold for
 every, possibly noncommutative, `S`. The left unit law and associativity
 are cited verbatim from `ret_bind`/`bind_assoc` (each an independently
 `\lean`-cited lemma with further call sites throughout
-`NeSyCat/Truth/*.lean`'s truth-space machinery, so each KEEPS its own
+`NeSyCat/LogicalLayer/**/*.lean`'s truth-space machinery, so each KEEPS its own
 lemma-hood — the calibrated reuse principle's "stays a lemma" branch,
 `FORMALIZE.md`). The right unit law, `f bind ret = f`, is proved INLINE
 here rather than as its own top-level declaration (the former
@@ -279,7 +280,7 @@ theorem dst_comm_iff :
 direction of `dst_comm_iff`, specialized via a `CommSemiring` instance for
 direct use (e.g. on `Tens := MS ℝ≥0`, whose weight semiring `ℝ≥0` is
 commutative, or `LatCSRng`'s derived `CommSemiring` instances from
-`NeSyCat/Monad/LatticeSemiring.lean`). -/
+`NeSyCat/CategoricalLayer/SemiringMonads/LatticeSemiring.lean`). -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `dst_comm_iff`, content.tex thm:semiring-monad-commutative)
 theorem dst_comm {S : Type*} [CommSemiring S] {X Y : Type*} (f : MS S X) (g : MS S Y) :

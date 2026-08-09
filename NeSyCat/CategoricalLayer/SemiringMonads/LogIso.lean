@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
-import NeSyCat.Monad.LatticeSemiring
-import NeSyCat.Monad.SemiringMonad
+import NeSyCat.CategoricalLayer.SemiringMonads.LatticeSemiring
+import NeSyCat.CategoricalLayer.SemiringMonads.SemiringMonad
 
 /-!
 # The log semiring and the log isomorphism
@@ -14,7 +14,7 @@ Blueprint item `lem:log-iso` (`blueprint/src/content.tex`, §"Semiring weight
 monads", `[NeSy26, App. A]`), and the log instance of
 `inst:logS-latcsrng`
 (`blueprint/src/content.tex`, same section) deferred from
-`NeSyCat/Monad/LatticeSemiring.lean`.
+`NeSyCat/CategoricalLayer/SemiringMonads/LatticeSemiring.lean`.
 
 ## The carrier
 

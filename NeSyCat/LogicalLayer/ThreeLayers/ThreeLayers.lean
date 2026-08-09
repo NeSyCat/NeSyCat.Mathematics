@@ -4,12 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
-import NeSyCat.Truth.Lifted
-import NeSyCat.Truth.BoolInstance
-import NeSyCat.Truth.UnitInterval
+import NeSyCat.LogicalLayer.TruthSpaces.Lifted
+import NeSyCat.LogicalLayer.TruthStructures.BoolInstance
+import NeSyCat.LogicalLayer.TruthStructures.UnitInterval
 
 /-!
 # Three layers: pointwise closure, linear-lift, copying failure, decomposition
+
+Blueprint §3.3 Three layers. This file is also the `ThreeLayers/`
+folder's structure-mirror root module (STRUCTURE-MIRROR ENFORCEMENT,
+C2-E6) -- a pure file move, so it carries its declarations rather than
+a separate content-free anchor.
 
 Blueprint items `lem:pointwise`, `lem:linear-lift`, `lem:copying-fails`, and
 `thm:three-layers` (`blueprint/src/content.tex`, §"Three layers",
@@ -23,7 +28,7 @@ for an *arbitrary* index type `ι` (no finiteness needed — this covers the
 blueprint's own "(finite) power" clause a fortiori, a Lean-more-general
 instance in the chapter-1 precedent); (2) the `S^𝔹 ≅ S × S` clause,
 connecting `MS S BoolW`'s `twoSlot` readout to the pointwise `Prod`
-structure. `MS S BoolW` (`= X →₀ S`, `NeSyCat/Monad/SemiringMonad.lean`)
+structure. `MS S BoolW` (`= X →₀ S`, `NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean`)
 genuinely has an `+` (Finsupp's own `AddCommMonoid`, always pointwise, no
 ambiguity — `twoSlot_add` below records that `twoSlot` is additive for it),
 but **no** canonical multiplication is registered on it (Finsupp
@@ -36,7 +41,7 @@ transporting `S × S`'s own pointwise operations *backward* through
 `twoSlot`, each with an "equational lemma on values" readout
 (`pointwiseMul`/`pointwiseOne`/`pointwiseMeet`/`pointwiseJoin`/
 `pointwiseBot`/`pointwiseTop` below) — mirroring exactly the pattern
-`NeSyCat/Truth/Lifted.lean`'s `def:order-family` already uses for
+`NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`'s `def:order-family` already uses for
 `orderMeet`/`orderJoin` (transported functions, never new instances), just
 via the plain (non-dualized) `twoSlot` rather than the dualized
 `orderedTwoSlot` (a different order — see the note on `thm:three-layers`
@@ -59,7 +64,8 @@ same six/four cross terms appear on both sides, `ring`-provably equal via
 only the semiring axioms); commutativity of `⅋`/`\&` is exactly the one
 place `S`'s own `mul_comm` enters the argument — this is the concrete,
 routing-formula-level shadow of `thm:semiring-monad-commutative`'s
-`dstL = dstR ↔ S` commutative (`NeSyCat/Monad/SemiringMonad.lean`): the two
+`dstL = dstR ↔ S` commutative
+(`NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean`): the two
 independent binds building `oplusM`/`otimesM` from their two arguments agree in
 either order exactly because `S`'s multiplication does, the same fact
 `dst_comm` packages at the level of the general strength maps `dstL`/`dstR`.
@@ -85,7 +91,7 @@ Lean beyond `lem:linear-lift`'s and `lem:copying-fails`'s own marks (a
 lemma-free clause, "the copying axioms are exactly the order-generating
 ones" and "two commutative monoids with a De Morgan involution, not a
 semiring" both already witnessed there); (iii) is `def:order-family`
-(`NeSyCat/Truth/Lifted.lean`, already `\leanok`) plus three boundary
+(`NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`, already `\leanok`) plus three boundary
 witnesses proved here: `order_iff_inf_eq_left` (order-generation, `u ≤ v ↔
 u ⊓ v = u`, any lattice), the `𝔹`-coincidence (already `lem:bool-truth-structure`'s
 `BoolW.oplus_eq_sup`/`BoolW.otimes_eq_inf` — cited, not reproved: "the carrier is
@@ -95,7 +101,7 @@ about `MS BoolW BoolW`'s own `otimesM`/`oplusM` pointwise agreeing with
 `orderMeet`/`orderJoin` — the latter is false in general, checked and
 rejected before writing this file, the disprove-guard in action), and
 units-vs-bounds: the positive witness is `unitInterval`'s own `UnitBounds`
-instance (`NeSyCat/Truth/UnitInterval.lean`, cited), the negative witness
+instance (`NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean`, cited), the negative witness
 (`not_isBot_orderedTwoSlot_ret_zero`) exhibits the `⅋`-unit's image under
 `orderedTwoSlot` at `S := ℝ≥0` failing `IsBot`.
 -/
@@ -203,7 +209,7 @@ theorem twoSlot_zero : twoSlot (0 : MS S BoolW) = (0, 0) := by
 /-- Blueprint `lem:pointwise` (`⊗` componentwise, transported value, NOT an
 instance on `MS S BoolW`): the pointwise product of two truth-space values,
 defined by pulling `S × S`'s own multiplication back through `twoSlot` —
-mirrors `NeSyCat/Truth/Lifted.lean`'s `orderMeet`/`orderJoin` pattern
+mirrors `NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`'s `orderMeet`/`orderJoin` pattern
 exactly, just via the plain (non-dualized) `twoSlot`. -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `twoSlot_pointwiseMul`, content.tex lem:pointwise)
@@ -220,7 +226,7 @@ theorem twoSlot_pointwiseMul (w v : MS S BoolW) :
 /-- Blueprint `lem:pointwise` (`⊗`-unit componentwise, transported value):
 the multiplicative unit of the pointwise structure, `twoSlot.symm (1, 1)` —
 a genuinely new value (distinct from both `Ret(0) = (1,0)` and
-`Ret(1) = (0,1)`, `NeSyCat/Truth/Lifted.lean`'s `twoSlot_ret_zero`/
+`Ret(1) = (0,1)`, `NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`'s `twoSlot_ret_zero`/
 `twoSlot_ret_one`), matching the blueprint's `1` clause for the pointwise
 structure specifically. -/
 -- blueprint: internal (A1 bijection-law companion of
@@ -236,7 +242,7 @@ variable [Lattice S]
 
 /-- Blueprint `lem:pointwise` (`∧` componentwise, transported value): the
 pointwise meet, `twoSlot.symm (twoSlot w ⊓ twoSlot v)` — the *un-dualized*
-counterpart of `NeSyCat/Truth/Lifted.lean`'s `orderMeet` (which dualizes
+counterpart of `NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`'s `orderMeet` (which dualizes
 slot `0` for the different `def:order-family` purpose, `thm:three-layers`
 item (iii)); this is the plain `S^𝔹` lattice order used for item (i)'s
 closure/iteration clause. -/
@@ -368,7 +374,7 @@ theorem otimesM_assoc (a b c : MS R BoolW) : otimesM (otimesM a b) c = otimesM a
 /-- Blueprint `lem:linear-lift` (`\&` commutativity): the one identity that
 genuinely needs `S`'s own `mul_comm` — the concrete, routing-formula-level
 shadow of `thm:semiring-monad-commutative`'s `dstL = dstR ↔ S` commutative
-(`NeSyCat/Monad/SemiringMonad.lean`'s `dst_comm`): the two independent
+(`NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean`'s `dst_comm`): the two independent
 binds building `otimesM` from its arguments agree in either order exactly
 because `*` does on `S`. -/
 -- blueprint: internal (A1 bijection-law companion of `otimesM_assoc`, content.tex lem:linear-lift)
@@ -542,7 +548,7 @@ new to prove here). -/
 
 /-- Blueprint `thm:three-layers` (i), log square: `LogS × LogS` resolves a
 `LatCSRng` instance from `lem:pointwise`'s `instLatCSRngProd` plus `LogS`'s
-own `instLatCSRngLogS` (`NeSyCat/Monad/LogIso.lean`). -/
+own `instLatCSRngLogS` (`NeSyCat/CategoricalLayer/SemiringMonads/LogIso.lean`). -/
 -- blueprint: internal (A1 bijection-law companion of
 -- `order_iff_inf_eq_left`, content.tex thm:three-layers)
 @[reducible] noncomputable def latCSRngLogSSq : LatCSRng (LogS × LogS) := inferInstance
@@ -564,7 +570,7 @@ theorem order_iff_inf_eq_left {α : Type*} [Lattice α] (u v : α) : u ≤ v ↔
 
 /-! **𝔹-coincidence.** "They coincide exactly where the carrier is
 idempotent, on `𝔹` itself" is `BoolW.oplus_eq_sup`/`BoolW.otimes_eq_inf`
-(`NeSyCat/Truth/BoolInstance.lean`, already `\leanok` under
+(`NeSyCat/LogicalLayer/TruthStructures/BoolInstance.lean`, already `\leanok` under
 `lem:bool-truth-structure`) — cited, not reproved: this is a statement about
 `BoolW`'s own `BLat2Mon` structure collapsing onto its lattice ops when the
 carrier `S := BoolW` is idempotent, not a claim that `MS BoolW BoolW`'s
@@ -575,7 +581,7 @@ writing this file, the disprove-guard in action: the correct reading routes
 through `BoolW`'s own instance, not the monad-lifted family at `S := BoolW`). -/
 
 /-! **Units-vs-bounds, positive witness.** `unitInterval`'s own `UnitBounds`
-instance (`NeSyCat/Truth/UnitInterval.lean`'s `unitInterval.instUnitBounds`,
+instance (`NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean`'s `unitInterval.instUnitBounds`,
 built from `instZeroBot`/`instOneTop`) is the positive case: `Ret(0),Ret(1)`
 agree with `⊥,⊤` on the normalized (mass-one) row — cited, not reproved. -/
 

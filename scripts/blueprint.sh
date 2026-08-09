@@ -54,6 +54,16 @@
 #      NeSyCat.Logics/macros.sty is checked against NeSyCat/Notation.lean
 #      (vacuous-ready: prints a "not yet present" note until that file
 #      exists).
+#   d. STRUCTURE-MIRROR (C2-E6, USER DECREE 2026-08-09) — the blueprint's
+#      \section/\subsection tree and the NeSyCat/ folder tree must mirror
+#      each other exactly: every \section/\subsection carries a trailing
+#      `% lean-dir: <path>` tag (Introduction alone may opt out with
+#      `% lean-dir: -`), every tagged path must exist as a NeSyCat/
+#      folder, and every NeSyCat/ folder must be tagged by some section.
+#      Pure text + filesystem, no Lean elaboration; the derived tree is
+#      printed. The identical check also gates every commit (see
+#      scripts/git-hooks/commit-msg and its .git/hooks/ install), since a
+#      mismatched tree must never even be committable.
 # The structural/kind-check logic lives in a Python helper generated at
 # runtime into a scratch file (mirrors the scratch-.lean-file pattern
 # already used by the decl-check section below) — this script remains
@@ -610,18 +620,18 @@ def cmd_check_kinds(groups_path, lean_out_path):
 # the rest of the library is future work (each new chapter's ticket should
 # add its own files here as it goes).
 CENSUS_FILES = [
-    "NeSyCat/Monad/SemiringMonad.lean",
-    "NeSyCat/Monad/Dist.lean",
-    "NeSyCat/Monad/LogIso.lean",
-    "NeSyCat/Truth/BLat2Mon.lean",
-    "NeSyCat/Truth/DeMorgan.lean",
-    "NeSyCat/Truth/Chain.lean",
-    "NeSyCat/Truth/BoolInstance.lean",
-    "NeSyCat/Truth/UnitInterval.lean",
-    "NeSyCat/Truth/Impossibility.lean",
-    "NeSyCat/Truth/TruthSpace.lean",
-    "NeSyCat/Truth/Lifted.lean",
-    "NeSyCat/Truth/ThreeLayers.lean",
+    "NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean",
+    "NeSyCat/CategoricalLayer/SemiringMonads/Dist.lean",
+    "NeSyCat/CategoricalLayer/SemiringMonads/LogIso.lean",
+    "NeSyCat/LogicalLayer/TruthStructures/BLat2Mon.lean",
+    "NeSyCat/LogicalLayer/TruthStructures/DeMorgan.lean",
+    "NeSyCat/LogicalLayer/TruthStructures/Chain.lean",
+    "NeSyCat/LogicalLayer/TruthStructures/BoolInstance.lean",
+    "NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean",
+    "NeSyCat/LogicalLayer/TruthStructures/Impossibility.lean",
+    "NeSyCat/LogicalLayer/TruthSpaces/TruthSpace.lean",
+    "NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean",
+    "NeSyCat/LogicalLayer/ThreeLayers/ThreeLayers.lean",
 ]
 
 CENSUS_DECL_RE = re.compile(
@@ -786,10 +796,92 @@ def cmd_census(content_tex_path, repo_root):
     return 1 if unclassified else 0
 
 
+# STRUCTURE-MIRROR (C2-E6, USER DECREE 2026-08-09): the blueprint's
+# \section/\subsection tree and the NeSyCat/ folder tree must mirror each
+# other exactly, computed and self-updating rather than hand-maintained.
+# Every \section/\subsection line gains a trailing `% lean-dir: <path>`
+# comment naming its NeSyCat/<path>/ folder (Introduction alone may tag
+# `% lean-dir: -` to opt out). Pure text + filesystem, no Lean elaboration
+# -- fast enough to also run at commit-msg time (see
+# scripts/git-hooks/commit-msg, its .git/hooks/ install, and the plugin
+# twin, which duplicate this exact logic since a commit-msg hook cannot
+# shell out to this script's own Python heredoc).
+STRUCTURE_MIRROR_RE = re.compile(
+    r'^\\(section|subsection)\{([^}]*)\}'
+    r'(?:\s*%\s*lean-dir:\s*(\S+))?\s*$')
+
+
+def check_structure_mirror(content_tex_path, nesycat_root):
+    """Returns (tree, violations). tree is a list of (kind, title, tag)
+    in document order; violations is a list of human-readable strings."""
+    violations = []
+    declared = set()
+    tree = []
+    with open(content_tex_path, encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            m = STRUCTURE_MIRROR_RE.match(line.rstrip("\n"))
+            if not m:
+                continue
+            kind, title, tag = m.groups()
+            tree.append((kind, title, tag))
+            if tag is None:
+                violations.append(
+                    f"untagged section: \\{kind}{{{title}}} carries no "
+                    "'% lean-dir: <FolderName>' tag")
+                continue
+            if tag == "-":
+                if title != "Introduction":
+                    violations.append(
+                        f"'% lean-dir: -' opt-out used by \\{kind}{{{title}}}, "
+                        "but only the Introduction may opt out")
+                continue
+            declared.add(tag)
+            folder = os.path.join(nesycat_root, tag)
+            if not os.path.isdir(folder):
+                violations.append(
+                    f"tagged-but-missing folder: \\{kind}{{{title}}} tags "
+                    f"'{tag}' but NeSyCat/{tag}/ does not exist")
+
+    if os.path.isdir(nesycat_root):
+        for dirpath, dirnames, _filenames in os.walk(nesycat_root):
+            dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+            rel = os.path.relpath(dirpath, nesycat_root)
+            if rel == ".":
+                continue
+            rel = rel.replace(os.sep, "/")
+            if rel not in declared:
+                violations.append(
+                    f"orphan folder: NeSyCat/{rel}/ has no matching "
+                    "'% lean-dir:' tag in content.tex")
+
+    return tree, violations
+
+
+def render_structure_mirror_tree(tree):
+    lines = []
+    for kind, title, tag in tree:
+        indent = "  " if kind == "subsection" else ""
+        shown = tag if tag is not None else "UNTAGGED"
+        lines.append(f"{indent}{title}  ->  NeSyCat/{shown}"
+                      if shown != "-" else f"{indent}{title}  ->  (no Lean home)")
+    return lines
+
+
+def cmd_structure_mirror(content_tex_path, nesycat_root):
+    tree, violations = check_structure_mirror(content_tex_path, nesycat_root)
+    print(f"STRUCTURE-MIRROR-SUMMARY\t{len(tree)} sections/subsections, "
+          f"{len(violations)} violation(s)")
+    for t in render_structure_mirror_tree(tree):
+        print("TREE\t" + t)
+    for v in violations:
+        print("VIOL\t" + f"structure-mirror: {v}")
+    return 1 if violations else 0
+
+
 def main():
     if len(sys.argv) < 2:
         print("usage: correspondence.py "
-              "<structure|emit-lean|check-kinds|census> ...",
+              "<structure|emit-lean|check-kinds|census|structure-mirror> ...",
               file=sys.stderr)
         return 2
     mode = sys.argv[1]
@@ -801,6 +893,8 @@ def main():
         return cmd_check_kinds(sys.argv[2], sys.argv[3])
     if mode == "census":
         return cmd_census(sys.argv[2], sys.argv[3])
+    if mode == "structure-mirror":
+        return cmd_structure_mirror(sys.argv[2], sys.argv[3])
     print(f"unknown mode: {mode}", file=sys.stderr)
     return 2
 
@@ -896,6 +990,19 @@ else
     echo "registry sync: OK (${#TWINS[@]} twins found in Notation.lean)"
   fi
 fi
+
+echo "==> structure-mirror (blueprint section tree <-> NeSyCat/ folder tree)"
+MIRROR_OUT="$(python3 "$CORR_PY" structure-mirror blueprint/src/content.tex "$REPO_ROOT/NeSyCat")" || true
+MIRROR_STATUS=0
+printf '%s\n' "$MIRROR_OUT" | grep -q "^VIOL${TAB}" && MIRROR_STATUS=1
+echo "derived tree:"
+printf '%s\n' "$MIRROR_OUT" | grep "^TREE${TAB}" | sed -E "s/^TREE${TAB}/  /"
+if [ "$MIRROR_STATUS" -ne 0 ]; then
+  echo "CORRESPONDENCE structure-mirror violations:"
+  printf '%s\n' "$MIRROR_OUT" | grep "^VIOL${TAB}" | sed -E "s/^VIOL${TAB}/  - /"
+  fail 1
+fi
+printf '%s\n' "$MIRROR_OUT" | grep "^STRUCTURE-MIRROR-SUMMARY${TAB}" | sed -E "s/^STRUCTURE-MIRROR-SUMMARY${TAB}/structure-mirror: /"
 
 echo "CORRESPONDENCE: OK ($N_ENVS environments, $N_NAMES names kind-checked)"
 

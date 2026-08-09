@@ -114,6 +114,14 @@ INSTANCE_MARKER_RE = re.compile(
     re.IGNORECASE)
 
 
+# STRUCTURE-MIRROR law (C2-E6, USER DECREE 2026-08-09): every
+# \section/\subsection line, matched against the RAW (not
+# comment-stripped) line, since the tag itself lives in the comment.
+STRUCTURE_MIRROR_SECTION_RE = re.compile(
+    r'^\\(section|subsection)\{([^}]*)\}'
+    r'(?:\s*%\s*lean-dir:\s*(\S+))?\s*$')
+
+
 def strip_comment(line):
     i, n = 0, len(line)
     while i < n:
@@ -383,6 +391,21 @@ def main():
                 f"{rel_posix}:{idx + 1}: REGISTER -- filler phrase on the "
                 f"rendered page [matched: {fm.group(0)!r}] -- reword "
                 "plainly (book register law)")
+
+    # STRUCTURE-MIRROR advisory (C2-E6, USER DECREE 2026-08-09): a
+    # \section/\subsection introduced or left without a trailing
+    # `% lean-dir: <FolderName>' tag. Advisory only -- the hard gate is
+    # scripts/blueprint.sh's structure-mirror CORRESPONDENCE subsection
+    # and the commit-msg hook; this is just an instant nudge.
+    for idx, raw in enumerate(raw_lines):
+        m = STRUCTURE_MIRROR_SECTION_RE.match(raw.rstrip("\n"))
+        if m and m.group(3) is None:
+            kind, title = m.group(1), m.group(2)
+            warnings.append(
+                f"{rel_posix}:{idx + 1}: STRUCTURE-MIRROR -- "
+                f"\\{kind}{{{title}}} carries no '% lean-dir: <FolderName>' "
+                "tag (structure-mirror law; Introduction alone may tag "
+                "'% lean-dir: -')")
 
     if not warnings:
         return

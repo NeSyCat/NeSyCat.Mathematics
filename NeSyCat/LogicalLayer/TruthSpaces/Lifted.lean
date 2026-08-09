@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
-import NeSyCat.Truth.TruthSpace
-import NeSyCat.Truth.UnitInterval
-import NeSyCat.Monad.LogIso
+import NeSyCat.LogicalLayer.TruthSpaces.TruthSpace
+import NeSyCat.LogicalLayer.TruthStructures.UnitInterval
+import NeSyCat.CategoricalLayer.SemiringMonads.LogIso
 
 /-!
 # The lifted-connective routing engine, its mass/log instances, and the order family
@@ -44,9 +44,10 @@ against instance pollution on Mathlib-shaped carriers).
 
 Stated as readout *homomorphy*: the `Dist`-restricted lifted connectives
 (`otimesD`/`oplusD`/`negD`, whose mass-one closure is a two-line Fubini
-argument reusing `NeSyCat/Monad/Dist.lean`'s `bind_mass_one`/`ret_mass_one`
+argument reusing `NeSyCat/CategoricalLayer/SemiringMonads/Dist.lean`'s
+`bind_mass_one`/`ret_mass_one`
 exactly as chapter 1 does) commute with `distReadout` onto the *stipulated*
-`unitInterval` family of `NeSyCat/Truth/UnitInterval.lean` (`&`, `⅋`,
+`unitInterval` family of `NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean` (`&`, `⅋`,
 `unitInterval.symm`) — the "derived, not stipulated" content of the
 blueprint item, in homomorphism form rather than as raw `ℝ≥0`
 truncated-subtraction formulas.
@@ -67,7 +68,7 @@ at any output point `c` is the sum, over the four Boolean argument pairs
 `Finsupp.single_apply` (unfolding `Ret`); the arithmetic identity across
 the sixteen sign patterns of the four `if`-conditions is `noncomm_ring`
 (no commutativity of `S`'s `*` is used — only distributivity, matching
-`NeSyCat/Monad/SemiringMonad.lean`'s "distributivity is bind
+`NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean`'s "distributivity is bind
 associativity" theme one level up). -/
 -- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
 -- def:lifted-connective)
@@ -379,7 +380,7 @@ theorem twoSlot_orderTop : twoSlot (orderTop : MS S BoolW) = (⊥, ⊤) := by
 /-! ### `lem:lifted-prob-readout`: `Dist` closure and readout homomorphisms -/
 
 /-- `Dist` (mass-one) closure of `lift₂`, for *any* binary Boolean
-operation: the Fubini-style two-line argument of `NeSyCat/Monad/Dist.lean`
+operation: the Fubini-style two-line argument of `NeSyCat/CategoricalLayer/SemiringMonads/Dist.lean`
 applied twice, via `lift₂_eq`'s bind chain and `bind_mass_one`/
 `ret_mass_one` — exactly chapter 1's technique, reused rather than
 reproved. -/
@@ -420,7 +421,7 @@ noncomputable def negD (p : Dist BoolW) : Dist BoolW :=
 /-- Blueprint `lem:lifted-prob-readout` (`\&` readout homomorphism):
 `distReadout (p otimesD q) = distReadout p \& distReadout q`, where `\&` is
 `unitInterval`'s own stipulated multiplication
-(`NeSyCat/Truth/UnitInterval.lean`'s `instBLat2Mon`) — the *derived* lifted
+(`NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean`'s `instBLat2Mon`) — the *derived* lifted
 `\&`, read out through the mass-one slice, coincides with the *stipulated*
 `unitInterval` connective. Proved from `twoSlot_otimesM`'s second coordinate
 (`w₁v₁`) via `NNReal.coe_mul`. -/
@@ -437,7 +438,7 @@ theorem distReadout_otimesD (p q : Dist BoolW) :
 /-- Blueprint `lem:lifted-prob-readout` (`⅋` readout homomorphism):
 `distReadout (p oplusD q) = distReadout p ⅋ distReadout q`, where `⅋` is
 `unitInterval`'s stipulated (`σ`-conjugate) `oplus`
-(`NeSyCat/Truth/UnitInterval.lean`) — its real value `p+q-pq`
+(`NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean`) — its real value `p+q-pq`
 (`unitInterval.coe_oplus`) matches the lifted family's `⅋`-slot exactly.
 This is the blueprint's headline content: the `[0,1]` family is *derived*
 from binding two independent truth values and pushing forward along the

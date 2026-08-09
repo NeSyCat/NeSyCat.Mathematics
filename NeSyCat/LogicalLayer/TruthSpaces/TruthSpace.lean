@@ -4,9 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
-import NeSyCat.Monad.SemiringMonad
-import NeSyCat.Monad.Dist
-import NeSyCat.Monad.LatticeSemiring
+import NeSyCat.CategoricalLayer.SemiringMonads.SemiringMonad
+import NeSyCat.CategoricalLayer.SemiringMonads.Dist
+import NeSyCat.CategoricalLayer.SemiringMonads.LatticeSemiring
 
 /-!
 # Truth spaces and lifted connectives: the workhorse machinery
@@ -25,7 +25,9 @@ The **truth space** of a semiring monad `MS S` is `MS S BoolW`, the monad
 applied to the Boolean carrier (`abbr:truth-space` — `TruthSpace` below).
 The `Idmon` clause of the blueprint item (`Idmon BoolS = BoolS`) is the
 trivial reading of the identity monad and needs no separate Lean object:
-`BoolW` itself (`NeSyCat/Monad/LatticeSemiring.lean`) already witnesses it.
+`BoolW` itself
+(`NeSyCat/CategoricalLayer/SemiringMonads/LatticeSemiring.lean`) already
+witnesses it.
 
 ## `def:lifted-connective` and `lem:lifted-connective-strength` (PINNED)
 
@@ -57,7 +59,7 @@ carriers):
 * `Tmon BoolS ≅ MassS²`/`LTmon BoolS ≅ LogS²`: both are the *same* general
   equivalence `twoSlot : MS S BoolW ≃ S × S` (`w ↦ (w 0, w 1)`), instantiated
   at `S := ℝ≥0` and `S := LogS` respectively (the latter is, up to the
-  monad isomorphism `logTensEquiv` of `NeSyCat/Monad/LogIso.lean`, "the
+  monad isomorphism `logTensEquiv` of `NeSyCat/CategoricalLayer/SemiringMonads/LogIso.lean`, "the
   image of the `Tmon` readout" the blueprint describes: `LogTens BoolW` is
   `MS LogS BoolW` by definition of `LogTens`, so `twoSlot` at `S := LogS`
   applies to it directly, with no further wrapping needed);
@@ -86,7 +88,7 @@ abbrev TruthSpace (S : Type*) [Semiring S] := MS S BoolW
 `BoolW` has exactly the two elements `0` (`false`) and `1` (`true`); every
 `Finsupp`/bind computation over it collapses to a two-term
 expression. These facts underlie `twoSlot`, `distReadout`, and (in
-`NeSyCat/Truth/Lifted.lean`) the general lifted-connective routing engine. -/
+`NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`) the general lifted-connective routing engine. -/
 
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
@@ -105,7 +107,7 @@ variable {S : Type*} [Semiring S] {X Y Z : Type*}
 of its two values, for any summand `g` that is additive in its second
 argument and vanishes at `0` (matching `Finsupp.sum_add_index'`'s own
 hypotheses). The two-point analogue of "addition marginalises"
-(`NeSyCat/Monad/SemiringMonad.lean`'s module doc comment), specialized to
+(`NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean`'s module doc comment), specialized to
 the carrier every truth-space computation runs over. -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
@@ -124,9 +126,9 @@ theorem sum_boolW {N : Type*} [AddCommMonoid N] (w : MS S BoolW) (g : BoolW → 
 
 /-- `bind` on a `BoolW`-domain unfolds to the two-term weighted sum
 `w 0 * k 0 y + w 1 * k 1 y` at every output point `y` — `bind_apply`
-(`NeSyCat/Monad/SemiringMonad.lean`) specialized via `sum_boolW`. The
+(`NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean`) specialized via `sum_boolW`. The
 starting point for the general lifted-connective routing engine in
-`NeSyCat/Truth/Lifted.lean`. -/
+`NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`. -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
 theorem bind_apply_boolW (w : MS S BoolW) (k : BoolW → MS S Y) (y : Y) :
@@ -137,7 +139,7 @@ theorem bind_apply_boolW (w : MS S BoolW) (k : BoolW → MS S Y) (y : Y) :
 
 /-- The total mass of a `BoolW`-weighted vector is the sum of its two
 coefficients — the two-point specialization of `Dist`'s mass functional
-(`NeSyCat/Monad/Dist.lean`) used by `distReadout` below to unwind the
+(`NeSyCat/CategoricalLayer/SemiringMonads/Dist.lean`) used by `distReadout` below to unwind the
 mass-one constraint. -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
@@ -182,7 +184,7 @@ theorem dstN_one {W : Type*} (w : Fin 1 → MS S W) :
 
 /-- `dstN` at arity `2` telescopes to two nested binds — the `n = 2`
 instance of the blueprint's iterated-bind description of `dst`, feeding
-`lift_two` and, downstream (`NeSyCat/Truth/Lifted.lean`), every binary
+`lift_two` and, downstream (`NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`), every binary
 lifted connective's routing formula. -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
@@ -295,7 +297,7 @@ theorem lift₁_eq (op : BoolW → BoolW) (a : MS S BoolW) :
 
 /-- Blueprint `def:lifted-connective` (the `\&`-lift, "certain conjunction"):
 the lifted family's multiplicative connective, `lift₂` of `BoolW`'s own `⊗
-= ∧` (`NeSyCat/Monad/LatticeSemiring.lean`). -/
+= ∧` (`NeSyCat/CategoricalLayer/SemiringMonads/LatticeSemiring.lean`). -/
 -- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
 noncomputable def otimesM (a b : MS S BoolW) : MS S BoolW := lift₂ (· * ·) a b
@@ -313,7 +315,7 @@ needs a `BoolW`-to-`Bool` coercion at elaboration time — with `lift₁`'s
 routing machinery reproducibly desynchronizes the `Decidable`-equality
 instance baked into a downstream `ite` from the one a fresh statement
 about `!x` elaborates, causing spurious `rw`/`motive`-not-type-correct
-failures several layers down (`NeSyCat/Truth/Lifted.lean`'s
+failures several layers down (`NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`'s
 `twoSlot_negM`); the `ite` form is decided by `BoolW`'s own `DecidableEq`
 throughout, with no such boundary to cross. Agrees with `!x` pointwise
 (`negOp_eq_not` below) — a genuine Boolean negation, not a weaker
