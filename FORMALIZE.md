@@ -454,6 +454,66 @@ step below.
   committed. `lint-blueprint.py` (both copies) additionally advises,
   non-blocking, the instant an edit leaves a section untagged.
 
+- **Connective flow and visible attribution (C2-E8, USER DECREE
+  2026-08-09).** Two register laws, calibrated against the
+  ⊗-commutativity passage (the E7 flat-prose master specimen), that
+  revise the book-register (C2-E5) and density (C2-E7) laws above
+  rather than reopen them.
+  1. **Connective flow.** Short precise sentences stay; the
+     one-claim-per-sentence law and the >55-word advisory are
+     unchanged. What is missing when consecutive sentences all open
+     with "The"/"This"/"It" — a monotone drumbeat, not a story — is
+     connective tissue: since, therefore, hence, because of that, for,
+     but, yet, however, likewise, so. Joining two short sentences with
+     such a connective is welcome, and often better than leaving them
+     apart, PROVIDED the connective reflects a genuine inferential or
+     contrastive relation the two clauses actually have — never a
+     decorative stitch between two merely-adjacent facts (a plain
+     enumeration, e.g. the library's five layers, stays five separate
+     facts; break a repetitive run of openers by reopening with a
+     different subject instead of inventing a relation that is not
+     there). A joined sentence carries its two claims visibly, one per
+     clause; a connective JOINS, it does not stack.
+  2. **Visible attribution.** If a result comes from a source, the
+     page says so. The book register law's ban on apparatus STAYS:
+     bracketed tag walls, git refs, sha256 pins, and errata history
+     remain `%` comments and never render. What returns is book-style
+     prose attribution for genuinely external RESULTS — "a result of
+     `\citet{...}`", "due to `\citet{...}`", "linear logic's four
+     linear distributions `\citep{...}`" — paired with a rendered
+     bibliography (`\citep`/`\citet`, natbib author-year style,
+     matching the user's own papers' citation convention; a
+     hand-written `thebibliography` with natbib-format
+     `\bibitem[Author(Year)]{key}` optional arguments, camelCase
+     authorTitleYear keys, no BibTeX/biber program run — see
+     content.tex's own Bibliography section comment for the print/web
+     toolchain split, including the plasTeX fallback). A blanket,
+     whole-section "this material is due to [our own precursor
+     paper]" credit is NOT the same thing as crediting a specific
+     result to an external author: the former is document-history
+     (source-priority bookkeeping, `%` comment, PROGRESS/ledger; see
+     the source-priority rule elsewhere in this file), the latter is
+     what this law makes visible. When in doubt which a `%` block is,
+     classify conservatively as the former and disclose the
+     uncertainty rather than invent an attribution; every rendered
+     attribution must name a source its adjacent `%` comment (or a
+     vendored paper under `references/`) actually substantiates — a
+     concrete external-system correspondence (e.g. an evaluator
+     implementing the same semirings this library defines) may earn
+     its own short connection sentence the same way, but ONLY after
+     checking it against the vendored source directly, never invented.
+     Enforced by `lint-blueprint.py` (both copies): a new advisory on
+     4+ consecutive rendered-prose sentences, in one paragraph,
+     opening with "The"/"This"/"It" (the exact three words Law 1
+     itself names — tuned narrower than a first "The/This/That/It/We"
+     draft specifically so it does not false-positive against the
+     ⊗-commutativity specimen this law calibrates against; disclosed
+     at `FLOW_OPENER_RE`'s definition). A blind verifier reads a page
+     sample as a READER for flow (does it march?), spot-checks a
+     handful of `%` citation blocks for correct classification, and
+     confirms every prose attribution names a real source its
+     adjacent `%` comment substantiates.
+
 ## Work strategy
 
 - Prioritize named definitions/theorems/constructions over exercises;
@@ -536,3 +596,13 @@ it.
 - **Precedence.** On any conflict between this file and a skill/tool
   suggestion, FORMALIZE.md wins: the scope rail, the sorry policy, and
   the commit law above are not negotiable inputs to a tool's workflow.
+
+- **Local reference texts.** The four canonical Lean books are
+  vendored at `references/lean-docs/` (`fp-lean`,
+  `theorem_proving_in_lean4`, `mathematics_in_lean`,
+  `reference-manual`). Consult them locally before reaching for web
+  docs for Lean/Mathlib tooling questions. They are TOOLING
+  references only, never citable as mathematical sources — the
+  source-priority rule (blueprint mathematical content comes from the
+  library's own cited sources, e.g. NeSyCat Theory v2, never from
+  these Lean docs) is unchanged.
