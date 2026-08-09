@@ -2,6 +2,19 @@
 % the pdf version and the web version.
 % This should be most of your macros.
 
+% Section numbering (C2-E2, single-SOT): both print.tex and web.tex load
+% \documentclass{report}, whose top-level sectioning unit is \chapter, so
+% \thesection defaults to \thechapter.\arabic{section} -- since this
+% document never issues a \chapter, that rendered every top-level
+% \section as "0.1", "0.2", etc. This library uses \section as its own
+% top-level unit (no \chapter anywhere in content.tex), so \thesection is
+% redefined here to plain arabic numbering, 1, 2, 3, ...; \thesubsection
+% then falls out correctly from report's own
+% \thesection.\arabic{subsection} definition. Lives here, once, so both
+% engines (print.tex and web.tex each \input this file before
+% \input{content}) inherit the identical fix -- no per-engine duplicate.
+\renewcommand{\thesection}{\arabic{section}}
+
 % The theorem-like environments defined below are those that appear by default
 % in the dependency graph. See the README of leanblueprint if you need help to
 % customize this. 

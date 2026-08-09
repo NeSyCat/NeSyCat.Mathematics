@@ -2,7 +2,7 @@
 % It will be used both by the web and the print version.
 % It should *not* include the \begin{document}
 
-\section{NeSyCat}
+\section{Introduction}
 
 This blueprint is \textbf{version 0} of the NeSyCat library reference
 document: the itemized mathematical content of the NeSy26 paper
@@ -47,10 +47,18 @@ then $g$'') rather than the source's left-to-right sequencing notation
 for the same composite. Neither change is a content divergence, so
 neither is separately declared below.
 
-The library has six chapters: semiring weight monads; truth spaces and
-lifted connectives; the three-layers trichotomy; syntax and monadic
-semantics; batching; and the bridges/normalization theory connecting
-the probability and tensor readings.
+Beyond this introduction, the library is organized into five layers:
+the \textbf{categorical layer} (semiring weight monads, then categorical
+signatures and CD semantics); the \textbf{logical layer} (truth-value
+structures, truth spaces and lifted connectives, the three-layers
+trichotomy, and logical signatures); the \textbf{domain layer} (domain
+signatures and interpretations); the \textbf{grammatical layer} (the
+term/formula grammar and its Kleisli interpretation); and the
+\textbf{statistical layer} (batching, the bridges/normalization theory
+connecting the probability and tensor readings, and worked examples).
+An \textbf{inferential layer}, connecting proof theory to model theory,
+is reserved between the grammatical and statistical layers for future
+content.
 
 \paragraph{Sources and provenance.} This blueprint is the canonical
 informal reference document of the NeSyCat library: it is not a
@@ -86,7 +94,7 @@ kept visually and notationally apart throughout this document:
 \textbf{Scope rule.} $\parr,\AndC$ are reserved for the
 logical/truth-value level. The \emph{semiring/categorical} level ---
 the weight-semiring operations inside $\MS{S}$ itself, the $\bind$
-formula of Definition~\ref{def:semiring-monad}, and every Chapter~1
+formula of Definition~\ref{def:semiring-monad}, and every Chapter~\ref{sec:semiring-monads}
 item built directly on it (Definition~\ref{def:semiring-monad},
 Theorem~\ref{thm:semiring-monad-laws},
 Theorem~\ref{thm:semiring-monad-commutative},
@@ -162,7 +170,11 @@ agreement is enforced by \texttt{scripts/blueprint.sh}'s
 Lean-kind assertion per \texttt{\textbackslash lean\{\}} name).
 
 % ============================================================
-\section{Semiring weight monads}
+\section{Categorical layer}
+\label{sec:categorical-layer}
+
+% ============================================================
+\subsection{Semiring weight monads}
 \label{sec:semiring-monads}
 
 \begin{definition}[Lattice-semiring]
@@ -534,8 +546,94 @@ isomorphism), so it is a monad isomorphism $\MS{\MassS} \cong
 \MS{\LogS}$.
 \end{proof}
 
+% ------------------------------------------------------------
+\subsection{Categorical signatures and CD semantics}
+\label{sec:categorical-signatures}
+
+This chapter replaces its previous itemization --- the NeSy26 paper's
+Tarski/Kleisli/Nesy trichotomy, its do-notation-primitive term grammar,
+and its $(D \to M\Omega) \to M\Omega$ quantifier semantics, all now
+\textbf{superseded} and retained only in this repository's git history
+--- with the current NeSyCat theory, authored directly against the
+working text of \emph{NeSyCat Theory: Semantics in Kleisli Categories
+for Neuro-Symbolic AI in HaskTorch} (\textbf{NeSyCat Theory v2}), lines
+1--396 of \texttt{new.tex} in the \texttt{NeSyCat.Logics} repository
+(sha256 prefix \texttt{9a84f22551f1e9ec} of that working text, itself
+layered over \texttt{NeSyCat.Logics} git ref \texttt{1ade210}); no
+notation from the superseded §3+ of the NeSy26 paper is reused below.
+The theory is a stack of four signature/interpretation layers ---
+categorical, logical, domain, grammatical --- the last of which fixes a
+context-free term/formula grammar with an explicit substitution rule
+and interprets it in the Kleisli category of a strong monad.
+
+\begin{definition}[Categorical signature]
+\label{def:categorical-signature}
+A \textbf{categorical signature} $\Sigma_\alpha$ consists of a
+\textbf{category symbol} $\mathbf C$, an \textbf{actor symbol}
+$\mathbf A$, and a \textbf{monad symbol} $\bigcirc$. The identity monad
+symbol $\mathrm{Id}$ is left implicit, but can always be added
+explicitly to a set of monad symbols
+$\mathrm{Mon} := \{\mathrm{Id}, \bigcirc\}$.
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\begin{definition}[CD category]
+\label{def:cd-category}
+A \textbf{CD (copy--discard) category}
+$(\mathcal C, \otimes_{\mathcal C}, \mathrm I_{\mathcal C}, \mathsf{copy}, \mathsf{del})$
+is a symmetric monoidal category equipped with a commutative comonoid
+$\mathsf{copy}_X \colon X \to X \otimes_{\mathcal C} X$,
+$\mathsf{del}_X \colon X \to \mathrm I_{\mathcal C}$ on every object
+$X$, compatible with $\otimes_{\mathcal C}$.
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\begin{definition}[Categorical interpretation]
+\label{def:categorical-interpretation}
+A \textbf{categorical interpretation} $\mathcal I_\alpha$ of a
+categorical signature $\Sigma_\alpha$ (Definition~\ref{def:categorical-signature})
+is given by a CD category
+$(\mathcal C, \otimes_{\mathcal C}, \mathrm I_{\mathcal C}, \mathsf{copy}, \mathsf{del}) := \mathcal I(\mathbf C)$
+(Definition~\ref{def:cd-category}) for the category symbol $\mathbf C$,
+a monoidal category
+$(\mathcal A, \otimes_{\mathcal A}, \mathrm I_{\mathcal A}) := \mathcal I(\mathbf A)$
+for the actor symbol $\mathbf A$, acting on $\mathcal C$ as an
+\textbf{actegory} with action
+$\actop \colon \mathcal A \times \mathcal C \to \mathcal C$, and a
+monad $\mathcal M := \mathcal I(\bigcirc)$ on $\mathcal C$ for the
+monad symbol $\bigcirc$. The identity monad symbol $\mathrm{Id}$ is
+always interpreted by the identity functor on $\mathcal C$.
+\uses{def:categorical-signature, def:cd-category}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{definition}
+
+\begin{remark}[Running categorical interpretations]
+\label{rem:categorical-instances}
+Three categorical interpretations recur as running examples of
+Definition~\ref{def:categorical-interpretation}:
+\begin{itemize}
+\item \textbf{Set/Tens/Identity}: the set-theoretic category
+  $\mathcal C := \mathbf{Set}$ for $\mathbf C$, the monoidal category
+  $\mathcal A := \mathbf{Tens}$ for $\mathbf A$, and the identity monad
+  $\mathcal M := \mathrm{Identity}$ for $\bigcirc$.
+\item \textbf{Set/Tens/Dist}: the measure-theoretic category
+  $\mathcal C := \mathbf{Set}$ for $\mathbf C$, $\mathcal A :=
+  \mathbf{Tens}$ for $\mathbf A$, and the distribution monad
+  $\mathcal M := \mathrm{Dist}$ for $\bigcirc$.
+\item \textbf{Tens/Tens/LogVec}: the geometric category
+  $\mathcal C := \mathbf{Tens}$ for $\mathbf C$, $\mathcal A :=
+  \mathbf{Tens}$ for $\mathbf A$, and the monad
+  $\mathcal M := \mathrm{LogVec}$ for $\bigcirc$.
+\end{itemize}
+\uses{def:categorical-interpretation}
+[NeSyCat Theory v2 (new.tex 1--396)]
+\end{remark}
+
 % ============================================================
-\section{Truth-value structures}
+\section{Logical layer}
+\label{sec:logical-layer}
+
+\subsection{Truth-value structures}
 \label{sec:truth-structures}
 
 The lifted connective family of a truth space (Definition~\ref{def:lifted-connective}, Chapter~\ref{sec:truth-spaces} onward) is \emph{not} a semiring (Lemma~\ref{lem:copying-fails}, Theorem~\ref{thm:three-layers}): it is a bounded lattice carrying two monoids. This section isolates that shape abstractly, under names from the library's own naming scheme (\textbf{BLat2Mon} and its refinements), develops the linearity and De~Morgan laws such a structure can carry, and locates each running row of [NeSy26, App.~A] --- Boolean, probability, mass, log --- inside the resulting hierarchy. The connective and constant conventions of Remark~\ref{rem:connective-conventions} and Remark~\ref{rem:four-constants} are assumed throughout, not re-explained.
@@ -815,7 +913,7 @@ In a LinBLat2Mon with UnitBounds (Definition~\ref{def:unit-bounds}),
 the four binary connectives form a chain:
 $p \AndC q \le p \wedge q \le p \vee q \le p \parr q$. In particular
 MIX holds: $p \AndC q \le p \parr q$.
-\uses{lem:dualabsorb-decomposition}
+\uses{lem:dualabsorb-decomposition, def:unit-bounds}
 The MIX rule [Girard 1987]; here it factors through the lattice.
 \end{lemma}
 
@@ -1037,9 +1135,8 @@ completion instances.
 \uses{lem:log-iso}
 \end{remark}
 
-
-% ============================================================
-\section{Truth spaces and lifted connectives}
+% ------------------------------------------------------------
+\subsection{Truth spaces and lifted connectives}
 \label{sec:truth-spaces}
 
 \begin{definition}[Truth space]
@@ -1276,8 +1373,8 @@ out concretely only for $S \in \{\MassS, \LogS\}$
 \uses{def:order-family}
 \end{remark}
 
-% ============================================================
-\section{Three layers}
+% ------------------------------------------------------------
+\subsection{Three layers}
 \label{sec:three-layers}
 
 \begin{lemma}[Pointwise]
@@ -1292,7 +1389,7 @@ NeSyCat.pointwiseTop, NeSyCat.twoSlot_pointwiseTop}
 \leanok
 For a lattice-semiring $S$, $\MS{S}(\BoolS) = S^{\BoolS} \cong S\times
 S$ carries all scalar operations ($\oplus,\otimes,0,1$) and the order
-($\wedge,\vee,\bot,\top,\le$) componentwise, and a (finite) power of a
+($\wedge,\vee,\bot,\top,\le$) componentwise, and a power of a
 lattice-semiring is again a lattice-semiring.
 \uses{def:lattice-semiring, def:comm-lattice-semiring, def:bounded-lattice-semiring, def:bounded-comm-lattice-semiring, def:semiring-monad}
 [NeSy26, App.~A]
@@ -1409,7 +1506,8 @@ contributions:
 The copying axioms are exactly the order-generating ones ($u \le v$
 iff $u \wedge v = u$), so (ii) and (iii) are disjoint contributions:
 both families are logic, differing only in origin. They coincide
-exactly where the carrier is idempotent, on $\BoolS$ itself. The units
+exactly where the carrier is idempotent, on the two-element carrier
+$\BoolS$ itself (not its square $\MS{\BoolS}\BoolS$). The units
 $\Ret(0),\Ret(1)$ agree with the bounds $\bot,\top$ only in the
 normalized (mass-one) rows.
 \uses{lem:pointwise, lem:linear-lift, lem:copying-fails, def:order-family, lem:prob-not-semiring}
@@ -1423,92 +1521,9 @@ Lemmas~\ref{lem:linear-lift} and \ref{lem:copying-fails}; (iii) is the
 construction of Definition~\ref{def:order-family}.
 \end{proof}
 
-% ============================================================
-\section{Syntax and monadic semantics}
-\label{sec:syntax-semantics}
-
-This chapter replaces its previous itemization --- the NeSy26 paper's
-Tarski/Kleisli/Nesy trichotomy, its do-notation-primitive term grammar,
-and its $(D \to M\Omega) \to M\Omega$ quantifier semantics, all now
-\textbf{superseded} and retained only in this repository's git history
---- with the current NeSyCat theory, authored directly against the
-working text of \emph{NeSyCat Theory: Semantics in Kleisli Categories
-for Neuro-Symbolic AI in HaskTorch} (\textbf{NeSyCat Theory v2}), lines
-1--396 of \texttt{new.tex} in the \texttt{NeSyCat.Logics} repository
-(sha256 prefix \texttt{9a84f22551f1e9ec} of that working text, itself
-layered over \texttt{NeSyCat.Logics} git ref \texttt{1ade210}); no
-notation from the superseded §3+ of the NeSy26 paper is reused below.
-The theory is a stack of four signature/interpretation layers ---
-categorical, logical, domain, grammatical --- the last of which fixes a
-context-free term/formula grammar with an explicit substitution rule
-and interprets it in the Kleisli category of a strong monad.
-
-\paragraph{Categorical layer.}
-
-\begin{definition}[Categorical signature]
-\label{def:categorical-signature}
-A \textbf{categorical signature} $\Sigma_\alpha$ consists of a
-\textbf{category symbol} $\mathbf C$, an \textbf{actor symbol}
-$\mathbf A$, and a \textbf{monad symbol} $\bigcirc$. The identity monad
-symbol $\mathrm{Id}$ is left implicit, but can always be added
-explicitly to a set of monad symbols
-$\mathrm{Mon} := \{\mathrm{Id}, \bigcirc\}$.
-[NeSyCat Theory v2 (new.tex 1--396)]
-\end{definition}
-
-\begin{definition}[CD category]
-\label{def:cd-category}
-A \textbf{CD (copy--discard) category}
-$(\mathcal C, \otimes_{\mathcal C}, \mathrm I_{\mathcal C}, \mathsf{copy}, \mathsf{del})$
-is a symmetric monoidal category equipped with a commutative comonoid
-$\mathsf{copy}_X \colon X \to X \otimes_{\mathcal C} X$,
-$\mathsf{del}_X \colon X \to \mathrm I_{\mathcal C}$ on every object
-$X$, compatible with $\otimes_{\mathcal C}$.
-[NeSyCat Theory v2 (new.tex 1--396)]
-\end{definition}
-
-\begin{definition}[Categorical interpretation]
-\label{def:categorical-interpretation}
-A \textbf{categorical interpretation} $\mathcal I_\alpha$ of a
-categorical signature $\Sigma_\alpha$ (Definition~\ref{def:categorical-signature})
-is given by a CD category
-$(\mathcal C, \otimes_{\mathcal C}, \mathrm I_{\mathcal C}, \mathsf{copy}, \mathsf{del}) := \mathcal I(\mathbf C)$
-(Definition~\ref{def:cd-category}) for the category symbol $\mathbf C$,
-a monoidal category
-$(\mathcal A, \otimes_{\mathcal A}, \mathrm I_{\mathcal A}) := \mathcal I(\mathbf A)$
-for the actor symbol $\mathbf A$, acting on $\mathcal C$ as an
-\textbf{actegory} with action
-$\actop \colon \mathcal A \times \mathcal C \to \mathcal C$, and a
-monad $\mathcal M := \mathcal I(\bigcirc)$ on $\mathcal C$ for the
-monad symbol $\bigcirc$. The identity monad symbol $\mathrm{Id}$ is
-always interpreted by the identity functor on $\mathcal C$.
-\uses{def:categorical-signature, def:cd-category}
-[NeSyCat Theory v2 (new.tex 1--396)]
-\end{definition}
-
-\begin{remark}[Running categorical interpretations]
-\label{rem:categorical-instances}
-Three categorical interpretations recur as running examples of
-Definition~\ref{def:categorical-interpretation}:
-\begin{itemize}
-\item \textbf{Set/Tens/Identity}: the set-theoretic category
-  $\mathcal C := \mathbf{Set}$ for $\mathbf C$, the monoidal category
-  $\mathcal A := \mathbf{Tens}$ for $\mathbf A$, and the identity monad
-  $\mathcal M := \mathrm{Identity}$ for $\bigcirc$.
-\item \textbf{Set/Tens/Dist}: the measure-theoretic category
-  $\mathcal C := \mathbf{Set}$ for $\mathbf C$, $\mathcal A :=
-  \mathbf{Tens}$ for $\mathbf A$, and the distribution monad
-  $\mathcal M := \mathrm{Dist}$ for $\bigcirc$.
-\item \textbf{Tens/Tens/LogVec}: the geometric category
-  $\mathcal C := \mathbf{Tens}$ for $\mathbf C$, $\mathcal A :=
-  \mathbf{Tens}$ for $\mathbf A$, and the monad
-  $\mathcal M := \mathrm{LogVec}$ for $\bigcirc$.
-\end{itemize}
-\uses{def:categorical-interpretation}
-[NeSyCat Theory v2 (new.tex 1--396)]
-\end{remark}
-
-\paragraph{Logical layer.}
+% ------------------------------------------------------------
+\subsection{Logical signatures}
+\label{sec:logical-signatures}
 
 \begin{definition}[Logical signature]
 \label{def:logical-signature}
@@ -1545,7 +1560,9 @@ $\mathcal I(M)$.
 [NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
 
-\paragraph{Domain layer.}
+% ============================================================
+\section{Domain layer}
+\label{sec:domain-layer}
 
 \begin{definition}[Domain signature]
 \label{def:domain-signature}
@@ -1578,8 +1595,8 @@ A \textbf{domain signature} $\Sigma_\gamma$ is given by:
 [NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
 
-\begin{remark}[Writing convention for typed symbols]
-\label{rem:domain-signature-notation}
+\begin{definition}[Writing convention for typed symbols]
+\label{def:domain-signature-notation}
 For a function symbol $f \in \Fun$ with domain
 $(M_1,S_1),\ldots,(M_n,S_n)$, codomain
 $(N_1,T_1),\ldots,(N_m,T_m)$, and parameter spaces
@@ -1594,14 +1611,10 @@ for a relation symbol $R \in \Rel$. In both cases the identity monad
 symbol $\mathrm{Id}$ is omitted from the display. A variable symbol
 $x \in \Var$ over domain symbol $S$ is displayed $x \colon S$, and a
 parameter symbol $\theta \in \mathrm{Par}$ over parameter space
-$\Theta$ is displayed $\theta \colon \Theta$. This is purely a
-writing-layer convention, governed by the writing-layer discipline of
-this library --- it is \emph{not} an abbreviation in the
-Blueprint-to-Lean-correspondence sense, and it introduces no
-\texttt{\textbackslash lean}-markable content of its own.
+$\Theta$ is displayed $\theta \colon \Theta$.
 \uses{def:domain-signature}
 [NeSyCat Theory v2 (new.tex 1--396)]
-\end{remark}
+\end{definition}
 
 \begin{definition}[Domain interpretation]
 \label{def:domain-interpretation}
@@ -1622,7 +1635,7 @@ and assigns:
   symbol $\Theta \in \mathrm{Spc}$;
 \item for each function symbol
   $f_{\Theta_1,\ldots,\Theta_k} \colon M_1 S_1,\ldots,M_n S_n \to N_1
-  T_1,\ldots,N_m T_m$ (Remark~\ref{rem:domain-signature-notation}) a
+  T_1,\ldots,N_m T_m$ (Definition~\ref{def:domain-signature-notation}) a
   morphism
   \[
     \mathcal I(f) \colon \mathcal I(\Theta_1,\ldots,\Theta_k) \actop
@@ -1646,7 +1659,9 @@ and assigns:
 [NeSyCat Theory v2 (new.tex 1--396)]
 \end{definition}
 
-\paragraph{Grammatical layer.}
+% ============================================================
+\section{Grammatical layer}
+\label{sec:syntax-semantics}
 
 \begin{definition}[Context]
 \label{def:context}
@@ -1709,7 +1724,7 @@ generated formulas.
 
 \begin{definition}[Wire adapters and bind set]
 \label{def:wire-adapters}
-Consider composable typed symbols (Remark~\ref{rem:domain-signature-notation})
+Consider composable typed symbols (Definition~\ref{def:domain-signature-notation})
 $f \colon M^f_1 S_1,\ldots,M^f_n S_n \to N^f_1 T_1,\ldots,N^f_m T_m$
 and
 $g \colon M^g_1 T_1,\ldots,M^g_m T_m \to N^g_1 U_1,\ldots,N^g_k U_k$,
@@ -1963,8 +1978,19 @@ $\tfrac16\cdot\tfrac12=\tfrac1{12}$: the substituted formula copies the
 [NeSyCat Theory v2 (new.tex 1--396)]
 \end{example}
 
+
 % ============================================================
-\section{Batching}
+% RESERVED: Inferential layer (proof theory <-> model theory), between
+% the Grammatical layer above and the Statistical layer below. No
+% content yet; added when the first inferential-layer item exists.
+% See PROGRESS.md for the reservation note (C2-E2).
+
+
+% ============================================================
+\section{Statistical layer}
+\label{sec:statistical-layer}
+
+\subsection{Batching}
 \label{sec:batching}
 
 \begin{definition}[Batch monad]
@@ -2068,8 +2094,8 @@ index rather than pointwise would break the displayed equation.
 \uses{prop:pointwise-eval}
 \end{remark}
 
-% ============================================================
-\section{Bridges and normalization}
+% ------------------------------------------------------------
+\subsection{Bridges and normalization}
 \label{sec:bridges}
 
 \begin{definition}[Decode, encode, mass]
@@ -2375,6 +2401,10 @@ mass-preservation hypothesis holds unconditionally and the two sides
 coincide, and (i) of Lemma~\ref{lem:normalizer-props} shows the
 predicted distribution is unchanged by inserting $\nrm$.
 \end{proof}
+
+% ------------------------------------------------------------
+\subsection{Examples}
+\label{sec:examples}
 
 \begin{example}[Tilt failure, exact numbers]
 \label{ex:tilt-failure}

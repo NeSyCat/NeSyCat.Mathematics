@@ -42,3 +42,19 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 ## Notes
 
 - See `FORMALIZE.md` for the resume protocol and work loop.
+- **C2-E2 (seven-layer restructure, 2026-08-09):** `blueprint/src/content.tex`
+  was reorganized to the user-adopted layer architecture: 1 Introduction,
+  2 Categorical layer (2.1 Semiring weight monads, 2.2 Categorical
+  signatures and CD semantics), 3 Logical layer (3.1 Truth-value
+  structures, 3.2 Truth spaces and lifted connectives, 3.3 Three layers,
+  3.4 Logical signatures), 4 Domain layer, 5 Grammatical layer,
+  6 Statistical layer (6.1 Batching, 6.2 Bridges and normalization,
+  6.3 Examples). An **Inferential layer** (proof theory <-> model
+  theory) is **RESERVED** between the Grammatical layer (5) and the
+  Statistical layer (6), marked by a LaTeX comment at that insertion
+  point in `content.tex`; it has no content yet and is not one of the
+  six numbered sections above. Add it as section 6 (renumbering
+  Statistical to 7) once its first item exists. Pure reorganization: no
+  Lean changes, no `\lean{}`/`\leanok` mark changes, item labels stable
+  except `rem:domain-signature-notation` -> `def:domain-signature-notation`
+  (promoted from remark to definition per the same ticket).
