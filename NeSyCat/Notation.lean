@@ -130,6 +130,75 @@ proof, only in doc-comment prose naming the LaTeX symbols, which is
 expected and left as prose). Field names `oplus`/`otimes` themselves are
 unaffected and unchanged.
 
+## The `(priority := high)` retry was tried and reverted again (C2-H2 item 4, empirical fallback)
+
+User-approved retry: the C2-E4a episode above never set a notation
+`priority`, and priority governs which of several candidate parsers wins
+when more than one matches the same token — plausibly the missing
+ingredient, since `priority := high` is a documented, real mechanism
+(confirmed working via `scoped[Convex] notation (priority := high) "["
+x " -[" 𝕜 "] " y "]" => segment 𝕜 x y` in Mathlib's own
+`Mathlib/Analysis/Convex/Segment.lean`). Retried directly against
+`BLat2Mon.oplus`/`BLat2Mon.otimes` (the post-C2-E4c field names):
+
+```
+namespace NeSyCat
+scoped notation:65 (priority := high) a:65 " ⊕ " b:66 => BLat2Mon.oplus a b
+scoped notation:70 (priority := high) a:70 " ⊗ " b:71 => BLat2Mon.otimes a b
+end NeSyCat
+
+open NeSyCat
+example {α : Type*} [Lattice α] [BoundedOrder α] [BLat2Mon α] (p q : α) :
+    p ⊕ q = p ⊕ q := rfl
+-- error: Application type mismatch: The argument
+--   p
+-- has type
+--   α
+-- of sort `Type u_1` but is expected to have type
+--   Type ?u.12
+-- of sort `Type (?u.12 + 1)` in the application
+--   Sum p
+```
+
+**Identical failure, byte-for-byte the same error shape as C2-E4a's**:
+`priority := high` (the named level, `10000`, per
+`Init/Notation.lean`'s `macro "high" : prio => `(prio| 10000)`) does not
+move the needle. Pushed further to rule out "high just isn't high
+enough": re-tried with the maximum `Nat` priority literal
+(`priority := 4294967295`) — same error, unchanged. A sanity probe
+confirms the notation *mechanism* itself is sound and `priority := high`
+parses and registers correctly: swapping the token for one with no core
+conflict (`" <+++> "`) elaborates cleanly on the first try, same
+declaration shape, same `open NeSyCat`, same no-expected-type context.
+So the failure is specific to contesting the *token* `⊕` against Lean
+core's global, unscoped `infixr:30 " ⊕ " => Sum`
+(`Init/Core.lean`) — not a priority-value tuning problem. The most
+plausible mechanism (unconfirmed from Lean's own source, but consistent
+with every probe run across both episodes): a `scoped` notation's
+candidacy for a token is gated *before* priority comparison even runs
+against a competing *global* (unscoped) notation for the same token —
+priority only breaks ties among notations already in the same
+open/global candidate pool, and `⊕` is precisely the case where the
+competitor is global while ours is scoped. `⊗`, by contrast, **stays
+clean at `priority := high`** too (re-confirmed; Mathlib's own `⊗` for
+`TensorProduct` is itself `scoped`, so it was never in the global pool to
+begin with — the asymmetry between the two glyphs is exactly this
+scoped-vs-global distinction, not a fluke of one probe run).
+
+Per the pin's own fallback protocol (repeated a second time now): **no
+`⊕`/`⊗` swap is shipped**, reverted together for the same reason C2-E4b
+reverted the clean-testing `⅋`/`&` pair alongside the broken one — this
+library does not maintain an asymmetric truth-connective notation surface
+where one glyph works and its dual doesn't. `BLat2Mon.oplus`/
+`BLat2Mon.otimes` remain the working Lean names, unchanged. Since the two
+glyphs did **not** both land cleanly, the item 4 precondition for
+touching `dneg` is unmet: `DMStructure.dneg` **stays a plain name**,
+settled, not reopened by this retry. This closes the `⊕`/`⊗` notation
+question permanently — a second independent mechanism (priority,
+including the maximum possible `Nat` value) has now been tried and has
+failed identically; no further glyph-notation experiments for these two
+connectives are warranted.
+
 ## Twin registry (`macros.sty` ↔ `NeSyCat/Notation.lean`)
 
 Every `% Lean:`-tagged macro in the sibling `NeSyCat.Logics/macros.sty`

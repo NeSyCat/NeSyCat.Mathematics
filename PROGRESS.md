@@ -41,6 +41,120 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 
 ## Notes
 
+- **C2-H2 (Run 6, HARDENING SLATE):** a reference-manual audit riders
+  ticket, mostly mechanical/infrastructure, one genuine experiment, one
+  disclosed scope conflict. (1) **Env-fold census replaces the regex
+  census** (`scripts/blueprint.sh`): the CENSUS section no longer scans
+  a fixed 12-file `CENSUS_FILES` list with a source-text regex; it now
+  generates a Lean scratch file that folds `(← getEnv).constants`,
+  filtered by MODULE prefix `NeSyCat.` (not a name guess), over a
+  disclosed five-stage internal/auxiliary filter (`Lean.Name.
+  isBlackListed`; an extra suffix list -- `.injEq`/`.sizeOf_spec`/
+  `.sizeOf_eq`/`.brecOn`/`.binductionOn`/`.below`/`.ibelow`/`.ctorIdx`;
+  constructors; structure/class field projections via
+  `getProjectionFnInfo?`; auto-generated multi-`extends` parent
+  combinators via `getStructureParentInfo`) — see `scripts/blueprint.sh`'s
+  own top-of-file comment for the full disclosure. Scope is now the
+  WHOLE `NeSyCat` namespace, not the old 12-file subset. **Sentinels
+  changed**: 303 declarations / 48 cited / 255 internal / 0 unclassified
+  (old, scoped) → 317 declarations / 56 cited / 261 internal / 0
+  unclassified (new, whole-namespace); `structure`/`kind-check` stayed
+  at 88 environments / 56 names (unchanged, as required — the census
+  count moving is the scope-widening working as intended, not a
+  regression). The fold surfaced 16 previously-invisible declarations
+  in `NeSyCat/CategoricalLayer/SemiringMonads/LatticeSemiring.lean`
+  (never in the old `CENSUS_FILES` scope): 9 exactly matching the
+  ticket's predicted "regex-invisible specimens" (7 anonymous
+  `BoolW` instances — `Lattice`/`BoundedOrder`/`Zero`/`One`/`Add`/`Mul`/
+  `CommSemiring` — plus 2 `(priority := ...)` instances,
+  `LatCSRng.toCommSemiring`/`BLatCSRng.toLatCSRng`) and 7 more from the
+  scope widening itself (`BoolW` the carrier def, the `deriving`-
+  synthesized `instDecidableEqBoolW`/`instFintypeBoolW`,
+  `bot_eq_zero`/`top_eq_one`, and the redundant-monotonicity corollaries
+  `add_le_add_right_of_left`/`mul_le_mul_right_of_left`); all 16 tagged
+  `@[blueprint_internal]` (companions of the already-cited
+  `instBLatCSRng`/class declarations, not new mathematics). (2) **The
+  `@[blueprint_internal]` attribute replaces the `-- blueprint: internal
+  (...)` comment tag**: a new root module `NeSyCat/BlueprintAttr.lean`
+  (a `Lean.TagAttribute`, the same machinery Mathlib uses for e.g.
+  `@[variable_alias]`) imported by every file that tags; all 255
+  pre-existing comment tags migrated mechanically (reason text kept as
+  an ordinary comment, attribute added to the declaration), plus the 16
+  new item-1 finds. RED-tested (transcript in the ticket report): a
+  scratch decl neither cited nor tagged turns the census gate RED with
+  an exact violation line; reverted. (3) **Kernel-truth axiom audit**:
+  a new `scripts/blueprint.sh` gate section, `kernel-truth: OK (56
+  names)`, folding `Lean.collectAxioms` (the same machinery `#print
+  axioms` calls) over every cited name and requiring the result be a
+  subset of `{propext, Classical.choice, Quot.sound}` — catches
+  TRANSITIVE `sorryAx` that `scripts/sorry-report.sh`'s source-text
+  regex cannot see. RED-tested with a scratch `sorry`-backed decl
+  (transcript in the report); reverted. (4) **The `⊕`/`⊗`
+  `(priority := high)` retry FAILED AGAIN** (`NeSyCat/Notation.lean`):
+  identical error to the original C2-E4a attempt, confirmed even at the
+  maximum possible `Nat` priority value; a sanity probe confirms the
+  notation mechanism itself is sound (a non-conflicting token elaborates
+  immediately) — the failure is specific to contesting Lean core's
+  global `Sum` notation for the `⊕` token from a `scoped` declaration.
+  `⊗` alone stays clean (as before, `TensorProduct`'s own `⊗` is itself
+  `scoped`). Reverted together, matching the C2-E4b precedent of not
+  shipping an asymmetric glyph pair; `DMStructure.dneg` stays a plain
+  name (unmet precondition — see `NeSyCat/Notation.lean`'s new "The
+  `(priority := high)` retry was tried and reverted again" section for
+  the full transcript). This closes the `⊕`/`⊗` notation question
+  permanently. (5) **Commit-msg feedback-loop hardening**: the plugin
+  twin's staged-Lean-file detection matched a bare `*.lean` pathspec
+  with no root-scoping, counting this repo's own vendored
+  `references/lean-docs/` tree (496 files) as "Lean source changed" and
+  diluting the check; its structure-mirror auto-discovery had the same
+  contamination via directory-count ambiguity. Fixed by auto-discovering
+  the Lean source root (excluding VCS/build/tooling/`references`) and
+  scoping both laws to it — for this repo the discovered root is
+  exactly `NeSyCat`, matching the repo hook's own hardcoded scope
+  (confirmed identical output on real staged content). The repo hook
+  itself needed no root-scoping fix (already hardcoded to `NeSyCat/`),
+  but its namespace-tail matching had an independent, smaller bug (only
+  stripped the outermost `NeSyCat.` prefix, missing a doubly-nested cited
+  name like `NeSyCat.BoolW.instBLatCSRng`) — ported the plugin twin's
+  more robust last-dot-component matching to fix it; both hooks now
+  produce byte-identical output. Also fixed, along the way: macOS bash
+  3.2 mis-parses a quoted-delimiter heredoc nested inside `$( )` once its
+  body contains an apostrophe followed later by a `)` (this file's own
+  prose comments triggered it) — worked around via a temp-file
+  indirection. (6) **common.tex sweep: NOT EXECUTED, scope conflict
+  disclosed.** No `common.tex` exists in the sibling `NeSyCat.Logics`
+  repo (the only file there with `% Lean:` tags is `macros.sty`, and it
+  is current — `\dzero`/`\done` already cite `NeSyCat.BLat2Mon.dzero`/
+  `.done`, `\AndC`'s tag is already deleted alongside the retired macro).
+  The stale `% Lean:`-style "pointer comment" inventory the ticket
+  describes verbatim (`\parr`, `\AndC` still listed live, `\dzero`/
+  `\done` still claiming a shipped notation glyph) instead lives in
+  THIS repo's own `blueprint/src/macros/common.tex` — outside this
+  ticket's write set (only `blueprint/src/content.tex`'s two prose
+  riders were authorized). Left untouched pending re-scoping; see the
+  ticket report for the full evidence trail. (7) **Emit-lean for-loop**:
+  the kind-check generator's flat N-statement `do` block (needing
+  `set_option maxRecDepth 8000`, raised at C2-T4 past the ~123-name
+  ceiling) is re-emitted as a `for` loop over an explicit `List Name`
+  literal — O(1) elaboration depth regardless of name count — and the
+  `maxRecDepth` option is dropped entirely. (8) **Prose riders**: the
+  `lem:copying-fails`-adjacent flattening (content.tex, "the substituted
+  formula copies the value... the repeated term runs the computation
+  again") applied verbatim. The `def:bounded-comm-lattice-semiring`-
+  adjacent rider ("The three running instances are of this last kind.")
+  was NOT applied: the LEAD-supplied replacement ("...are commutative
+  lattice-semirings that also carry bounds") contradicts the document's
+  own later, already-corrected instance-rows section ("In this form only
+  the Boolean row is bounded ... mass/log [are not]"), so both the
+  original sentence and the proposed replacement misstate which running
+  instances are bounded; left as-is per the ticket's own fit-check
+  escape hatch. Gates: `scripts/check.sh` GREEN, `scripts/sorry-report.sh`
+  0/0, `scripts/blueprint.sh` BLUEPRINT: GREEN (kernel-truth OK, census
+  0 unclassified, registry sync OK at 9 twins — unchanged, since item 4
+  reverted — structure-mirror 15/0, CORRESPONDENCE 88 environments/56
+  names — unchanged), pdf+web rebuilt (1 residual overfull hbox at
+  1.2pt, unchanged from baseline), lint hooks silent on both twins.
+
 - **C2-E7 (Run 6, THE FLAT-PROSE TRANSFUSION, USER DECREE 2026-08-09):**
   a density pass over every rendered narrative paragraph and env-body
   prose connective tissue in `content.tex`, on top of C2-E5's register

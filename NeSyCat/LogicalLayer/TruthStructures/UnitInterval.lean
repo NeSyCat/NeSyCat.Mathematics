@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
+import NeSyCat.BlueprintAttr
 import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
 import NeSyCat.LogicalLayer.TruthStructures.Chain
 
@@ -54,8 +55,9 @@ for `otimes` are inherited from `Icc.instMonoidWithZero`'s multiplication
 cancels in the associativity chain, and `σ 0 = 1` gives the right unit,
 `σ 1 = 0` mirrored on the left (`dzero_oplus`/`oplus_dzero`, from
 `symm_symm`/`symm_zero`/`symm_one`). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `unitInterval.coe_oplus`, content.tex lem:unit-interval-truth-structure)
+@[blueprint_internal]
 noncomputable instance instBLat2Mon : BLat2Mon (_root_.unitInterval) where
   oplus p q := σ (σ p * σ q)
   dzero := 0
@@ -72,8 +74,9 @@ noncomputable instance instBLat2Mon : BLat2Mon (_root_.unitInterval) where
 both monoids are commutative — `otimes` since real multiplication is, `oplus`
 since its `σ`-conjugated multiplication is (`mul_comm` transports through
 `σ`). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `unitInterval.coe_oplus`, content.tex lem:unit-interval-truth-structure)
+@[blueprint_internal]
 noncomputable instance instBLat2CMon : BLat2CMon (_root_.unitInterval) where
   __ := instBLat2Mon
   oplus_comm p q := by
@@ -85,38 +88,43 @@ noncomputable instance instBLat2CMon : BLat2CMon (_root_.unitInterval) where
 /-- Blueprint `lem:unit-interval-truth-structure` (`ZeroBot unitInterval`):
 `dzero = 0 = ⊥` by construction (`Set.Icc`'s `⊥` and `0` coincide, both the
 left endpoint). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `unitInterval.coe_oplus`, content.tex lem:unit-interval-truth-structure)
+@[blueprint_internal]
 instance instZeroBot : ZeroBot (_root_.unitInterval) where
   dzero_eq_bot := rfl
 
 /-- Blueprint `lem:unit-interval-truth-structure` (`OneTop unitInterval`):
 `done = 1 = ⊤` by construction (`Set.Icc`'s `⊤` and `1` coincide, both the
 right endpoint). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `unitInterval.coe_oplus`, content.tex lem:unit-interval-truth-structure)
+@[blueprint_internal]
 instance instOneTop : OneTop (_root_.unitInterval) where
   done_eq_top := rfl
 
 /-- Blueprint `lem:unit-interval-truth-structure` (`UnitBounds unitInterval`):
 the packaged `ZeroBot`/`OneTop` conjunction (Definition `def:unit-bounds`). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `unitInterval.coe_oplus`, content.tex lem:unit-interval-truth-structure)
+@[blueprint_internal]
 instance instUnitBounds : UnitBounds (_root_.unitInterval) where
 
 /-- Blueprint `lem:unit-interval-truth-structure` (monotonicity of `otimes`,
 right argument): `p ≤ q → r * p ≤ r * q`, `mul_le_mul_of_nonneg_left` on the
 real coercions. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 private theorem otimes_mono_left {p q : _root_.unitInterval} (h : p ≤ q)
     (r : _root_.unitInterval) : otimes r p ≤ otimes r q :=
   mul_le_mul_of_nonneg_left h r.2.1
 
 /-- Blueprint `lem:unit-interval-truth-structure` (monotonicity of `otimes`,
 left argument): dually, `p ≤ q → p * r ≤ q * r`. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 private theorem otimes_mono_right {p q : _root_.unitInterval} (h : p ≤ q)
     (r : _root_.unitInterval) : otimes p r ≤ otimes q r :=
   mul_le_mul_of_nonneg_right h r.2.1
@@ -126,8 +134,9 @@ right argument): `σ` is antitone (`symm_le_symm`), so `p ≤ q` gives
 `σ q ≤ σ p`, hence `σ r * σ q ≤ σ r * σ p` (monotone multiplication by a
 nonnegative factor), hence `σ(σ r * σ p) ≤ σ(σ r * σ q)` (antitone `σ`
 again). -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 private theorem oplus_mono_left {p q : _root_.unitInterval} (h : p ≤ q)
     (r : _root_.unitInterval) : oplus r p ≤ oplus r q := by
   have key1 : (oplus r p : _root_.unitInterval) = σ (σ r * σ p) := rfl
@@ -137,8 +146,9 @@ private theorem oplus_mono_left {p q : _root_.unitInterval} (h : p ≤ q)
 
 /-- Blueprint `lem:unit-interval-truth-structure` (monotonicity of `oplus`,
 left argument): dual to `oplus_mono_left`. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 private theorem oplus_mono_right {p q : _root_.unitInterval} (h : p ≤ q)
     (r : _root_.unitInterval) : oplus p r ≤ oplus q r := by
   have key1 : (oplus p r : _root_.unitInterval) = σ (σ p * σ r) := rfl
@@ -151,16 +161,18 @@ private theorem oplus_mono_right {p q : _root_.unitInterval} (h : p ≤ q)
 `unitInterval`'s `LinearOrder`, the `otimes`/`oplus` monotonicity above, and
 `UnitBounds` — the point of this row: it exercises `thm:chain-lin` rather
 than proving the eight linear laws by hand. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `unitInterval.coe_oplus`, content.tex lem:unit-interval-truth-structure)
+@[blueprint_internal]
 noncomputable instance instLinBLat2Mon : LinBLat2Mon (_root_.unitInterval) :=
   LinBLat2Mon.ofChain otimes_mono_left otimes_mono_right oplus_mono_left oplus_mono_right
 
 /-- Blueprint `lem:unit-interval-truth-structure` (`LinBLat2CMon
 unitInterval`): the commutative linear structure, combining
 `instLinBLat2Mon` and `instBLat2CMon`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `unitInterval.coe_oplus`, content.tex lem:unit-interval-truth-structure)
+@[blueprint_internal]
 noncomputable instance instLinBLat2CMon : LinBLat2CMon (_root_.unitInterval) where
   __ := instLinBLat2Mon
   __ := instBLat2CMon
@@ -171,8 +183,9 @@ noncomputable instance instLinBLat2CMon : LinBLat2CMon (_root_.unitInterval) whe
 `σ(p * q) = oplus (σ q) (σ p)` — near-definitional: `oplus (σ q) (σ p) = σ(σσq
 * σσp) = σ(q * p) = σ(p * q)`, the `σσ` cancelling by `symm_symm` and the
 remaining equality by commutativity of `*`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `unitInterval.coe_oplus`, content.tex lem:unit-interval-truth-structure)
+@[blueprint_internal]
 noncomputable instance instDMStructure : DMStructure (_root_.unitInterval) where
   dneg := σ
   dneg_dneg := symm_symm

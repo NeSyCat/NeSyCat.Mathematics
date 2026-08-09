@@ -41,6 +41,19 @@
 # see /nesycat-math's preflight, which checks the install and instructs
 # how to (re)do it if missing/stale.
 #
+# C2-H2 item 5 AUDIT NOTE: the plugin twin's feedback-loop file-detection
+# (LAW 1) used to match a bare `*.lean` pathspec with no root-scoping,
+# counting a vendored .lean tree (this repo's own `references/lean-docs`,
+# 496 files) as "Lean source changed" and diluting the check into noise;
+# its structure-mirror auto-discovery (LAW 2) suffered the same
+# contamination via ambiguity. THIS hook is unaffected by either failure
+# mode: LAW 1 below already scopes to the literal `NeSyCat/*.lean`
+# pathspec (never `references/`), and LAW 2 already hardcodes
+# `$REPO_ROOT/NeSyCat` rather than auto-discovering a root. No change was
+# needed here; the plugin twin was brought in line with this hook's
+# existing scoping instead (see plugin/nesycat-lean4-harness/hooks/
+# commit-msg's own file-level comment for the fix).
+#
 # Args: $1 = path to a file containing the proposed commit message.
 
 set -uo pipefail
@@ -203,8 +216,16 @@ for f in staged_files:
         if m:
             declared.add(m.group(1))
     for nm, label in lean_index.items():
-        bare = nm[len("NeSyCat."):] if nm.startswith("NeSyCat.") else nm
-        if nm in declared or bare in declared:
+        # Namespace-agnostic match: the full \lean{} name, or just its
+        # tail component after the last dot (declarations inside a
+        # matching `namespace ... end` block are written bare in
+        # source) -- C2-H2 item 5 hardening: the previous "strip only
+        # the outermost NeSyCat. prefix" form missed a doubly-nested
+        # name like `NeSyCat.BoolW.instBLatCSRng` (source only ever
+        # writes the bare `instBLatCSRng`), silently under-matching
+        # relative to the plugin twin.
+        tail = nm.rsplit(".", 1)[-1]
+        if nm in declared or tail in declared:
             hits.append((f, nm, label))
 
 if not hits:

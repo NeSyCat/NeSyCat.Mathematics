@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
+import NeSyCat.BlueprintAttr
 import NeSyCat.CategoricalLayer.SemiringMonads.SemiringMonad
 
 /-!
@@ -53,7 +54,8 @@ def Dist (X : Type*) := {ρ : MS ℝ≥0 X // ρ.sum (fun _ w => w) = 1}
 `ret x = δ_x` has total mass `1` — `δ_x(x) = 1` and every other value is
 `0`, so the sum collapses to the single value `1` (`Finsupp.sum_single_index`,
 using only that the summand function vanishes at `0`). -/
--- blueprint: internal (A1 bijection-law companion of `bind_mass_one`, content.tex lem:dist-closure)
+-- (A1 bijection-law companion of `bind_mass_one`, content.tex lem:dist-closure)
+@[blueprint_internal]
 theorem ret_mass_one (x : X) : (ret x : MS ℝ≥0 X).sum (fun _ w => w) = 1 := by
   unfold ret
   exact Finsupp.sum_single_index rfl
@@ -90,12 +92,14 @@ variable {X Y : Type*}
 
 /-- Blueprint `def:dist-monad` (`Dist`'s unit): `ret` restricted to the
 mass-one subtype, well-defined by `ret_mass_one`. -/
--- blueprint: internal (A1 bijection-law companion of `Dist`, content.tex def:dist-monad)
+-- (A1 bijection-law companion of `Dist`, content.tex def:dist-monad)
+@[blueprint_internal]
 noncomputable def pure (x : X) : Dist X := ⟨ret x, ret_mass_one x⟩
 
 /-- Blueprint `def:dist-monad` (`Dist`'s bind): `bind` restricted to the
 mass-one subtype, well-defined by `bind_mass_one`. -/
--- blueprint: internal (A1 bijection-law companion of `Dist`, content.tex def:dist-monad)
+-- (A1 bijection-law companion of `Dist`, content.tex def:dist-monad)
+@[blueprint_internal]
 noncomputable def bind (ρ : Dist X) (k : X → Dist Y) : Dist Y :=
   ⟨NeSyCat.bind ρ.1 (fun x => (k x).1), bind_mass_one ρ.2 (fun x => (k x).2)⟩
 

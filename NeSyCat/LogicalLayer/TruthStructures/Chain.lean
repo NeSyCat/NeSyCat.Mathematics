@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
+import NeSyCat.BlueprintAttr
 import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
 
 /-!
@@ -106,7 +107,8 @@ theorem chain_binop_sup_right (f : α → α → α)
 /-- Blueprint `thm:chain-lin` (i, raw join, left argument): dually, for any
 binary operation `f` monotone with a fixed right element, `f` preserves
 finite joins in its left argument. -/
--- blueprint: internal (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+-- (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+@[blueprint_internal]
 theorem chain_binop_sup_left (f : α → α → α)
     (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f x r ≤ f y r)
     (p q r : α) : f (p ⊔ q) r = f p r ⊔ f q r := by
@@ -117,7 +119,8 @@ theorem chain_binop_sup_left (f : α → α → α)
 /-- Blueprint `thm:chain-lin` (i, raw meet, right argument): dually to
 `chain_binop_sup_right`, for any binary operation `f` monotone with a fixed
 left element, `f` preserves finite meets in its right argument. -/
--- blueprint: internal (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+-- (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+@[blueprint_internal]
 theorem chain_binop_inf_right (f : α → α → α)
     (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f r x ≤ f r y)
     (p q r : α) : f p (q ⊓ r) = f p q ⊓ f p r := by
@@ -128,7 +131,8 @@ theorem chain_binop_inf_right (f : α → α → α)
 /-- Blueprint `thm:chain-lin` (i, raw meet, left argument): dually to
 `chain_binop_sup_left`, for any binary operation `f` monotone with a fixed
 right element, `f` preserves finite meets in its left argument. -/
--- blueprint: internal (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+-- (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+@[blueprint_internal]
 theorem chain_binop_inf_left (f : α → α → α)
     (hf : ∀ {x y : α}, x ≤ y → ∀ r : α, f x r ≤ f y r)
     (p q r : α) : f (p ⊓ q) r = f p r ⊓ f q r := by
@@ -151,8 +155,9 @@ shape. -/
 
 /-- Blueprint `thm:chain-lin` (i, `otimes`-join, right argument): a corollary
 of `chain_binop_sup_right` at `f := otimes`. -/
--- blueprint: internal (A1 companion: BLat2Mon-context corollary of
+-- (A1 companion: BLat2Mon-context corollary of
 -- chain_binop_sup_right, content.tex thm:chain-lin)
+@[blueprint_internal]
 theorem chain_otimes_sup
     (otimes_mono_left : ∀ {x y : α}, x ≤ y → ∀ r : α, otimes r x ≤ otimes r y)
     (p q r : α) : otimes p (q ⊔ r) = otimes p q ⊔ otimes p r :=
@@ -160,7 +165,8 @@ theorem chain_otimes_sup
 
 /-- Blueprint `thm:chain-lin` (i, `otimes`-join, left argument): a corollary
 of `chain_binop_sup_left` at `f := otimes`. -/
--- blueprint: internal (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+-- (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+@[blueprint_internal]
 theorem chain_sup_otimes
     (otimes_mono_right : ∀ {x y : α}, x ≤ y → ∀ r : α, otimes x r ≤ otimes y r)
     (p q r : α) : otimes (p ⊔ q) r = otimes p r ⊔ otimes q r :=
@@ -168,7 +174,8 @@ theorem chain_sup_otimes
 
 /-- Blueprint `thm:chain-lin` (i, `oplus`-meet, right argument): a corollary
 of `chain_binop_inf_right` at `f := oplus`. -/
--- blueprint: internal (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+-- (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+@[blueprint_internal]
 theorem chain_oplus_inf
     (oplus_mono_left : ∀ {x y : α}, x ≤ y → ∀ r : α, oplus r x ≤ oplus r y)
     (p q r : α) : oplus p (q ⊓ r) = oplus p q ⊓ oplus p r :=
@@ -176,7 +183,8 @@ theorem chain_oplus_inf
 
 /-- Blueprint `thm:chain-lin` (i, `oplus`-meet, left argument): a corollary
 of `chain_binop_inf_left` at `f := oplus`. -/
--- blueprint: internal (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+-- (A1 bijection-law companion of `chain_otimes_sup`, content.tex thm:chain-lin)
+@[blueprint_internal]
 theorem chain_inf_oplus
     (oplus_mono_right : ∀ {x y : α}, x ≤ y → ∀ r : α, oplus x r ≤ oplus y r)
     (p q r : α) : oplus (p ⊓ q) r = oplus p r ⊓ oplus q r :=
@@ -259,8 +267,9 @@ iff the mixed absorption `p ⊔ (otimes p q) = p` holds for all `p, q`. Forward
 via `done_eq_top_iff_otimes_le_inf`; backward, taking `p := done` gives
 `done ⊔ q = done` for all `q` (via `done_otimes`), so `q ≤ done`, hence
 `⊤ ≤ done`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `done_eq_top_iff_otimes_le_inf`, content.tex lem:dualabsorb-decomposition)
+@[blueprint_internal]
 theorem done_eq_top_iff_sup_otimes_absorb :
     (done : α) = ⊤ ↔ ∀ p q : α, p ⊔ otimes p q = p := by
   constructor
@@ -275,8 +284,9 @@ theorem done_eq_top_iff_sup_otimes_absorb :
 
 /-- Blueprint `lem:dualabsorb-decomposition` (ii, inequality form): dually,
 `dzero = ⊥` iff `oplus` is everywhere above the join. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `done_eq_top_iff_otimes_le_inf`, content.tex lem:dualabsorb-decomposition)
+@[blueprint_internal]
 theorem dzero_eq_bot_iff_sup_le_oplus :
     (dzero : α) = ⊥ ↔ ∀ p q : α, p ⊔ q ≤ oplus p q := by
   constructor
@@ -297,8 +307,9 @@ theorem dzero_eq_bot_iff_sup_le_oplus :
 
 /-- Blueprint `lem:dualabsorb-decomposition` (ii, absorption form): dually,
 `dzero = ⊥` iff the mixed absorption `p ⊓ (oplus p q) = p` holds. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `done_eq_top_iff_otimes_le_inf`, content.tex lem:dualabsorb-decomposition)
+@[blueprint_internal]
 theorem dzero_eq_bot_iff_inf_oplus_absorb :
     (dzero : α) = ⊥ ↔ ∀ p q : α, p ⊓ oplus p q = p := by
   constructor
@@ -321,13 +332,15 @@ variable {α : Type*} [Lattice α] [BoundedOrder α] [LinBLat2Mon α] [UnitBound
 
 /-- Blueprint `lem:mix` (outer-left inequality): `otimes p q ≤ p ⊓ q`, from
 `done_eq_top_iff_otimes_le_inf` applied to `UnitBounds`' `done = ⊤`. -/
--- blueprint: internal (A1 bijection-law companion of `mix_chain`, content.tex lem:mix)
+-- (A1 bijection-law companion of `mix_chain`, content.tex lem:mix)
+@[blueprint_internal]
 theorem otimes_le_inf (p q : α) : otimes p q ≤ p ⊓ q :=
   done_eq_top_iff_otimes_le_inf.mp OneTop.done_eq_top p q
 
 /-- Blueprint `lem:mix` (outer-right inequality): `p ⊔ q ≤ oplus p q`, from
 `dzero_eq_bot_iff_sup_le_oplus` applied to `UnitBounds`' `dzero = ⊥`. -/
--- blueprint: internal (A1 bijection-law companion of `mix_chain`, content.tex lem:mix)
+-- (A1 bijection-law companion of `mix_chain`, content.tex lem:mix)
+@[blueprint_internal]
 theorem sup_le_oplus (p q : α) : p ⊔ q ≤ oplus p q :=
   dzero_eq_bot_iff_sup_le_oplus.mp ZeroBot.dzero_eq_bot p q
 
@@ -342,7 +355,8 @@ theorem mix_chain (p q : α) :
 
 /-- Blueprint `lem:mix` (MIX, the named corollary [Girard 1987]): `otimes p q ≤
 oplus p q`, factoring through the lattice as `mix_chain`. -/
--- blueprint: internal (A1 bijection-law companion of `mix_chain`, content.tex lem:mix)
+-- (A1 bijection-law companion of `mix_chain`, content.tex lem:mix)
+@[blueprint_internal]
 theorem otimes_le_oplus (p q : α) : otimes p q ≤ oplus p q :=
   (otimes_le_inf p q).trans (inf_le_sup.trans (sup_le_oplus p q))
 

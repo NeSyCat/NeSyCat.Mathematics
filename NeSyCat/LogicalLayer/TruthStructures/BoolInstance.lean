@@ -3,6 +3,7 @@ Copyright (c) 2026 The NeSyCat Project (Daniel Romero Schellhorn). All rights re
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
+import NeSyCat.BlueprintAttr
 import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
 import NeSyCat.CategoricalLayer.SemiringMonads.LatticeSemiring
 
@@ -32,16 +33,18 @@ namespace BoolW
 below, e.g. `instDMStructure`'s `dneg_antitone`): transported from `Bool`'s
 decidable `≤`, since `BoolW`'s `Lattice`/`BoundedOrder` instances are
 themselves transported from `Bool` via `inferInstanceAs`. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 instance decLe : DecidableRel ((· ≤ ·) : BoolW → BoolW → Prop) :=
   inferInstanceAs (DecidableRel ((· ≤ ·) : Bool → Bool → Prop))
 
 /-- Blueprint `lem:bool-truth-structure` (`BLat2Mon BoolW`): `oplus := ⊔`
 (the blueprint's `(∨, 0)`), `otimes := ⊓` (the blueprint's `(∧, 1)`),
 `dzero := ⊥`, `done := ⊤`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `BoolW.oplus_eq_sup`, content.tex lem:bool-truth-structure)
+@[blueprint_internal]
 instance instBLat2Mon : BLat2Mon BoolW where
   oplus := (· ⊔ ·)
   dzero := ⊥
@@ -61,14 +64,15 @@ instance instBLat2Mon : BLat2Mon BoolW where
 
 /-- Blueprint `lem:bool-truth-structure` (connective collapse, `otimes`): on
 `BoolW` the `otimes`-monoid multiplication is exactly the lattice meet. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `BoolW.oplus_eq_sup`, content.tex lem:bool-truth-structure)
-@[simp] theorem otimes_eq_inf (p q : BoolW) : BLat2Mon.otimes p q = p ⊓ q := rfl
+@[simp, blueprint_internal] theorem otimes_eq_inf (p q : BoolW) : BLat2Mon.otimes p q = p ⊓ q := rfl
 
 /-- Blueprint `lem:bool-truth-structure` (`BLat2CMon BoolW`): both monoids
 are commutative on `BoolW` (`⊔`, `⊓` are commutative). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `BoolW.oplus_eq_sup`, content.tex lem:bool-truth-structure)
+@[blueprint_internal]
 instance instBLat2CMon : BLat2CMon BoolW where
   __ := instBLat2Mon
   oplus_comm := by decide
@@ -79,8 +83,9 @@ holds on `BoolW`, checked directly by `decide` on the finite carrier (the
 blueprint's own route is `thm:chain-lin` on the two-element chain, out of
 scope for this ticket; this instance proves the same content by finite
 case analysis instead). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `BoolW.oplus_eq_sup`, content.tex lem:bool-truth-structure)
+@[blueprint_internal]
 instance instLinBLat2Mon : LinBLat2Mon BoolW where
   __ := instBLat2Mon
   otimes_sup := by decide
@@ -95,8 +100,9 @@ instance instLinBLat2Mon : LinBLat2Mon BoolW where
 /-- Blueprint `lem:bool-truth-structure` (`LinBLat2CMon BoolW`): the
 commutative linear structure, combining `instLinBLat2Mon` and
 `instBLat2CMon`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `BoolW.oplus_eq_sup`, content.tex lem:bool-truth-structure)
+@[blueprint_internal]
 instance instLinBLat2CMon : LinBLat2CMon BoolW where
   __ := instLinBLat2Mon
   oplus_comm := by decide
@@ -105,8 +111,9 @@ instance instLinBLat2CMon : LinBLat2CMon BoolW where
 /-- Blueprint `lem:bool-truth-structure` (De Morgan structure on `BoolW`):
 `dneg := !·` (Boolean negation) is involutive, antitone, and satisfies the
 De Morgan law `dneg (otimes p q) = oplus (dneg q) (dneg p)`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `BoolW.oplus_eq_sup`, content.tex lem:bool-truth-structure)
+@[blueprint_internal]
 instance instDMStructure : DMStructure BoolW where
   dneg p := !p
   dneg_dneg := by decide
@@ -115,15 +122,17 @@ instance instDMStructure : DMStructure BoolW where
 
 /-- Blueprint `lem:bool-truth-structure` (ZeroBot on `BoolW`): `dzero = ⊥`
 by construction of `instBLat2Mon`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `BoolW.oplus_eq_sup`, content.tex lem:bool-truth-structure)
+@[blueprint_internal]
 instance instZeroBot : ZeroBot BoolW where
   dzero_eq_bot := rfl
 
 /-- Blueprint `lem:bool-truth-structure` (OneTop on `BoolW`): `done = ⊤`
 by construction of `instBLat2Mon`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `BoolW.oplus_eq_sup`, content.tex lem:bool-truth-structure)
+@[blueprint_internal]
 instance instOneTop : OneTop BoolW where
   done_eq_top := rfl
 

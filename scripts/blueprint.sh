@@ -44,12 +44,42 @@
 #      technical companions (simp/_apply lemmas, round-trip halves,
 #      unit-law twins, raw/corollary doublings) are unmarked internals
 #      instead, tagged `-- blueprint: internal (...)` in the Lean source.
-#   c'. CENSUS (C2-E4a/A2, scoped) — every top-level declaration in a
-#      fixed CENSUS_FILES list (the chapters this ticket touches, not yet
-#      the whole NeSyCat namespace -- a disclosed scope reduction) is
-#      either cited by exactly one env or carries the internal tag; a
-#      pragmatic text-based name matcher, not a full `lake env lean`
-#      environment fold.
+#   c'. CENSUS (C2-E4a/A2, KERNEL-TRUTH FOLD as of C2-H2 item 1) — every
+#      top-level declaration in the WHOLE NeSyCat namespace (no more
+#      CENSUS_FILES scope restriction) is either cited by exactly one env
+#      or carries the `@[blueprint_internal]` attribute (C2-H2 item 2,
+#      replacing the old `-- blueprint: internal (...)` comment tag). Kernel
+#      truth, not text: a generated Lean file folds over `(← getEnv).constants`
+#      filtered by module prefix `NeSyCat.` (via `getModuleIdxFor?` +
+#      `header.moduleNames`, not a name-prefix guess), then drops
+#      auxiliary/internal declarations via a DISCLOSED filter stack:
+#        (i)   `Lean.Name.isBlackListed` (Mathlib's own internal-decl
+#              filter: `isInternalDetail` [`_`-prefixed components,
+#              `eq_`/`match_`/`proof_`/`omega_`-prefixed names] plus
+#              `isAuxRecursor`, `isNoConfusion`, `isRec`, `isMatcher`,
+#              `sorryAx`, and a bare `.inj`);
+#        (ii)  an extra suffix list `isBlackListed` does not already cover:
+#              `.injEq`, `.sizeOf_spec`, `.sizeOf_eq`, `.brecOn`,
+#              `.binductionOn`, `.below`, `.ibelow`, `.ctorIdx`;
+#        (iii) constructors (`ConstantInfo.ctorInfo`);
+#        (iv)  structure/class field projections, via
+#              `Environment.getProjectionFnInfo?` (catches every `where`-
+#              block field, including a first-parent `extends` subobject
+#              embedding);
+#        (v)   auto-generated parent-embedding combinators for every
+#              *additional* (non-subobject) parent in a multi-`extends`
+#              class, collected via `Lean.getStructureParentInfo` over
+#              every NeSyCat structure/class (projFn names not already
+#              caught by (iv), e.g. a second `extends` parent's `.toFoo`).
+#      The root plumbing module `NeSyCat/BlueprintAttr.lean` (the
+#      attribute's own definition, which cannot self-tag) is exempted by
+#      module name, the same way STRUCTURE-MIRROR exempts the Introduction.
+#      What survives all five filters is real, human-authored content:
+#      classes, instances (named, anonymous, or `(priority := ...)`),
+#      defs, theorems, lemmas — exactly what the OLD regex census tried
+#      (and, for anonymous/`(priority := ...)` instances and any
+#      declaration outside its fixed 12-file CENSUS_FILES scope, failed)
+#      to enumerate from source text.
 #   c. REGISTRY SYNC — every `% Lean:`-tagged macro in the sibling
 #      NeSyCat.Logics/macros.sty is checked against NeSyCat/Notation.lean
 #      (vacuous-ready: prints a "not yet present" note until that file
@@ -140,7 +170,9 @@ CORR_PY="$(mktemp "${TMPDIR:-/tmp}/blueprint-correspondence.XXXXXX.py")"
 GROUPS_JSONL="$(mktemp "${TMPDIR:-/tmp}/blueprint-groups.XXXXXX.jsonl")"
 KIND_LEAN="$(mktemp "${TMPDIR:-/tmp}/blueprint-kindcheck.XXXXXX.lean")"
 KIND_OUT="$(mktemp "${TMPDIR:-/tmp}/blueprint-kindcheck.XXXXXX.out")"
-trap 'rm -f "$SCRATCH" "$CORR_PY" "$GROUPS_JSONL" "$KIND_LEAN" "$KIND_OUT"' EXIT
+CENSUS_LEAN="$(mktemp "${TMPDIR:-/tmp}/blueprint-census.XXXXXX.lean")"
+CENSUS_LEAN_OUT="$(mktemp "${TMPDIR:-/tmp}/blueprint-census.XXXXXX.out")"
+trap 'rm -f "$SCRATCH" "$CORR_PY" "$GROUPS_JSONL" "$KIND_LEAN" "$KIND_OUT" "$CENSUS_LEAN" "$CENSUS_LEAN_OUT"' EXIT
 
 cat > "$CORR_PY" << 'CORRESPONDENCE_PY_EOF'
 #!/usr/bin/env python3
@@ -501,14 +533,23 @@ def cmd_emit_lean(groups_path):
           "\"regular\"")
     print("    pure s!\"{kind}|{redStr}\"")
     print()
-    # The flat do-block's elaboration depth grows linearly with the name
-    # count; the default maxRecDepth (512) tops out near ~123 names
-    # (hit at 163 names during C2-T4). Raised with ample headroom.
-    print("set_option maxRecDepth 8000 in")
-    print("#eval show MetaM Unit from do")
+    # C2-H2 item 7: previously a FLAT sequence of N `IO.println` statements
+    # inside one `do` block, whose elaboration depth grows LINEARLY with
+    # the name count (the default maxRecDepth 512 topped out near ~123
+    # names, hit at 163 names during C2-T4, patched at the time by simply
+    # raising the budget to 8000). A `for` loop over an explicit name list
+    # is a single recursive elaboration step regardless of list length --
+    # O(1) elaboration depth, not O(n) -- so the raised budget is no
+    # longer needed and is dropped entirely (no `set_option maxRecDepth`
+    # line at all).
+    print("def blueprintKindCheckNames : List Name := [")
     for nm in names:
-        print(f"  IO.println (s!\"KIND\\t{nm}\\t\" ++ "
-              f"(<- blueprintKindOf `{nm}))")
+        print(f"  `{nm},")
+    print("]")
+    print()
+    print("#eval show MetaM Unit from do")
+    print("  for n in blueprintKindCheckNames do")
+    print("    IO.println (s!\"KIND\\t{n}\\t\" ++ (<- blueprintKindOf n))")
 
 
 def cmd_check_kinds(groups_path, lean_out_path):
@@ -607,164 +648,210 @@ def cmd_check_kinds(groups_path, lean_out_path):
     return 1 if violations else 0
 
 
+# KERNEL-TRUTH AXIOM AUDIT (C2-H2 item 3): for every cited name, its
+# transitive axiom dependency set (`Lean.collectAxioms`, the exact
+# machinery `#print axioms` itself calls) must be a subset of
+# {propext, Classical.choice, Quot.sound}. This catches TRANSITIVE
+# `sorryAx` -- a `sorry` several calls deep inside a private helper the
+# cited name depends on -- which scripts/sorry-report.sh's source-text
+# regex cannot see at all (it only scans for the literal token `sorry` in
+# each file, not what a declaration's proof term actually axiomatizes).
+ALLOWED_AXIOMS = {"propext", "Classical.choice", "Quot.sound"}
 
-# CENSUS (C2-E4a/A2 completeness law, SCOPED implementation, disclosed):
+
+def cmd_emit_axiom_lean(names):
+    print("import NeSyCat")
+    print()
+    print("open Lean Meta in")
+    print("#eval show MetaM Unit from do")
+    for nm in names:
+        print(f"  let axs <- collectAxioms `{nm}")
+        print(f"  IO.println (\"AXIOMS\\t{nm}\\t\" ++ "
+              "String.intercalate \",\" (axs.toList.map toString))")
+
+
+def cmd_axiom_check(axiom_out_path):
+    violations = []
+    n = 0
+    with open(axiom_out_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if not line.startswith("AXIOMS\t"):
+                continue
+            _, name, axs_raw = line.split("\t", 2)
+            n += 1
+            axs = [a for a in axs_raw.split(",") if a]
+            extra = [a for a in axs if a not in ALLOWED_AXIOMS]
+            shown = ", ".join(axs) if axs else "(none)"
+            print(f"AXIOM\t{name}: {shown}")
+            if extra:
+                violations.append(
+                    f"{name} depends on disallowed axiom(s) "
+                    f"{extra} (transitive #print axioms, via "
+                    "Lean.collectAxioms) -- only propext, "
+                    "Classical.choice, Quot.sound are permitted")
+    for v in violations:
+        print("VIOL\t" + v)
+    print(f"AXIOM-CHECK-SUMMARY\t{n} names audited, "
+          f"{len(violations)} violation(s)")
+    return 1 if violations else 0
+
+
+# CENSUS (C2-E4a/A2 completeness law; KERNEL-TRUTH FOLD as of C2-H2 item 1):
 # every top-level NeSyCat-namespace declaration is either cited by exactly
-# one env (the A1 bijection) or explicitly tagged `-- blueprint: internal
-# (...)` in the source. A full census would fold the *entire* Lean
-# environment via `lake env lean` filtered to the NeSyCat module prefix;
-# this implementation is a pragmatic TEXT-based name matcher over a fixed
-# CENSUS_FILES list instead (the Truth-value-structures and semiring-monad
-# chapters this ticket actually touches), not the whole namespace -- a
-# disclosed scope reduction, not a silent one. Extending CENSUS_FILES to
-# the rest of the library is future work (each new chapter's ticket should
-# add its own files here as it goes).
-CENSUS_FILES = [
-    "NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean",
-    "NeSyCat/CategoricalLayer/SemiringMonads/Dist.lean",
-    "NeSyCat/CategoricalLayer/SemiringMonads/LogIso.lean",
-    "NeSyCat/LogicalLayer/TruthStructures/BLat2Mon.lean",
-    "NeSyCat/LogicalLayer/TruthStructures/DeMorgan.lean",
-    "NeSyCat/LogicalLayer/TruthStructures/Chain.lean",
-    "NeSyCat/LogicalLayer/TruthStructures/BoolInstance.lean",
-    "NeSyCat/LogicalLayer/TruthStructures/UnitInterval.lean",
-    "NeSyCat/LogicalLayer/TruthStructures/Impossibility.lean",
-    "NeSyCat/LogicalLayer/TruthSpaces/TruthSpace.lean",
-    "NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean",
-    "NeSyCat/LogicalLayer/ThreeLayers/ThreeLayers.lean",
+# one env (the A1 bijection) or carries `@[blueprint_internal]` (C2-H2
+# item 2). `cmd_emit_census_lean` prints a Lean scratch file that folds
+# `(← getEnv).constants`, filtered by MODULE prefix `NeSyCat.` (not a name
+# guess) and the disclosed five-stage internal/auxiliary filter documented
+# at this script's top comment; `cmd_census_classify` reads that fold's
+# output back and cross-references it against `blueprint/src/content.tex`'s
+# `\lean{}` citations, exactly mirroring the old text-census's
+# cited/internal/unclassified accounting -- just sourced from the kernel
+# instead of a source-text regex, and over the WHOLE namespace instead of a
+# fixed CENSUS_FILES scope.
+CENSUS_EXTRA_AUX_SUFFIXES = [
+    "injEq", "sizeOf_spec", "sizeOf_eq", "brecOn", "binductionOn",
+    "below", "ibelow", "ctorIdx",
 ]
-
-CENSUS_DECL_RE = re.compile(
-    r'^(?:@\[[^\]]*\]\s*)?(?:private\s+)?(?:noncomputable\s+)?'
-    r'(def|theorem|lemma|instance|abbrev|structure|class)\s+'
-    # Unicode-correct identifier tail: Lean identifiers routinely carry
-    # subscript/superscript letters and digits (e.g. `lift₂`, `lift₁_eq`)
-    # which the previous ASCII-only class [A-Za-z0-9_.'] silently excluded
-    # -- truncating the match at the subscript and thereby (falsely)
-    # identifying e.g. `lift₂` as the unrelated declaration `lift`. `\w`
-    # under Python's default Unicode `re` semantics matches those
-    # characters (subscript digits/letters are Unicode word characters),
-    # so widening to `[^\W\d]` (a non-digit word character) for the start
-    # and `[\w.\']` for the tail captures the identifier in full.
-    r'([^\W\d][\w.\']*)')
-CENSUS_INTERNAL_RE = re.compile(r'--\s*blueprint:\s*internal\b')
-# Declaration names auto-generated by a `where`/anonymous-constructor
-# structure body, or by tactic blocks, are not top-level source
-# declarations and are skipped by construction (this regex only matches
-# lines beginning with a keyword at column 0, i.e. top-level decls, not
-# indented field/`where` bodies).
+# The attribute's own defining module: exempted the same way
+# STRUCTURE-MIRROR exempts the Introduction (it cannot self-tag -- applying
+# `@[blueprint_internal]` requires the attribute to already be registered,
+# which is circular on its own `initialize ... ← registerTagAttribute ...`
+# line).
+CENSUS_EXEMPT_MODULES = {"NeSyCat.BlueprintAttr"}
 
 
-def cmd_census(content_tex_path, repo_root):
+def cmd_emit_census_lean():
+    print("import NeSyCat")
+    print("import Mathlib")
+    print()
+    print("open Lean Meta")
+    print()
+    suffixes = ", ".join(f'"{s}"' for s in CENSUS_EXTRA_AUX_SUFFIXES)
+    print(f"def censusExtraAuxSuffixes : List String := [{suffixes}]")
+    print()
+    print("def censusHasAuxSuffix (n : Name) : Bool :=")
+    print("  match n with")
+    print("  | .str _ s => censusExtraAuxSuffixes.any (· == s)")
+    print("  | _ => false")
+    print()
+    exempt = ", ".join(f"`{m}" for m in sorted(CENSUS_EXEMPT_MODULES))
+    print(f"def censusExemptModules : List Name := [{exempt}]")
+    print()
+    print("#eval show MetaM Unit from do")
+    print("  let env <- getEnv")
+    print("  -- Auto-generated parent-embedding projections (both subobject")
+    print("  -- fields AND flattened multi-inheritance combinator defs) for")
+    print("  -- every structure/class under the NeSyCat module prefix.")
+    print("  let mut parentProjSet : NameSet := {}")
+    print("  for (name, _info) in env.constants.toList do")
+    print("    match env.getModuleIdxFor? name with")
+    print("    | none => pure ()")
+    print("    | some idx =>")
+    print("      let modName := env.header.moduleNames[idx]!")
+    print("      if modName.getRoot == `NeSyCat && isStructure env name then")
+    print("        for pinfo in getStructureParentInfo env name do")
+    print("          parentProjSet := parentProjSet.insert pinfo.projFn")
+    print("  for (name, info) in env.constants.toList do")
+    print("    match env.getModuleIdxFor? name with")
+    print("    | none => pure ()")
+    print("    | some idx =>")
+    print("      let modName := env.header.moduleNames[idx]!")
+    print("      if modName.getRoot == `NeSyCat "
+          "&& !censusExemptModules.contains modName then")
+    print("        let isCtor := match info with")
+    print("          | .ctorInfo _ => true")
+    print("          | _ => false")
+    print("        let isProj := (env.getProjectionFnInfo? name).isSome")
+    print("        let isParentProj := parentProjSet.contains name")
+    print("        let isThm := match info with")
+    print("          | .thmInfo _ => true")
+    print("          | _ => false")
+    print("        if (<- Lean.Name.isBlackListed name) "
+          "|| censusHasAuxSuffix name || isCtor || isProj "
+          "|| isParentProj then")
+    print("          pure ()")
+    print("        else")
+    print("          let tagged := blueprintInternalAttr.hasTag env name")
+    print("          IO.println "
+          "s!\"CENSUS\\t{name}\\t{tagged}\\t{isThm}\\t{modName}\"")
+
+
+def strip_lean_comments(src):
+    """Strip `/- ... -/` block comments and `--` line comments from Lean
+    source, tracking block-comment state across lines (shared by the
+    census-classify reuse-advisory below)."""
+    out_lines = []
+    in_block = False
+    for raw_line in src.split('\n'):
+        if in_block:
+            if "-/" in raw_line:
+                in_block = False
+                raw_line = raw_line.split("-/", 1)[1]
+            else:
+                continue
+        while "/-" in raw_line:
+            before, _, after = raw_line.partition("/-")
+            if "-/" in after:
+                _, _, after = after.partition("-/")
+                raw_line = before + after
+            else:
+                raw_line = before
+                in_block = True
+                break
+        if not in_block:
+            raw_line = raw_line.split("--", 1)[0]
+        out_lines.append(raw_line)
+    return "\n".join(out_lines)
+
+
+def cmd_census_classify(content_tex_path, census_lean_out_path, repo_root):
     text = open(content_tex_path, encoding="utf-8").read()
     cited = set()
     for m in LEAN_RE.finditer(text):
         for nm in m.group(1).split(','):
             nm = nm.strip()
             if nm:
-                # bare last segment, to match a Lean source declaration's
-                # own (possibly namespace-relative) spelling.
                 cited.add(nm.split('.')[-1])
-                cited.add(nm)  # also keep the fully-qualified form
+                cited.add(nm)
 
     total = 0
     n_cited = 0
     n_internal = 0
     unclassified = []
-    cited_theorem_decls = []  # (relpath, name) for cited theorem/lemma-kind
-                               # decls -- feeds the reuse-principle advisory
-                               # below.
-    for relpath in CENSUS_FILES:
-        path = os.path.join(repo_root, relpath)
-        if not os.path.isfile(path):
-            continue
-        lines = open(path, encoding="utf-8").read().split('\n')
-        pending_internal = False
-        in_block_comment = False  # tracks a `/- ... -/` / `/-! ... -/` /
-                                   # `/-- ... -/` doc-comment block, whose
-                                   # prose lines (e.g. "instance argument,
-                                   # not a derived one, ...") must never be
-                                   # mistaken for a top-level declaration.
-        for line in lines:
-            stripped = line.strip()
-            if in_block_comment:
-                if "-/" in line:
-                    in_block_comment = False
+    cited_theorem_decls = []  # (module, name) -- feeds the reuse advisory.
+    with open(census_lean_out_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if not line.startswith("CENSUS\t"):
                 continue
-            if stripped.startswith("/-"):
-                if "-/" not in stripped[2:]:
-                    in_block_comment = True
-                continue
-            if CENSUS_INTERNAL_RE.search(stripped):
-                pending_internal = True
-                continue
-            m = CENSUS_DECL_RE.match(line)
-            if not m:
-                # A blank/comment line between the tag and the decl keeps
-                # the pending flag alive; anything else resets it.
-                if stripped != "" and not stripped.startswith("--"):
-                    pending_internal = False
-                continue
-            name = m.group(2)
+            _, name, tagged, is_thm, mod = line.split("\t", 4)
             total += 1
             bare = name.split('.')[-1]
-            if pending_internal:
+            if tagged == "true":
                 n_internal += 1
             elif bare in cited or name in cited:
                 n_cited += 1
-                if m.group(1) in ("theorem", "lemma"):
-                    cited_theorem_decls.append((relpath, name))
+                if is_thm == "true":
+                    cited_theorem_decls.append((mod, name))
             else:
-                unclassified.append(f"{relpath}: {name}")
-            pending_internal = False
+                unclassified.append(f"{mod}: {name}")
 
     print(f"CENSUS-SUMMARY\t{total} declarations scanned "
-          f"({len(CENSUS_FILES)} files): {n_cited} cited, "
+          f"(kernel fold, whole NeSyCat namespace): {n_cited} cited, "
           f"{n_internal} internal, {len(unclassified)} unclassified")
     for u in unclassified:
         print("VIOL\t" + f"census: {u} is neither cited by any env's "
-              "\\lean{} nor tagged `-- blueprint: internal (...)`")
+              "\\lean{} nor tagged @[blueprint_internal]")
 
     # ADVISORY (C2-E4c, FORMALIZE.md's calibrated reuse/fold principle):
-    # a grep-based use count of every cited theorem/lemma-kind declaration
-    # across the WHOLE NeSyCat/ tree (not just CENSUS_FILES), surfacing
-    # zero-further-use folding CANDIDATES. This is deliberately advisory
-    # only -- never a gate violation, never affects the exit code -- since
-    # the reuse principle requires a lemma be BOTH trivial AND
-    # single-purpose before folding, and this mechanical count can only
-    # ever check the second half; every fold is individually adjudicated
-    # by LEAD/user, and a fresh lemma with zero uses so far may simply be
-    # awaiting its first consumer. Comments are stripped before counting
-    # (same block/line-comment tracking as the census scan above): a
-    # doc-comment cross-reference ("...companion of `foo`...") or another
-    # declaration's own doc string mentioning a name is not a CODE use,
-    # and counting it as one would silently hide real folding candidates
-    # (exactly the failure mode this advisory exists to surface).
-    def strip_comments(src):
-        out_lines = []
-        in_block = False
-        for raw_line in src.split('\n'):
-            if in_block:
-                if "-/" in raw_line:
-                    in_block = False
-                    raw_line = raw_line.split("-/", 1)[1]
-                else:
-                    continue
-            # Strip any number of block comments starting on this line.
-            while "/-" in raw_line:
-                before, _, after = raw_line.partition("/-")
-                if "-/" in after:
-                    _, _, after = after.partition("-/")
-                    raw_line = before + after
-                else:
-                    raw_line = before
-                    in_block = True
-                    break
-            if not in_block:
-                raw_line = raw_line.split("--", 1)[0]
-            out_lines.append(raw_line)
-        return "\n".join(out_lines)
-
+    # unchanged in spirit from the pre-C2-H2 text census -- a grep-based use
+    # count of every cited theorem-kind declaration across the WHOLE
+    # NeSyCat/ tree, surfacing zero-further-use folding CANDIDATES. Never a
+    # gate violation (see the file-level comment on the old implementation
+    # this replaces); the module name (not a relpath) is now the display
+    # label, since the source of a cited name is the kernel fold, not a
+    # per-file text scan.
     lean_root = os.path.join(repo_root, "NeSyCat")
     corpus_parts = []
     if os.path.isdir(lean_root):
@@ -773,16 +860,14 @@ def cmd_census(content_tex_path, repo_root):
                 if fn.endswith(".lean"):
                     with open(os.path.join(dirpath, fn),
                               encoding="utf-8") as fh:
-                        corpus_parts.append(strip_comments(fh.read()))
+                        corpus_parts.append(strip_lean_comments(fh.read()))
     corpus = "\n".join(corpus_parts)
     zero_use = []
-    for relpath, name in cited_theorem_decls:
+    for mod, name in cited_theorem_decls:
         bare = name.split('.')[-1]
         pat = re.compile(r'(?<![\w])' + re.escape(bare) + r'(?![\w])')
-        # count includes the declaration's own signature-line occurrence,
-        # so <=1 total occurrence means zero USES elsewhere.
         if len(pat.findall(corpus)) <= 1:
-            zero_use.append(f"{relpath}: {bare}")
+            zero_use.append(f"{mod}: {bare}")
     print(f"ADVISORY-SUMMARY\t{len(cited_theorem_decls)} cited "
           f"theorem/lemma declarations checked, {len(zero_use)} with "
           "zero further code uses (folding candidates per FORMALIZE.md's "
@@ -881,7 +966,8 @@ def cmd_structure_mirror(content_tex_path, nesycat_root):
 def main():
     if len(sys.argv) < 2:
         print("usage: correspondence.py "
-              "<structure|emit-lean|check-kinds|census|structure-mirror> ...",
+              "<structure|emit-lean|check-kinds|emit-census-lean|"
+              "census-classify|structure-mirror> ...",
               file=sys.stderr)
         return 2
     mode = sys.argv[1]
@@ -891,8 +977,16 @@ def main():
         return cmd_emit_lean(sys.argv[2])
     if mode == "check-kinds":
         return cmd_check_kinds(sys.argv[2], sys.argv[3])
-    if mode == "census":
-        return cmd_census(sys.argv[2], sys.argv[3])
+    if mode == "emit-axiom-lean":
+        cmd_emit_axiom_lean(sys.argv[2:])
+        return 0
+    if mode == "axiom-check":
+        return cmd_axiom_check(sys.argv[2])
+    if mode == "emit-census-lean":
+        cmd_emit_census_lean()
+        return 0
+    if mode == "census-classify":
+        return cmd_census_classify(sys.argv[2], sys.argv[3], sys.argv[4])
     if mode == "structure-mirror":
         return cmd_structure_mirror(sys.argv[2], sys.argv[3])
     print(f"unknown mode: {mode}", file=sys.stderr)
@@ -947,8 +1041,40 @@ if [ "$CHECK_STATUS" -ne 0 ]; then
 fi
 echo "kind-check: OK ($N_NAMES names)"
 
-echo "==> completeness census (C2-E4a/A2, scoped -- see CENSUS_FILES)"
-CENSUS_OUT="$(python3 "$CORR_PY" census blueprint/src/content.tex "$REPO_ROOT")" || true
+echo "==> kernel-truth axiom audit (C2-H2 item 3)"
+if [ "${#DECL_NAMES[@]}" -eq 0 ]; then
+  echo "kernel-truth: OK (0 names, vacuous -- no \\lean{...} names to audit)"
+else
+  AXIOM_LEAN="$(mktemp "${TMPDIR:-/tmp}/blueprint-axioms.XXXXXX.lean")"
+  AXIOM_OUT="$(mktemp "${TMPDIR:-/tmp}/blueprint-axioms.XXXXXX.out")"
+  trap 'rm -f "$SCRATCH" "$CORR_PY" "$GROUPS_JSONL" "$KIND_LEAN" "$KIND_OUT" "$CENSUS_LEAN" "$CENSUS_LEAN_OUT" "$AXIOM_LEAN" "$AXIOM_OUT"' EXIT
+
+  python3 "$CORR_PY" emit-axiom-lean "${DECL_NAMES[@]}" > "$AXIOM_LEAN"
+  if ! lake env lean "$AXIOM_LEAN" > "$AXIOM_OUT" 2>&1; then
+    echo "kernel-truth axiom audit: Lean elaboration failed:"
+    cat "$AXIOM_OUT"
+    fail 1
+  fi
+  AXIOM_CHECK_OUT="$(python3 "$CORR_PY" axiom-check "$AXIOM_OUT")" || true
+  AXIOM_STATUS=0
+  printf '%s\n' "$AXIOM_CHECK_OUT" | grep -q "^VIOL${TAB}" && AXIOM_STATUS=1
+  printf '%s\n' "$AXIOM_CHECK_OUT" | grep "^AXIOM${TAB}" | sed -E "s/^AXIOM${TAB}/  /"
+  if [ "$AXIOM_STATUS" -ne 0 ]; then
+    echo "kernel-truth axiom audit violations:"
+    printf '%s\n' "$AXIOM_CHECK_OUT" | grep "^VIOL${TAB}" | sed -E "s/^VIOL${TAB}/  - /"
+    fail 1
+  fi
+  echo "kernel-truth: OK (${#DECL_NAMES[@]} names)"
+fi
+
+echo "==> completeness census (C2-E4a/A2, KERNEL-TRUTH FOLD, whole NeSyCat namespace)"
+python3 "$CORR_PY" emit-census-lean > "$CENSUS_LEAN"
+if ! lake env lean "$CENSUS_LEAN" > "$CENSUS_LEAN_OUT" 2>&1; then
+  echo "CORRESPONDENCE census: Lean elaboration failed:"
+  cat "$CENSUS_LEAN_OUT"
+  fail 1
+fi
+CENSUS_OUT="$(python3 "$CORR_PY" census-classify blueprint/src/content.tex "$CENSUS_LEAN_OUT" "$REPO_ROOT")" || true
 CENSUS_STATUS=0
 printf '%s\n' "$CENSUS_OUT" | grep -q "^VIOL${TAB}" && CENSUS_STATUS=1
 printf '%s\n' "$CENSUS_OUT" | grep "^CENSUS-SUMMARY${TAB}" | sed -E "s/^CENSUS-SUMMARY${TAB}/census: /"

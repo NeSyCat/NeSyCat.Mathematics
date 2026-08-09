@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
+import NeSyCat.BlueprintAttr
 import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
 
 /-!
@@ -88,7 +89,8 @@ theorem dneg_inf (p q : α) : dneg (p ⊓ q) = dneg p ⊔ dneg q := by
 
 /-- Blueprint `lem:dm-lattice-laws` (De Morgan, join to meet), dually:
 `dneg (p ⊔ q) = dneg p ⊓ dneg q`. -/
--- blueprint: internal (A1 bijection-law companion of `dneg_inf`, content.tex lem:dm-lattice-laws)
+-- (A1 bijection-law companion of `dneg_inf`, content.tex lem:dm-lattice-laws)
+@[blueprint_internal]
 theorem dneg_sup (p q : α) : dneg (p ⊔ q) = dneg p ⊓ dneg q := by
   apply le_antisymm
   · exact le_inf (dneg_antitone p (p ⊔ q) le_sup_left) (dneg_antitone q (p ⊔ q) le_sup_right)
@@ -105,7 +107,8 @@ theorem dneg_sup (p q : α) : dneg (p ⊔ q) = dneg p ⊓ dneg q := by
 /-- Blueprint `lem:dm-lattice-laws` (bound swap, bottom to top):
 `dneg ⊥ = ⊤`. Proof: for every `p`, `⊥ ≤ dneg p`, so antitonicity gives
 `p = dneg (dneg p) ≤ dneg ⊥`; taking `p := ⊤` gives `⊤ ≤ dneg ⊥`. -/
--- blueprint: internal (A1 bijection-law companion of `dneg_inf`, content.tex lem:dm-lattice-laws)
+-- (A1 bijection-law companion of `dneg_inf`, content.tex lem:dm-lattice-laws)
+@[blueprint_internal]
 theorem dneg_bot : dneg (⊥ : α) = ⊤ := by
   apply le_antisymm le_top
   have h := dneg_antitone (⊥ : α) (dneg (⊤ : α)) bot_le
@@ -113,7 +116,8 @@ theorem dneg_bot : dneg (⊥ : α) = ⊤ := by
 
 /-- Blueprint `lem:dm-lattice-laws` (bound swap, top to bottom), dually:
 `dneg ⊤ = ⊥`. -/
--- blueprint: internal (A1 bijection-law companion of `dneg_inf`, content.tex lem:dm-lattice-laws)
+-- (A1 bijection-law companion of `dneg_inf`, content.tex lem:dm-lattice-laws)
+@[blueprint_internal]
 theorem dneg_top : dneg (⊤ : α) = ⊥ := by
   apply le_antisymm _ bot_le
   have h := dneg_antitone (dneg (⊥ : α)) (⊤ : α) le_top
@@ -138,8 +142,9 @@ law, the second from `e`'s
 left-unit hypothesis instantiated at `dzero`. Both hypotheses are kept
 (matching the blueprint's "two-sided" framing at the call site below),
 though only the left one is consumed here. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 private theorem oplus_unit_eq_dzero {e : α}
     (hl : ∀ p, oplus e p = p) (_hr : ∀ p, oplus p e = p) : e = dzero :=
   (BLat2Mon.oplus_dzero e).symm.trans (hl dzero)
@@ -163,7 +168,8 @@ theorem dneg_done : dneg (done : α) = dzero := by
 
 /-- Blueprint `lem:dm-unit-swap` (negation swaps `dzero` to `done`), the
 converse: `dneg dzero = done`, from `dneg_done` and involution. -/
--- blueprint: internal (A1 bijection-law companion of `dneg_done`, content.tex lem:dm-unit-swap)
+-- (A1 bijection-law companion of `dneg_done`, content.tex lem:dm-unit-swap)
+@[blueprint_internal]
 theorem dneg_dzero : dneg (dzero : α) = done := by
   have h : dneg (dneg (done : α)) = dneg dzero := by rw [dneg_done]
   rw [dneg_dneg] at h
@@ -198,8 +204,9 @@ hypothesis `hand`), the bound swap, the unit swap, and antitonicity —
 exactly the calculus of `lem:dm-lattice-laws`, `lem:dm-dual-law`, and
 `lem:dm-unit-swap`, packaged as one `Prop` so `dm_presentations` below can
 name it as a single TFAE member. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `dm_presentations`, content.tex thm:dm-presentations)
+@[blueprint_internal]
 def DMFullCalculus (n : α → α) : Prop :=
   (∀ p q : α, n (p ⊓ q) = n p ⊔ n q) ∧
   (∀ p q : α, n (p ⊔ q) = n p ⊓ n q) ∧

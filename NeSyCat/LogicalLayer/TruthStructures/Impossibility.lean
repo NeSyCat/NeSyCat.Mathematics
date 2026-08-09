@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
+import NeSyCat.BlueprintAttr
 import NeSyCat.CategoricalLayer.SemiringMonads.LogIso
 import NeSyCat.LogicalLayer.TruthStructures.BLat2Mon
 import NeSyCat.LogicalLayer.TruthSpaces.Lifted
@@ -96,8 +97,9 @@ beaten by any real coercion, and a finite `a` is beaten by `a + 1`. The
 own order is literally `WithBot ℝ`'s, via `NeSyCat/CategoricalLayer/SemiringMonads/LogIso.lean`'s
 `instLatticeLogS`), proved entirely at the `WithBot ℝ` level per that
 file's own "build at `WithBot ℝ`, cast once" technique note. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 private theorem withBot_real_not_bddAbove (t : WithBot ℝ) : ∃ b : WithBot ℝ, t < b := by
   induction t using WithBot.recBotCoe with
   | bot => exact ⟨(0 : ℝ), WithBot.bot_lt_coe 0⟩
@@ -130,45 +132,51 @@ carried through the `toDual`/`ofDual` wrappers of the order-family type
 (`NeSyCat/LogicalLayer/TruthSpaces/Lifted.lean`) is exactly this formula at the un-dualized
 `twoSlot` — but defined directly by formula here, not via that transport,
 per the ticket's own pin. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 noncomputable def otimesSq (a b : ℝ≥0ᵒᵈ × ℝ≥0) : ℝ≥0ᵒᵈ × ℝ≥0 :=
   (toDual (ofDual a.1 * ofDual b.1 + ofDual a.1 * b.2 + a.2 * ofDual b.1), a.2 * b.2)
 
 /-- Blueprint `thm:square-not-lin` (the `oplus`-lift's raw two-slot formula),
 dually to `otimesSq`: `oplusSq (a₀,a₁) (b₀,b₁) = (a₀b₀,\ a₀b₁+a₁b₀+a₁b₁)` —
 `lem:lifted-mass`'s `twoSlot_oplusM_mass` at the un-dualized `twoSlot`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 noncomputable def oplusSq (a b : ℝ≥0ᵒᵈ × ℝ≥0) : ℝ≥0ᵒᵈ × ℝ≥0 :=
   (toDual (ofDual a.1 * ofDual b.1), ofDual a.1 * b.2 + a.2 * ofDual b.1 + a.2 * b.2)
 
 /-- Blueprint `thm:square-not-lin` (the slot swap `dneg (w₀,w₁) = (w₁,w₀)`),
 mod the `toDual`/`ofDual` wrappers — `def:order-family`'s slot-swap
 negation, the candidate DM structure of this theorem. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 noncomputable def swapSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : ℝ≥0ᵒᵈ × ℝ≥0 := (toDual w.2, ofDual w.1)
 
 /-- Blueprint `thm:square-not-lin` (DM axiom (i), involution): `swapSq` is
 its own inverse — immediate, `toDual`/`ofDual` cancel definitionally. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem swapSq_swapSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : swapSq (swapSq w) = w := rfl
 
 /-- Blueprint `thm:square-not-lin` (DM axiom (ii), antitonicity): `swapSq`
 is antitone for the order family (slot `0` reversed, `def:order-family`) —
 each component of the product order flips into the other under the swap. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem swapSq_antitone : Antitone swapSq := by
   intro a b hab
   exact ⟨toDual_le_toDual.mpr hab.2, ofDual_le_ofDual.mpr hab.1⟩
 
 /-- Blueprint `thm:square-not-lin` (`otimesSq` commutativity), a ring-level
 identity in `ℝ≥0` once the `toDual`/`ofDual` wrappers cancel. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem otimesSq_comm (a b : ℝ≥0ᵒᵈ × ℝ≥0) : otimesSq a b = otimesSq b a := by
   unfold otimesSq
   simp only [Prod.mk.injEq]
@@ -181,8 +189,9 @@ cross terms of `otimesSq (otimesSq a b) c`/`otimesSq a (otimesSq b c)`'s slot-`0
 formula are literally the same seven monomials, `ring`-provably equal
 (the mechanism `lem:linear-lift`'s `otimesM_assoc` already exercises one
 level up, at general `[CommSemiring S]`). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem otimesSq_assoc (a b c : ℝ≥0ᵒᵈ × ℝ≥0) :
     otimesSq (otimesSq a b) c = otimesSq a (otimesSq b c) := by
   unfold otimesSq
@@ -193,8 +202,9 @@ theorem otimesSq_assoc (a b c : ℝ≥0ᵒᵈ × ℝ≥0) :
 
 /-- Blueprint `thm:square-not-lin` (`oplusSq` commutativity), dually to
 `otimesSq_comm`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem oplusSq_comm (a b : ℝ≥0ᵒᵈ × ℝ≥0) : oplusSq a b = oplusSq b a := by
   unfold oplusSq
   simp only [Prod.mk.injEq]
@@ -204,8 +214,9 @@ theorem oplusSq_comm (a b : ℝ≥0ᵒᵈ × ℝ≥0) : oplusSq a b = oplusSq b 
 
 /-- Blueprint `thm:square-not-lin` (`oplusSq` associativity), dually to
 `otimesSq_assoc`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem oplusSq_assoc (a b c : ℝ≥0ᵒᵈ × ℝ≥0) :
     oplusSq (oplusSq a b) c = oplusSq a (oplusSq b c) := by
   unfold oplusSq
@@ -217,39 +228,45 @@ theorem oplusSq_assoc (a b c : ℝ≥0ᵒᵈ × ℝ≥0) :
 /-- Blueprint `thm:square-not-lin` (`oplus`-unit): the image of `Ret 0`
 under `orderedTwoSlot` (`lem:lifted-mass`'s `twoSlot_ret_zero_mass`,
 dualized in slot `0`), `(toDual 1, 0)`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 noncomputable def oplusUnitSq : ℝ≥0ᵒᵈ × ℝ≥0 := (toDual 1, 0)
 
 /-- Blueprint `thm:square-not-lin` (`otimes`-unit): the image of `Ret 1`
 under `orderedTwoSlot`, `(toDual 0, 1)`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 noncomputable def otimesUnitSq : ℝ≥0ᵒᵈ × ℝ≥0 := (toDual 0, 1)
 
 /-- Blueprint `thm:square-not-lin` (`oplus`-unit law, left): `oplusUnitSq` is a
 left unit for `oplusSq`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem oplusUnitSq_oplusSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : oplusSq oplusUnitSq w = w := by
   unfold oplusSq oplusUnitSq; simp
 
 /-- Blueprint `thm:square-not-lin` (`oplus`-unit law, right). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem oplusSq_oplusUnitSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : oplusSq w oplusUnitSq = w := by
   unfold oplusSq oplusUnitSq; simp
 
 /-- Blueprint `thm:square-not-lin` (`otimes`-unit law, left): `otimesUnitSq` is a
 left unit for `otimesSq`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem otimesUnitSq_otimesSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : otimesSq otimesUnitSq w = w := by
   unfold otimesSq otimesUnitSq; simp
 
 /-- Blueprint `thm:square-not-lin` (`otimes`-unit law, right). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem otimesSq_otimesUnitSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : otimesSq w otimesUnitSq = w := by
   unfold otimesSq otimesUnitSq; simp
 
@@ -257,8 +274,9 @@ theorem otimesSq_otimesUnitSq (w : ℝ≥0ᵒᵈ × ℝ≥0) : otimesSq w otimes
 `swapSq (otimesSq a b) = oplusSq (swapSq b) (swapSq a)`. A ring-level identity
 after `toDual`/`ofDual` cancel — the same seven cross terms as `otimesSq`'s
 formula, matched against `oplusSq`'s. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem swapSq_dm (a b : ℝ≥0ᵒᵈ × ℝ≥0) : swapSq (otimesSq a b) = oplusSq (swapSq b) (swapSq a) := by
   unfold swapSq otimesSq oplusSq
   simp only [ofDual_toDual, Prod.mk.injEq]
@@ -273,8 +291,9 @@ Witness `p = (1,0)`, `r = (5,0)`, `q = (0,10)`: `r ≤ q` in the order family
 reversed slot (`10 ≤ 5` is false). The mechanism is the cross term
 `a₀b₁` in slot `0`: raising the *for*-weight `b₁` raises the *against*-slot
 of the output. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem otimesSq_not_monotone_right :
     ¬ Monotone (otimesSq (toDual (1 : ℝ≥0), (0 : ℝ≥0))) := by
   intro hmono
@@ -297,8 +316,9 @@ bridge; raw twin of `lem:lin-monotone`): if `f` distributes over `⊔` in an
 argument then `f` is monotone in it — on any `SemilatticeSup`, no
 `BLat2Mon`/monoid structure needed. Proof: `p ≤ q` gives `p ⊔ q = q`, so
 `f p ≤ f p ⊔ f q = f (p ⊔ q) = f q`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem monotone_of_distrib_sup {α β : Type*} [SemilatticeSup α] [SemilatticeSup β]
     (f : α → β) (hf : ∀ q r, f (q ⊔ r) = f q ⊔ f r) : Monotone f := by
   intro q r hqr
@@ -326,8 +346,9 @@ formula, restated verbatim at `ℝ≥0∞ᵒᵈ × ℝ≥0∞`, the bounded comp
 the order family. Not the deferred completion-*instances* work (no
 `BLat2Mon`/`Lattice` machinery is built here) — just this theorem's final
 clause, that the counterexample below persists unchanged. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 noncomputable def otimesSqENN (a b : ℝ≥0∞ᵒᵈ × ℝ≥0∞) : ℝ≥0∞ᵒᵈ × ℝ≥0∞ :=
   (toDual (ofDual a.1 * ofDual b.1 + ofDual a.1 * b.2 + a.2 * ofDual b.1), a.2 * b.2)
 
@@ -335,8 +356,9 @@ noncomputable def otimesSqENN (a b : ℝ≥0∞ᵒᵈ × ℝ≥0∞) : ℝ≥0�
 `p = (1,0)`, `r = (5,0)`, `q = (0,10)` refutes monotonicity of `otimesSqENN`
 in `ℝ≥0∞ᵒᵈ × ℝ≥0∞` — "the counterexample persists unchanged in the bounded
 completion `[0,∞]²`". -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimesSq_not_lin`, content.tex thm:square-not-lin)
+@[blueprint_internal]
 theorem otimesSqENN_not_monotone_right :
     ¬ Monotone (otimesSqENN (toDual (1 : ℝ≥0∞), (0 : ℝ≥0∞))) := by
   intro hmono

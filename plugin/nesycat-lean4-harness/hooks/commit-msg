@@ -10,8 +10,10 @@
 # document.
 #
 # Rejects the commit (exit 1) when ALL of the following hold:
-#   - the STAGED diff touches a *.lean file that declares a name cited
-#     by a \lean{...} mark in blueprint/src/content.tex,
+#   - the STAGED diff touches a *.lean file, under the repo's
+#     auto-discovered Lean source root (see LEAN-ROOT AUTO-DISCOVERY
+#     below), that declares a name cited by a \lean{...} mark in
+#     blueprint/src/content.tex,
 #   - blueprint/src/content.tex is NOT itself staged in this commit, and
 #   - the commit message contains no line starting with "Blueprint-sync:".
 #
@@ -26,16 +28,36 @@
 #      skip -- the same convention as a justified never-lose-work
 #      line-count decrease.
 #
+# LEAN-ROOT AUTO-DISCOVERY (C2-H2 item 5 hardening): both laws below
+# scope "Lean source changed" to the repo's single auto-discovered Lean
+# source root -- the lone top-level directory (excluding VCS/build/
+# tooling/vendored-reference trees) containing any *.lean file --
+# rather than every *.lean file in the repo. Before this fix, LAW 1
+# matched a bare `*.lean` pathspec with no root-scoping at all: a
+# vendored documentation tree living at the repo root (e.g. this
+# plugin's own home repo vendors `references/lean-docs/`, 496 *.lean
+# files of Mathematics-in-Lean/reference-manual source, never part of
+# the library itself) got counted as "Lean source changed" on any touch,
+# diluting LAW 1 into noise on vendoring commits. Root discovery is
+# ambiguous (more than one candidate directory) in exactly that
+# situation unless the vendored directory is excluded, which is also
+# why LAW 2's own pre-existing auto-discovery is now run through the
+# same excludes: an ambiguous root previously made LAW 2 silently no-op
+# too. Ambiguous or absent, both laws fall back to their existing
+# "can't scope, don't block" philosophy (a root module living directly
+# in the discovered root, e.g. a library's `Notation.lean`/`Basic.lean`
+# analogues, is still in-scope for both laws -- root-scoping only
+# excludes files OUTSIDE the discovered root entirely, not root-level
+# files within it).
+#
 # SECOND LAW (generic twin, C2-E6 STRUCTURE-MIRROR ENFORCEMENT): for a
 # host repo that mirrors its blueprint's \section/\subsection tree onto
 # its Lean source tree, every \section/\subsection may carry a trailing
 # `% lean-dir: <path>` tag naming its Lean-source folder (relative to
-# the repo's single auto-discovered Lean source root -- the lone
-# top-level directory containing any *.lean file, skipping VCS/build/
-# tooling directories; ambiguous or absent, this law simply no-ops,
-# since it is opt-in convention, not every leanblueprint repo's own).
-# When tags ARE present, every tagged path must exist as a folder and
-# every folder under the Lean root must be tagged by some section --
+# the Lean root discovered above; ambiguous or absent, this law simply
+# no-ops, since it is opt-in convention, not every leanblueprint repo's
+# own). When tags ARE present, every tagged path must exist as a folder
+# and every folder under the Lean root must be tagged by some section --
 # pure text + filesystem, no Lean elaboration.
 #
 # Host repos that want this gate: copy this file to
@@ -68,16 +90,61 @@ command -v git >/dev/null 2>&1 || exit 0
 CONTENT_TEX="$REPO_ROOT/blueprint/src/content.tex"
 [ -f "$CONTENT_TEX" ] || exit 0  # no blueprint here -- nothing to enforce.
 
+# LEAN-ROOT AUTO-DISCOVERY (C2-H2 item 5, see the file-level comment
+# above): the lone top-level directory (excluding VCS/build/tooling/
+# vendored-reference trees) containing any *.lean file. Printed as a
+# single directory NAME (relative to $REPO_ROOT) on stdout; ambiguous or
+# absent prints nothing (or more than one line), normalized to empty
+# below, and both laws then fall back to their own "can't scope, don't
+# block" no-op.
+#
+# Written to a temp file rather than a heredoc directly inside
+# `LEAN_ROOT_NAME="$( ... )"`: macOS's stock bash 3.2 mis-parses a
+# quoted-delimiter heredoc nested inside `$( )` once its body contains
+# an apostrophe followed (anywhere later, even lines later) by a `)` --
+# both appear in this file's own prose comments, so this indirection is
+# load-bearing, not stylistic.
+LEAN_ROOT_PY="$(mktemp "${TMPDIR:-/tmp}/nesycat-leanroot.XXXXXX.py")"
+trap 'rm -f "$LEAN_ROOT_PY"' EXIT
+cat > "$LEAN_ROOT_PY" << 'PYEOF'
+import os
+import sys
+
+repo_root = sys.argv[1]
+# "references" (vendored reference/documentation trees, e.g. a copy of
+# Mathematics in Lean or the Lean reference manual kept for citation --
+# never the library's own source) joins the VCS/build/tooling excludes;
+# see the file-level comment for the concrete motivating case.
+SKIP = {".git", ".lake", "lake-packages", "build", "blueprint", "scripts",
+        ".github", ".claude", "plugin", ".venvs", ".foreman", "references"}
+for entry in sorted(os.listdir(repo_root)):
+    if entry.startswith(".") or entry in SKIP:
+        continue
+    p = os.path.join(repo_root, entry)
+    if not os.path.isdir(p):
+        continue
+    for _dirpath, _dirnames, filenames in os.walk(p):
+        if any(f.endswith(".lean") for f in filenames):
+            print(entry)
+            break
+PYEOF
+LEAN_ROOT_NAME="$(python3 "$LEAN_ROOT_PY" "$REPO_ROOT")"
+rm -f "$LEAN_ROOT_PY"
+if [ "$(printf '%s\n' "$LEAN_ROOT_NAME" | grep -c .)" -ne 1 ]; then
+  LEAN_ROOT_NAME=""  # none or ambiguous -- both laws below no-op on this.
+fi
+
 # LAW 2: STRUCTURE-MIRROR (generic twin). Runs unconditionally
 # (independent of the feedback-loop law below and its exit-0
 # short-circuits), against the working tree. No-ops (never blocks) when
-# no section carries any `% lean-dir:` tag at all -- opt-in convention.
-python3 - "$CONTENT_TEX" "$REPO_ROOT" << 'PYEOF'
+# no section carries any `% lean-dir:` tag at all -- opt-in convention --
+# or when LEAN_ROOT_NAME above is ambiguous/absent.
+python3 - "$CONTENT_TEX" "$REPO_ROOT" "$LEAN_ROOT_NAME" << 'PYEOF'
 import os
 import re
 import sys
 
-content_tex, repo_root = sys.argv[1], sys.argv[2]
+content_tex, repo_root, lean_root_name = sys.argv[1], sys.argv[2], sys.argv[3]
 
 STRUCTURE_MIRROR_RE = re.compile(
     r"^\\(section|subsection)\{([^}]*)\}"
@@ -93,28 +160,9 @@ with open(content_tex, encoding="utf-8", errors="replace") as fh:
 if not any(tag is not None for _k, _t, tag in sections):
     sys.exit(0)  # opt-in convention unused by this repo -- vacuous.
 
-# Auto-discover the Lean source root: the lone top-level directory
-# (excluding VCS/build/tooling directories) containing any *.lean file.
-SKIP = {".git", ".lake", "lake-packages", "build", "blueprint", "scripts",
-        ".github", ".claude", "plugin", ".venvs", ".foreman"}
-candidates = []
-for entry in sorted(os.listdir(repo_root)):
-    if entry.startswith(".") or entry in SKIP:
-        continue
-    p = os.path.join(repo_root, entry)
-    if not os.path.isdir(p):
-        continue
-    found = False
-    for _dirpath, _dirnames, filenames in os.walk(p):
-        if any(f.endswith(".lean") for f in filenames):
-            found = True
-            break
-    if found:
-        candidates.append(entry)
-
-if len(candidates) != 1:
+if not lean_root_name:
     sys.exit(0)  # ambiguous/no Lean root -- can't check, don't block.
-lean_root = os.path.join(repo_root, candidates[0])
+lean_root = os.path.join(repo_root, lean_root_name)
 
 violations = []
 declared = set()
@@ -130,7 +178,7 @@ for kind, title, tag in sections:
     if not os.path.isdir(os.path.join(lean_root, tag)):
         violations.append(
             f"tagged-but-missing folder: \\{kind}{{{title}}} tags "
-            f"'{tag}' but {candidates[0]}/{tag}/ does not exist")
+            f"'{tag}' but {lean_root_name}/{tag}/ does not exist")
 
 for dirpath, dirnames, _filenames in os.walk(lean_root):
     dirnames[:] = [d for d in dirnames if not d.startswith(".")]
@@ -140,7 +188,7 @@ for dirpath, dirnames, _filenames in os.walk(lean_root):
     rel = rel.replace(os.sep, "/")
     if rel not in declared:
         violations.append(
-            f"orphan folder: {candidates[0]}/{rel}/ has no matching "
+            f"orphan folder: {lean_root_name}/{rel}/ has no matching "
             "'% lean-dir:' tag in content.tex")
 
 if violations:
@@ -159,14 +207,19 @@ if [ "$STRUCTURE_MIRROR_STATUS" -ne 0 ]; then
   exit "$STRUCTURE_MIRROR_STATUS"
 fi
 
-# 1. Staged Lean files, added/copied/modified/renamed.
+# 1. Staged Lean files, restricted to the auto-discovered Lean root above
+#    (C2-H2 item 5 -- a vendored tree outside it never counts as "Lean
+#    source changed"), added/copied/modified/renamed. Ambiguous/absent
+#    root -- no-op, same philosophy as LAW 2.
 STAGED_LEAN=()
-while IFS= read -r line; do
-  [ -n "$line" ] && STAGED_LEAN+=("$line")
-done < <(git diff --cached --name-only --diff-filter=ACMR -- '*.lean' 2>/dev/null)
+if [ -n "$LEAN_ROOT_NAME" ]; then
+  while IFS= read -r line; do
+    [ -n "$line" ] && STAGED_LEAN+=("$line")
+  done < <(git diff --cached --name-only --diff-filter=ACMR -- "${LEAN_ROOT_NAME}/*.lean" 2>/dev/null)
+fi
 
 if [ "${#STAGED_LEAN[@]}" -eq 0 ]; then
-  exit 0  # no Lean touched -- law doesn't apply.
+  exit 0  # no in-scope Lean touched -- law doesn't apply.
 fi
 
 # 2. content.tex itself staged -> satisfied.

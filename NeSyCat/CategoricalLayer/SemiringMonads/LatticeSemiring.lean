@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
+import NeSyCat.BlueprintAttr
 
 /-!
 # Lattice-semirings
@@ -91,6 +92,9 @@ from `Semiring.toAddCommMonoid`). This makes `add_le_add_right` redundant as
 *mathematical content* even though it remains an explicit field of the class
 (for definitional symmetry with the genuinely-independent `⊗` pair; contrast
 `LatCSRng.mul_le_mul_right_of_left` below). -/
+-- (C2-H2/item-1 completeness census: pre-existing internal corollary, not
+-- itself blueprint-cited -- def:lattice-semiring cites the class only)
+@[blueprint_internal]
 theorem add_le_add_right_of_left {a b : S} (h : a ≤ b) (c : S) : a + c ≤ b + c := by
   rw [add_comm a c, add_comm b c]
   exact add_le_add_left h c
@@ -117,6 +121,10 @@ underlying `Semiring` plus its own `mul_comm` field. Kept at low priority so
 it never competes with a type's own directly-declared `CommSemiring`
 instance (e.g. `ℝ≥0`'s, which this instance would otherwise duplicate)
 during instance search. -/
+-- (C2-H2/item-1 completeness census: pre-existing internal instance, not
+-- itself blueprint-cited -- def:comm-lattice-semiring cites the class only;
+-- a regex-invisible `(priority := ...)` specimen the old text census missed)
+@[blueprint_internal]
 instance (priority := 100) LatCSRng.toCommSemiring
     {S : Type*} [LatCSRng S] : CommSemiring S :=
   { (inferInstance : Semiring S) with mul_comm := LatCSRng.mul_comm }
@@ -135,6 +143,9 @@ right-monotonicity fields become theorems, not independent data. The general
 `LatSRng` cannot do the analogous thing for `⊗`: without `mul_comm` in hand,
 `mul_le_mul_right` is not recoverable from `mul_le_mul_left`, so it
 genuinely needs both `⊗`-direction fields as independent hypotheses. -/
+-- (C2-H2/item-1 completeness census: pre-existing internal corollary, not
+-- itself blueprint-cited -- def:comm-lattice-semiring cites the class only)
+@[blueprint_internal]
 theorem mul_le_mul_right_of_left {a b : S} (h : a ≤ b) (c : S) : a * c ≤ b * c := by
   rw [LatCSRng.mul_comm a c, LatCSRng.mul_comm b c]
   exact LatSRng.mul_le_mul_left h c
@@ -165,6 +176,10 @@ class BLatCSRng (S : Type*) extends BLatSRng S where
 /-- Every `BLatCSRng` is in particular a `LatCSRng` (dropping boundedness),
 built from its underlying `LatSRng` plus its own `mul_comm` field. Kept at
 low priority for the same reason as `LatCSRng.toCommSemiring`. -/
+-- (C2-H2/item-1 completeness census: pre-existing internal instance, not
+-- itself blueprint-cited -- def:bounded-comm-lattice-semiring cites the
+-- class only; a regex-invisible `(priority := ...)` specimen)
+@[blueprint_internal]
 instance (priority := 100) BLatCSRng.toLatCSRng
     {S : Type*} [BLatCSRng S] : LatCSRng S :=
   { (inferInstance : LatSRng S) with mul_comm := BLatCSRng.mul_comm }
@@ -182,19 +197,33 @@ operations. -/
 structure (`⊕ = or`, `⊗ = and`), kept separate from Mathlib's existing
 `CommSemiring Bool` (the `xor`/`and` Boolean ring) so the two instances do
 not conflict. -/
+-- (C2-H2/item-1 completeness census: carrier definition backing the cited
+-- `instBLatCSRng`, not itself blueprint-cited -- inst:boolw-latcsrng cites
+-- the instance, not the type)
+@[blueprint_internal]
 def BoolW : Type := Bool
   deriving DecidableEq, Fintype
 
+-- (C2-H2/item-1 completeness census: `deriving`-synthesized instances,
+-- attached post-hoc since a `deriving` clause carries no attribute site of
+-- its own -- not blueprint-cited, same reason as `BoolW` above)
+attribute [blueprint_internal] instDecidableEqBoolW instFintypeBoolW
+
 namespace BoolW
 
-instance : Lattice BoolW := inferInstanceAs (Lattice Bool)
-instance : BoundedOrder BoolW := inferInstanceAs (BoundedOrder Bool)
+-- (C2-H2/item-1 completeness census: anonymous instances -- pre-existing
+-- internal plumbing transported straight from `Bool`, not blueprint-cited;
+-- the regex-invisible "instFooBar-style auto-names" specimens the old text
+-- census could never see, since no `instance <name>` ever appears in source)
+@[blueprint_internal] instance : Lattice BoolW := inferInstanceAs (Lattice Bool)
+@[blueprint_internal] instance : BoundedOrder BoolW := inferInstanceAs (BoundedOrder Bool)
 
-instance : Zero BoolW := ⟨(false : Bool)⟩
-instance : One BoolW := ⟨(true : Bool)⟩
-instance : Add BoolW := ⟨fun a b => a ⊔ b⟩
-instance : Mul BoolW := ⟨fun a b => a ⊓ b⟩
+@[blueprint_internal] instance : Zero BoolW := ⟨(false : Bool)⟩
+@[blueprint_internal] instance : One BoolW := ⟨(true : Bool)⟩
+@[blueprint_internal] instance : Add BoolW := ⟨fun a b => a ⊔ b⟩
+@[blueprint_internal] instance : Mul BoolW := ⟨fun a b => a ⊓ b⟩
 
+@[blueprint_internal]
 instance : CommSemiring BoolW where
   add_assoc := by decide
   zero_add := by decide
@@ -214,11 +243,15 @@ instance : CommSemiring BoolW where
 `0` (also `false`): the Boolean instance's bounds are in-carrier and agree
 with the semiring's own additive/multiplicative units, unlike the
 unbounded mass/log instances. -/
-@[simp] theorem bot_eq_zero : (⊥ : BoolW) = 0 := rfl
+-- (C2-H2/item-1 completeness census: pre-existing internal fact, not
+-- itself blueprint-cited -- inst:boolw-latcsrng cites `instBLatCSRng`)
+@[simp, blueprint_internal] theorem bot_eq_zero : (⊥ : BoolW) = 0 := rfl
 
 /-- `BoolW`'s top (`true`, `BoundedOrder.top`) coincides with its `1`
 (also `true`). -/
-@[simp] theorem top_eq_one : (⊤ : BoolW) = 1 := rfl
+-- (C2-H2/item-1 completeness census: pre-existing internal fact, not
+-- itself blueprint-cited -- inst:boolw-latcsrng cites `instBLatCSRng`)
+@[simp, blueprint_internal] theorem top_eq_one : (⊤ : BoolW) = 1 := rfl
 
 /-- Blueprint `inst:boolw-latcsrng` (Boolean row): `⊕ = or` is exactly
 the lattice join and `⊗ = and` is exactly the lattice meet, so both

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
+import NeSyCat.BlueprintAttr
 import NeSyCat.LogicalLayer.TruthSpaces.TruthSpace
 import NeSyCat.LogicalLayer.TruthStructures.UnitInterval
 import NeSyCat.CategoricalLayer.SemiringMonads.LogIso
@@ -71,8 +72,9 @@ the sixteen sign patterns of the four `if`-conditions is `noncomm_ring`
 (no commutativity of `S`'s `*` is used — only distributivity, matching
 `NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean`'s "distributivity is bind
 associativity" theme one level up). -/
--- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- (A1 bijection-law companion of `lift`, content.tex
 -- def:lifted-connective)
+@[blueprint_internal]
 theorem lift₂_apply (op : BoolW → BoolW → BoolW) (w v : MS S BoolW) (c : BoolW) :
     (lift₂ op w v) c =
       (if op 0 0 = c then w 0 * v 0 else 0) + (if op 0 1 = c then w 0 * v 1 else 0) +
@@ -87,8 +89,9 @@ engine, `twoSlot` form): the two-coordinate readout of a binary lifted
 connective, in terms of the four Boolean argument-pair contributions —
 `lift₂_apply` at `c = 0` and `c = 1`. Proved once at general `[Semiring S]`;
 every mass/log coordinate formula below is a substitution instance. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 theorem twoSlot_lift₂ (op : BoolW → BoolW → BoolW) (w v : MS S BoolW) :
     twoSlot (lift₂ op w v) =
       ((if op 0 0 = 0 then w 0 * v 0 else 0) + (if op 0 1 = 0 then w 0 * v 1 else 0) +
@@ -100,8 +103,9 @@ theorem twoSlot_lift₂ (op : BoolW → BoolW → BoolW) (w v : MS S BoolW) :
   · exact lift₂_apply op w v 1
 
 /-- The unary routing engine (pointwise form), dual to `lift₂_apply`. -/
--- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- (A1 bijection-law companion of `lift`, content.tex
 -- def:lifted-connective)
+@[blueprint_internal]
 theorem lift₁_apply (op : BoolW → BoolW) (w : MS S BoolW) (c : BoolW) :
     (lift₁ op w) c = (if op 0 = c then w 0 else 0) + (if op 1 = c then w 1 else 0) := by
   rw [lift₁_eq, bind_apply_boolW]
@@ -110,8 +114,9 @@ theorem lift₁_apply (op : BoolW → BoolW) (w : MS S BoolW) (c : BoolW) :
   split_ifs <;> noncomm_ring
 
 /-- The unary routing engine, `twoSlot` form. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 theorem twoSlot_lift₁ (op : BoolW → BoolW) (w : MS S BoolW) :
     twoSlot (lift₁ op w) =
       ((if op 0 = 0 then w 0 else 0) + (if op 1 = 0 then w 1 else 0),
@@ -122,22 +127,25 @@ theorem twoSlot_lift₁ (op : BoolW → BoolW) (w : MS S BoolW) :
 
 /-! ### The general (`[Semiring S]`) coordinate formulas, proved once -/
 
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 private theorem BoolW_and_table :
     ((0 : BoolW) * 0 = 0) ∧ ((0 : BoolW) * 1 = 0) ∧ ((1 : BoolW) * 0 = 0) ∧
       ((1 : BoolW) * 1 = 1) :=
   ⟨by decide, by decide, by decide, by decide⟩
 
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 private theorem BoolW_or_table :
     ((0 : BoolW) + 0 = 0) ∧ ((0 : BoolW) + 1 = 1) ∧ ((1 : BoolW) + 0 = 1) ∧
       ((1 : BoolW) + 1 = 1) :=
   ⟨by decide, by decide, by decide, by decide⟩
 
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 private theorem BoolW_not_table : (negOp (0 : BoolW) = 1) ∧ (negOp (1 : BoolW) = 0) :=
   ⟨by decide, by decide⟩
 
@@ -148,8 +156,9 @@ engine `twoSlot_lift₂` specialized at `op := ∧`, then `BoolW_and_table`
 resolves all four `if`-conditions). Proved once; `lem:lifted-mass` and
 `lem:lifted-log` are the `S := ℝ≥0`/`S := LogS` instances below, with no
 sum manipulation repeated per carrier. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_otimesM (w v : MS S BoolW) :
     twoSlot (otimesM w v) = (w 0 * v 0 + w 0 * v 1 + w 1 * v 0, w 1 * v 1) := by
   obtain ⟨h00, h01, h10, h11⟩ := BoolW_and_table
@@ -159,8 +168,9 @@ theorem twoSlot_otimesM (w v : MS S BoolW) :
 
 /-- The `oplus`-lift's coordinate formula, dually: `oplus w v = (w₀v₀,
 w₀v₁+w₁v₀+w₁v₁)`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_oplusM (w v : MS S BoolW) :
     twoSlot (oplusM w v) = (w 0 * v 0, w 0 * v 1 + w 1 * v 0 + w 1 * v 1) := by
   obtain ⟨h00, h01, h10, h11⟩ := BoolW_or_table
@@ -169,8 +179,9 @@ theorem twoSlot_oplusM (w v : MS S BoolW) :
   simp [h00, h01, h10, h11, BoolW_zero_ne_one, BoolW_zero_ne_one.symm]
 
 /-- The `¬`-lift's coordinate formula: `¬w = (w₁, w₀)`, the swap. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_negM (w : MS S BoolW) : twoSlot (negM w) = (w 1, w 0) := by
   obtain ⟨h0, h1⟩ := BoolW_not_table
   unfold negM
@@ -185,13 +196,15 @@ note: the blueprint's own "Erratum, corrected upstream" paragraph
 (`blueprint/src/content.tex`, §"Truth spaces and lifted connectives",
 just after `lem:lifted-mass`) records that the source's original table
 had these two cells transposed; this is the corrected form. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_ret_zero : twoSlot (ret (0 : BoolW) : MS S BoolW) = (1, 0) := by
   simp [ret, Finsupp.single_eq_same, Finsupp.single_eq_of_ne BoolW_zero_ne_one.symm]
 
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_ret_one : twoSlot (ret (1 : BoolW) : MS S BoolW) = (0, 1) := by
   simp [ret, Finsupp.single_eq_same, Finsupp.single_eq_of_ne BoolW_zero_ne_one]
 
@@ -205,28 +218,32 @@ theorem twoSlot_otimesM_mass (w v : MS ℝ≥0 BoolW) :
 
 /-- Blueprint `lem:lifted-mass` (`oplus`-lift, mass coordinates), the `S :=
 ℝ≥0` instance of `twoSlot_oplusM`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_oplusM_mass (w v : MS ℝ≥0 BoolW) :
     twoSlot (oplusM w v) = (w 0 * v 0, w 0 * v 1 + w 1 * v 0 + w 1 * v 1) :=
   twoSlot_oplusM w v
 
 /-- Blueprint `lem:lifted-mass` (`¬`-lift, mass coordinates), the `S := ℝ≥0`
 instance of `twoSlot_negM`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_negM_mass (w : MS ℝ≥0 BoolW) : twoSlot (negM w) = (w 1, w 0) :=
   twoSlot_negM w
 
 /-- Blueprint `lem:lifted-mass` (units), the `S := ℝ≥0` instances of
 `twoSlot_ret_zero`/`twoSlot_ret_one`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_ret_zero_mass : twoSlot (ret (0 : BoolW) : MS ℝ≥0 BoolW) = (1, 0) :=
   twoSlot_ret_zero
 
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_ret_one_mass : twoSlot (ret (1 : BoolW) : MS ℝ≥0 BoolW) = (0, 1) :=
   twoSlot_ret_one
 
@@ -248,8 +265,9 @@ theorem twoSlot_otimesM_log (a b : MS LogS BoolW) :
     logS_mul_eq_logMul, logS_add_eq_lse, logS_add_eq_lse]
 
 /-- Blueprint `lem:lifted-log` (`oplus`-lift, log coordinates), dually. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_log`, content.tex lem:lifted-log)
+@[blueprint_internal]
 theorem twoSlot_oplusM_log (a b : MS LogS BoolW) :
     twoSlot (oplusM a b) =
       (logMul (a 0) (b 0),
@@ -259,8 +277,9 @@ theorem twoSlot_oplusM_log (a b : MS LogS BoolW) :
 
 /-- Blueprint `lem:lifted-log` (`¬`-lift, log coordinates): the swap, as at
 mass — the `S := LogS` instance of `twoSlot_negM`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_log`, content.tex lem:lifted-log)
+@[blueprint_internal]
 theorem twoSlot_negM_log (a : MS LogS BoolW) : twoSlot (negM a) = (a 1, a 0) :=
   twoSlot_negM a
 
@@ -268,15 +287,17 @@ theorem twoSlot_negM_log (a : MS LogS BoolW) : twoSlot (negM a) = (a 1, a 0) :=
 (-∞, 0)` — the log-space images of `twoSlot_ret_zero`/`twoSlot_ret_one`
 under `lem:log-iso`'s `1 ↦ 0`/`0 ↦ -∞` correspondence
 (`logS_one_eq_zero`/`logS_zero_eq_bot`). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_log`, content.tex lem:lifted-log)
+@[blueprint_internal]
 theorem twoSlot_ret_zero_log :
     twoSlot (ret (0 : BoolW) : MS LogS BoolW) = (((0 : ℝ) : LogS), ⊥) := by
   rw [twoSlot_ret_zero, logS_one_eq_zero, logS_zero_eq_bot]
   rfl
 
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_log`, content.tex lem:lifted-log)
+@[blueprint_internal]
 theorem twoSlot_ret_one_log :
     twoSlot (ret (1 : BoolW) : MS LogS BoolW) = (⊥, ((0 : ℝ) : LogS)) := by
   rw [twoSlot_ret_one, logS_one_eq_zero, logS_zero_eq_bot]
@@ -297,16 +318,16 @@ noncomputable def orderedTwoSlot : MS S BoolW ≃ Sᵒᵈ × S :=
   twoSlot.trans (OrderDual.toDual.prodCongr (Equiv.refl S))
 
 omit [Lattice S] in
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
-@[simp] theorem orderedTwoSlot_apply (w : MS S BoolW) :
+@[simp, blueprint_internal] theorem orderedTwoSlot_apply (w : MS S BoolW) :
     orderedTwoSlot w = (OrderDual.toDual (w 0), w 1) :=
   rfl
 
 omit [Lattice S] in
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
-@[simp] theorem orderedTwoSlot_symm_apply (p : Sᵒᵈ × S) :
+@[simp, blueprint_internal] theorem orderedTwoSlot_symm_apply (p : Sᵒᵈ × S) :
     orderedTwoSlot.symm p = twoSlot.symm (OrderDual.ofDual p.1, p.2) :=
   rfl
 
@@ -314,14 +335,16 @@ omit [Lattice S] in
 `orderedTwoSlot` rather than registered as a new `Lattice (MS S BoolW)`
 instance — the hard rail against instance pollution on Mathlib-shaped
 carriers). -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 noncomputable def orderMeet (w v : MS S BoolW) : MS S BoolW :=
   orderedTwoSlot.symm (orderedTwoSlot w ⊓ orderedTwoSlot v)
 
 /-- Blueprint `def:order-family` (join `∨`), dually. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 noncomputable def orderJoin (w v : MS S BoolW) : MS S BoolW :=
   orderedTwoSlot.symm (orderedTwoSlot w ⊔ orderedTwoSlot v)
 
@@ -331,8 +354,9 @@ corresponds to join in `S`), slot `1` a plain meet in `S`. At `S := ℝ≥0`
 or `LogS` (both `LinearOrder`s) this is verbatim the blueprint's
 `w ∧ v = (max w₀ v₀, min w₁ v₁)`, `∧`/`⊔`/`⊓` here denoting the general
 lattice operations. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_orderMeet (w v : MS S BoolW) :
     twoSlot (orderMeet w v) = (w 0 ⊔ v 0, w 1 ⊓ v 1) := by
   unfold orderMeet
@@ -340,8 +364,9 @@ theorem twoSlot_orderMeet (w v : MS S BoolW) :
 
 /-- Blueprint `def:order-family` (join coordinates): `w ∨ v = (w₀ ⊓ v₀,
 w₁ ⊔ v₁)`, dually. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `twoSlot_otimesM_mass`, content.tex lem:lifted-mass)
+@[blueprint_internal]
 theorem twoSlot_orderJoin (w v : MS S BoolW) :
     twoSlot (orderJoin w v) = (w 0 ⊓ v 0, w 1 ⊔ v 1) := by
   unfold orderJoin
@@ -354,25 +379,29 @@ variable [BoundedOrder S]
 `[BoundedOrder S]`, matching the blueprint's own qualifier — `ℝ≥0`/`LogS`
 have no in-carrier `⊤`, so no completion is invented for the mass/log
 rows here (`lem:lifted-mass`'s honesty note). -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 noncomputable def orderBot : MS S BoolW := orderedTwoSlot.symm ⊥
 
 /-- Blueprint `def:order-family` (top, "where it exists"): `⊤ =
 (⊥ₛ, ⊤ₛ)`, dually. -/
--- blueprint: internal (C2-E4a/A2 completeness census: pre-existing
+-- (C2-E4a/A2 completeness census: pre-existing
 -- internal helper, not itself blueprint-cited)
+@[blueprint_internal]
 noncomputable def orderTop : MS S BoolW := orderedTwoSlot.symm ⊤
 
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `orderedTwoSlot`, content.tex def:order-family)
+@[blueprint_internal]
 theorem twoSlot_orderBot : twoSlot (orderBot : MS S BoolW) = (⊤, ⊥) := by
   unfold orderBot
   rw [orderedTwoSlot_symm_apply, Equiv.apply_symm_apply]
   rfl
 
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `orderedTwoSlot`, content.tex def:order-family)
+@[blueprint_internal]
 theorem twoSlot_orderTop : twoSlot (orderTop : MS S BoolW) = (⊥, ⊤) := by
   unfold orderTop
   rw [orderedTwoSlot_symm_apply, Equiv.apply_symm_apply]
@@ -385,8 +414,9 @@ operation: the Fubini-style two-line argument of `NeSyCat/CategoricalLayer/Semir
 applied twice, via `lift₂_eq`'s bind chain and `bind_mass_one`/
 `ret_mass_one` — exactly chapter 1's technique, reused rather than
 reproved. -/
--- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- (A1 bijection-law companion of `lift`, content.tex
 -- def:lifted-connective)
+@[blueprint_internal]
 theorem lift₂_mass_one {a b : MS ℝ≥0 BoolW} (ha : a.sum (fun _ w => w) = 1)
     (hb : b.sum (fun _ w => w) = 1) (op : BoolW → BoolW → BoolW) :
     (lift₂ op a b).sum (fun _ w => w) = 1 := by
@@ -394,28 +424,32 @@ theorem lift₂_mass_one {a b : MS ℝ≥0 BoolW} (ha : a.sum (fun _ w => w) = 1
   exact bind_mass_one ha fun x => bind_mass_one hb fun y => ret_mass_one _
 
 /-- `Dist` (mass-one) closure of `lift₁`, dually. -/
--- blueprint: internal (A1 bijection-law companion of `lift`, content.tex
+-- (A1 bijection-law companion of `lift`, content.tex
 -- def:lifted-connective)
+@[blueprint_internal]
 theorem lift₁_mass_one {a : MS ℝ≥0 BoolW} (ha : a.sum (fun _ w => w) = 1)
     (op : BoolW → BoolW) : (lift₁ op a).sum (fun _ w => w) = 1 := by
   rw [lift₁_eq]
   exact bind_mass_one ha fun x => ret_mass_one _
 
 /-- Blueprint `lem:lifted-prob-readout` (the `Dist`-restricted `otimes`-lift). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `distReadout_otimesD`, content.tex lem:lifted-prob-readout)
+@[blueprint_internal]
 noncomputable def otimesD (p q : Dist BoolW) : Dist BoolW :=
   ⟨otimesM p.1 q.1, lift₂_mass_one p.2 q.2 _⟩
 
 /-- Blueprint `lem:lifted-prob-readout` (the `Dist`-restricted `oplus`-lift). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `distReadout_otimesD`, content.tex lem:lifted-prob-readout)
+@[blueprint_internal]
 noncomputable def oplusD (p q : Dist BoolW) : Dist BoolW :=
   ⟨oplusM p.1 q.1, lift₂_mass_one p.2 q.2 _⟩
 
 /-- Blueprint `lem:lifted-prob-readout` (the `Dist`-restricted `¬`-lift). -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `distReadout_otimesD`, content.tex lem:lifted-prob-readout)
+@[blueprint_internal]
 noncomputable def negD (p : Dist BoolW) : Dist BoolW :=
   ⟨negM p.1, lift₁_mass_one p.2 _⟩
 
@@ -444,8 +478,9 @@ theorem distReadout_otimesD (p q : Dist BoolW) :
 This is the blueprint's headline content: the `[0,1]` family is *derived*
 from binding two independent truth values and pushing forward along the
 Boolean operation, not stipulated. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `distReadout_otimesD`, content.tex lem:lifted-prob-readout)
+@[blueprint_internal]
 theorem distReadout_oplusD (p q : Dist BoolW) :
     distReadout (oplusD p q) = BLat2Mon.oplus (distReadout p) (distReadout q) := by
   have hmass_p := p.2
@@ -465,8 +500,9 @@ theorem distReadout_oplusD (p q : Dist BoolW) :
 `distReadout (negD p) = unitInterval.symm (distReadout p)`, i.e.
 `1 - distReadout p` — the swap of `twoSlot_negM`, read through the
 mass-one constraint. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `distReadout_otimesD`, content.tex lem:lifted-prob-readout)
+@[blueprint_internal]
 theorem distReadout_negD (p : Dist BoolW) :
     distReadout (negD p) = unitInterval.symm (distReadout p) := by
   have hmass := p.2

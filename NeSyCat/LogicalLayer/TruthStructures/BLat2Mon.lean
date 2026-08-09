@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 import Mathlib
+import NeSyCat.BlueprintAttr
 
 /-!
 # Two-monoid bounded lattices (`BLat2Mon`)
@@ -175,8 +176,9 @@ theorem otimes_le_otimes_left {p q : α} (h : p ≤ q) (r : α) :
 
 /-- Blueprint `lem:lin-monotone` (`otimes` monotone, fixed element on the
 right): if `p ≤ q` then `otimes p r ≤ otimes q r`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimes_le_otimes_left`, content.tex lem:lin-monotone)
+@[blueprint_internal]
 theorem otimes_le_otimes_right {p q : α} (h : p ≤ q) (r : α) :
     otimes p r ≤ otimes q r := by
   calc otimes p r ≤ otimes p r ⊔ otimes q r := le_sup_left
@@ -185,8 +187,9 @@ theorem otimes_le_otimes_right {p q : α} (h : p ≤ q) (r : α) :
 
 /-- Blueprint `lem:lin-monotone` (`oplus` monotone, fixed element on the
 left): if `p ≤ q` then `oplus r p ≤ oplus r q`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimes_le_otimes_left`, content.tex lem:lin-monotone)
+@[blueprint_internal]
 theorem oplus_le_oplus_left {p q : α} (h : p ≤ q) (r : α) :
     oplus r p ≤ oplus r q := by
   calc oplus r p = oplus r (p ⊓ q) := by rw [inf_eq_left.mpr h]
@@ -195,8 +198,9 @@ theorem oplus_le_oplus_left {p q : α} (h : p ≤ q) (r : α) :
 
 /-- Blueprint `lem:lin-monotone` (`oplus` monotone, fixed element on the
 right): if `p ≤ q` then `oplus p r ≤ oplus q r`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimes_le_otimes_left`, content.tex lem:lin-monotone)
+@[blueprint_internal]
 theorem oplus_le_oplus_right {p q : α} (h : p ≤ q) (r : α) :
     oplus p r ≤ oplus q r := by
   calc oplus p r = oplus (p ⊓ q) r := by rw [inf_eq_left.mpr h]
@@ -217,24 +221,27 @@ theorem otimes_inf_le (p q r : α) :
 
 /-- Blueprint `lem:lin-lax-duals` (`otimes` laxly preserves meets, left
 argument): `otimes (q ⊓ r) p ≤ otimes q p ⊓ otimes r p`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimes_inf_le`, content.tex lem:lin-lax-duals)
+@[blueprint_internal]
 theorem inf_otimes_le (p q r : α) :
     otimes (q ⊓ r) p ≤ otimes q p ⊓ otimes r p :=
   le_inf (otimes_le_otimes_right inf_le_left p) (otimes_le_otimes_right inf_le_right p)
 
 /-- Blueprint `lem:lin-lax-duals` (`oplus` laxly preserves joins, right
 argument): `oplus p q ⊔ oplus p r ≤ oplus p (q ⊔ r)`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimes_inf_le`, content.tex lem:lin-lax-duals)
+@[blueprint_internal]
 theorem le_oplus_sup (p q r : α) :
     oplus p q ⊔ oplus p r ≤ oplus p (q ⊔ r) :=
   sup_le (oplus_le_oplus_left le_sup_left p) (oplus_le_oplus_left le_sup_right p)
 
 /-- Blueprint `lem:lin-lax-duals` (`oplus` laxly preserves joins, left
 argument): `oplus q p ⊔ oplus r p ≤ oplus (q ⊔ r) p`. -/
--- blueprint: internal (A1 bijection-law companion of
+-- (A1 bijection-law companion of
 -- `otimes_inf_le`, content.tex lem:lin-lax-duals)
+@[blueprint_internal]
 theorem le_sup_oplus (p q r : α) :
     oplus q p ⊔ oplus r p ≤ oplus (q ⊔ r) p :=
   sup_le (oplus_le_oplus_right le_sup_left p) (oplus_le_oplus_right le_sup_right p)

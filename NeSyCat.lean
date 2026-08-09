@@ -1,4 +1,5 @@
 import NeSyCat.Basic
+import NeSyCat.BlueprintAttr
 import NeSyCat.Notation
 
 -- Categorical layer (blueprint §2)
