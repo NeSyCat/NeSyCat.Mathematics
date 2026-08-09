@@ -125,21 +125,98 @@ independently-computed `out`). -/
 -- disclosed equal to `inn` (module doc)
 def Tm.out : Tm sigG sigB → List sigG.Var := Tm.inn
 
+/-- Companion of `def:grammatical-signature`/`def:context`'s CONTEXT
+FIDELITY repair (C3-B4-FIX item 1): `[φ]` is a **context** (a list of
+*distinct* variables, `def:context`), so `on` must deduplicate — an
+order-preserving, first-occurrence dedup, matching the document's own
+left-to-right ordered-context reading (`firstDedup [1,2,1,3,2] =
+[1,2,3]`, keeping the position of each variable's *first* appearance,
+in contrast to Mathlib's own `List.dedup`, which keeps the *last*
+occurrence). Structural recursion on the list, threading the head's
+survival through a `filter` on the recursively-deduplicated tail — the
+building block `Fm.on` below composes with `Kleisli.lean`'s `ctxCopy`
+companion to route one copy of each surviving variable to every
+occurrence the raw (non-deduplicated) argument-list concatenation still
+needs. -/
+@[blueprint_internal] -- companion of def:grammatical-signature/def:context:
+-- the order-preserving first-occurrence dedup `on`'s context fidelity needs
+def firstDedup {α : Type*} [DecidableEq α] : List α → List α
+  | [] => []
+  | x :: xs => x :: (firstDedup xs).filter (fun v => decide (v ≠ x))
+
+/-- Companion of `firstDedup`: the result never drops a variable
+present in the original list — feeds `Kleisli.lean`'s `ctxCopy`'s own
+membership hypothesis (`∀ x ∈ l, x ∈ firstDedup l`). -/
+@[blueprint_internal] -- companion of def:grammatical-signature/def:context:
+-- firstDedup retains every element (as a membership witness)
+theorem mem_firstDedup {α : Type*} [DecidableEq α] :
+    ∀ {l : List α} {y : α}, y ∈ l → y ∈ firstDedup l
+  | x :: xs, y, hy => by
+    rcases List.mem_cons.mp hy with rfl | hy'
+    · exact List.mem_cons_self ..
+    · by_cases hxy : y = x
+      · subst hxy; exact List.mem_cons_self ..
+      · exact List.mem_cons_of_mem _
+          (List.mem_filter.mpr ⟨mem_firstDedup hy', by simp [hxy]⟩)
+
+/-- Companion of `firstDedup`: the result is itself a genuine context —
+distinct variables, `def:context` — feeding `Kleisli.lean`'s `ctxCopy`'s
+own `Nodup` hypothesis. -/
+@[blueprint_internal] -- companion of def:grammatical-signature/def:context:
+-- firstDedup produces a Nodup list
+theorem firstDedup_nodup {α : Type*} [DecidableEq α] :
+    ∀ l : List α, (firstDedup l).Nodup
+  | [] => List.nodup_nil
+  | x :: xs => by
+    refine List.Nodup.cons ?_ ((firstDedup_nodup xs).filter _)
+    intro hmem
+    have := (List.mem_filter.mp hmem).2
+    simp at this
+
 /-- Companion of `def:grammatical-signature`: `on(φ) = [φ]`, a formula's
 canonical context of free variables, computed by structural recursion —
-the union (as list concatenation) of the arguments' free variables for
-an atomic or compound formula, the bound variables `x⃗` removed for a
-quantified formula, and `x` removed with `ξ`'s own free variables `inn t`
-appended for a substituted formula (matching the document's later
-`[φ[x:=ξ]] = [φ]_{[x]↦inn(ξ)}` positional-replacement reading at the
-unordered, set-of-occurrences level). Not deduplicated, for the same
-reason as `Tm.inn`. -/
+the order-preserving first-occurrence dedup (`firstDedup`, this file's
+module doc, C3-B4-FIX item 1) of the concatenated arguments' free
+variables for an atomic or compound formula (`Kleisli.lean`'s `ctxCopy`
+routes one copy of each surviving shared variable to every argument
+that uses it, matching the document's own $\mathsf{copy}$ description),
+the bound variables `x⃗` removed for a quantified formula (already
+distinct by the recursive `on`, so a plain `filter` keeps it a context,
+no dedup needed here), and — for a substituted formula, C3-B4-FIX item
+2 — `x` replaced **positionally**, at its own occurrence in `body.on`
+(not appended at the list's end), by `ξ`'s free variables `t.inn`,
+matching the document's `[φ]_{[x]↦inn(ξ)}` = `[y₁,…,y_{p-1}] + inn(ξ) +
+[y_{p+1},…,y_m]` reading exactly, via `List.takeWhile`/`List.dropWhile`
+splitting `body.on` at `x`'s position. -/
 @[blueprint_internal] -- companion structural def, `on : Φ → 𝓛(Var)`
 def Fm.on [DecidableEq sigG.Var] : Fm sigG sigB → List sigG.Var
-  | .rel _ args => (args.map Tm.inn).flatten
-  | .conn _ args => (args.map Fm.on).flatten
+  | .rel _ args => firstDedup (args.map Tm.inn).flatten
+  | .conn _ args => firstDedup (args.map Fm.on).flatten
   | .quant _ xs body => body.on.filter (· ∉ xs)
-  | .subst body x t => (body.on.filter (· ≠ x)) ++ t.inn
+  | .subst body x t =>
+    body.on.takeWhile (fun v => decide (v ≠ x)) ++
+      (t.inn ++ (body.on.dropWhile (fun v => decide (v ≠ x))).tail)
+
+/-- Companion of `Fm.on`'s substitution clause (C3-B4-FIX item 2): the
+`takeWhile`/`dropWhile` split at `x`'s position reassembles exactly the
+original list, given only that `x` occurs somewhere in it — the
+document's own `x ∈ [φ]` side condition and nothing more (C3-B4-FIX
+item 4), consumed by `Kleisli.lean`'s `Fm.sem` substitution clause to
+identify the reassembled domain object with `ctxObj D body.on`. -/
+@[blueprint_internal] -- companion of def:grammatical-signature: the
+-- position-split reassembly lemma the subst clause's sem needs
+theorem list_split_pre_post {α : Type*} [DecidableEq α] :
+    ∀ {l : List α} {x : α}, x ∈ l →
+      l.takeWhile (fun v => decide (v ≠ x)) ++
+        x :: (l.dropWhile (fun v => decide (v ≠ x))).tail = l
+  | y :: l', x, hx => by
+    by_cases hxy : y = x
+    · subst hxy
+      simp [List.takeWhile, List.dropWhile]
+    · have hx' : x ∈ l' := (List.mem_cons.mp hx).resolve_left (Ne.symm hxy)
+      have hne : decide (y ≠ x) = true := by simpa using hxy
+      simp only [List.takeWhile, List.dropWhile, hne, List.cons_append]
+      exact congrArg (y :: ·) (list_split_pre_post hx')
 
 /-- Companion of `def:grammatical-signature`'s typing doctrine: a term
 is well-formed when every functional-term node's argument list matches

@@ -18,6 +18,37 @@ and a logical interpretation, the Kleisli interpretation `⟦·⟧` assigns to
 every term `ξ` a morphism `⟦ξ⟧ : 𝓘(inn ξ) → 𝓜𝓘(out ξ)` and to every
 formula `φ` a morphism `⟦φ⟧ : 𝓘([φ]) → 𝓜Ω`, by structural recursion over
 `def:grammatical-signature`'s six-rule grammar.
+
+**No `feedForward` reuse.** `WireAdapters.lean`'s `feedForward` is a
+generic Do-form composite over an explicit wire list; this file never
+instantiates it. Every `⨟`-composite `Fm.sem`/`Tm.sem` needs (the
+term/relation-symbol clauses' argument-tensor-then-apply,
+`Id`-marked connective/quantifier clauses' plain-morphism-inside-the-monad
+adaptation) is instead rebuilt directly from
+`StrongCatInterpretation.dst`/`leftStrength`/`strength`/`bind`, per use —
+`TmList.sem`'s single-step `dst` fold, `dstFoldN`'s `n`-ary generalization
+of it below, and the substitution clause's `leftStrength`/`strength` pair.
+`PROGRESS.md`'s C3-B3 ledger entry previously claimed the opposite; that
+claim was false and has been corrected there (C3-B4-FIX item 5).
+
+**Remaining disclosed deviations (none newly introduced by C3-B4-FIX).**
+(1) `funMorK`/`relMorK` (`KleisliInterpretation` below) bridge
+`def:domain-interpretation`'s parameter-threaded `funMor`/`relMor`
+(through the actegory action `I.act(𝓘(Θ⃗))(-)`) down to this
+environment's own parameter-free typing table — a coherence-free bridge:
+no law here relates `funMorK f` back to `I.act`'s general `funMor f` at a
+non-trivial parameter, since the grammar supplies no syntax to ever
+instantiate one; a future environment threading parameters through
+`Tm`/`Fm` would need to add and discharge that coherence. (2)
+`varCard`/`varPt` (`KleisliInterpretation` below) supply the quantifier
+clause's finite-enumeration datum per variable domain symbol directly as
+data, not derived from any stated finiteness/decidability instance on
+`sigG.Dom`'s own interpretation — an encoding choice (matching the STRENGTH
+TRAP precedent's `StrongCatInterpretation`), not a proof gap: the
+document's own "again finite, enumerated lexicographically" clause is a
+hypothesis on the *interpretation*, not a theorem derivable from the
+signature alone, so supplying it as interpretation-level data is the
+correct level, not a shortcut.
 -/
 
 open CategoryTheory MonoidalCategory
@@ -134,6 +165,114 @@ def ctxMerge (D : DomInterpretation I J sigG) (p : sigG.Var → Bool) :
         ((α_ (D.domObj (sigG.varOver y)) (ctxObj D (l'.filter (fun x => !p x)))
               (ctxObj D (l'.filter p))).hom ≫
           (𝟙 (D.domObj (sigG.varOver y)) ⊗ₘ ctxMerge D p l'))
+
+/-- Companion of `def:kleisli-interpretation`'s CONTEXT FIDELITY repair
+(C3-B4-FIX item 1): `ctxObj D l ⟶ ctxObj D (l.filter p)`, discarding
+every variable of `l` failing `p` (via the CD category's chosen
+counit) while leaving the surviving ones untouched, in place — no
+symmetry needed (unlike `ctxMerge`), since a `filter` never reorders
+its survivors. The building block for `projTo`'s single-variable
+projection below. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- dedup-copy machinery's discard-the-rest primitive, structural on l
+def ctxProjFilter (D : DomInterpretation I J sigG) (p : sigG.Var → Bool) :
+    (l : List sigG.Var) → letI := I.cd.instCat; letI := I.cd.instMonoidal;
+      ctxObj D l ⟶ ctxObj D (l.filter p)
+  | [] => letI := I.cd.instCat; letI := I.cd.instMonoidal; 𝟙 (𝟙_ I.cd.C)
+  | y :: l' =>
+    letI := I.cd.instCat; letI := I.cd.instMonoidal; letI := I.cd.comon (D.domObj (sigG.varOver y))
+    match hpy : p y with
+    | true =>
+      have e : (y :: l').filter p = y :: l'.filter p := List.filter_cons_of_pos hpy
+      e ▸ (𝟙 (D.domObj (sigG.varOver y)) ⊗ₘ ctxProjFilter D p l')
+    | false =>
+      have e : (y :: l').filter p = l'.filter p := List.filter_cons_of_neg (by simp [hpy])
+      have cnt : D.domObj (sigG.varOver y) ⟶ 𝟙_ I.cd.C := ComonObj.counit
+      e ▸ ((cnt ⊗ₘ ctxProjFilter D p l') ≫ (λ_ (ctxObj D (l'.filter p))).hom)
+
+/-- Companion of `def:kleisli-interpretation`'s CONTEXT FIDELITY repair:
+`Nodup`'s own singleton-filter fact — for a Nodup list `D` and `x ∈ D`,
+filtering down to `(· = x)` leaves exactly `[x]`. Feeds `projTo`'s cast
+from `ctxProjFilter`'s filtered codomain to the bare variable object. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- Nodup singleton-filter lemma projTo's cast needs
+theorem filter_eq_singleton_of_nodup_mem {α : Type*} [DecidableEq α] :
+    ∀ {l : List α} {x : α}, l.Nodup → x ∈ l →
+      l.filter (fun v => decide (v = x)) = [x]
+  | y :: l', x, hnd, hx => by
+    by_cases hxy : y = x
+    · have hyl' : y ∉ l' := (List.nodup_cons.mp hnd).1
+      have hnil : l'.filter (fun v => decide (v = x)) = [] :=
+        List.filter_eq_nil_iff.mpr (by
+          intro v hv hcontra
+          have hvx : v = x := of_decide_eq_true hcontra
+          exact hyl' ((hvx.trans hxy.symm) ▸ hv))
+      rw [List.filter_cons_of_pos (by simp [hxy]), hnil, hxy]
+    · have hx' : x ∈ l' := (List.mem_cons.mp hx).resolve_left (Ne.symm hxy)
+      have hnd' : l'.Nodup := (List.nodup_cons.mp hnd).2
+      rw [List.filter_cons_of_neg (by simp [hxy]), filter_eq_singleton_of_nodup_mem hnd' hx']
+
+/-- Companion of `def:kleisli-interpretation`'s CONTEXT FIDELITY repair:
+projecting a Nodup context `D` down to a single one of its variables
+`x`, discarding every other entry — `ctxProjFilter` at `p := (· = x)`,
+cast to the bare object via `filter_eq_singleton_of_nodup_mem` and the
+unitor squeezing `𝓘(x) ⊗ I ≅ 𝓘(x)`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- dedup-copy machinery's single-variable projection
+def projTo [DecidableEq sigG.Var] (D : DomInterpretation I J sigG) (l : List sigG.Var)
+    (hnd : l.Nodup) (x : sigG.Var) (hx : x ∈ l) : letI := I.cd.instCat; letI := I.cd.instMonoidal;
+      ctxObj D l ⟶ D.domObj (sigG.varOver x) :=
+  letI := I.cd.instCat; letI := I.cd.instMonoidal
+  ctxProjFilter D (fun v => decide (v = x)) l ≫
+    eqToHom (congrArg (ctxObj D) (filter_eq_singleton_of_nodup_mem hnd hx)) ≫
+    (ρ_ (D.domObj (sigG.varOver x))).hom
+
+/-- Blueprint `def:kleisli-interpretation`'s CONTEXT FIDELITY repair
+(C3-B4-FIX item 1), the environment's own `copy` companion: from a
+Nodup (deduplicated) context `D`, routes one copy of each variable to
+every position of a target list `L` all of whose entries lie in `D` —
+by structural recursion on `L`, comultiplying the *whole* remaining
+`ctxObj D D` (the CD category's chosen comonoid on that object) at each
+step, projecting one factor down to `L`'s head via `projTo` and
+recursing on the other for `L`'s tail. Feeds `Fm.on`'s dedup'd atomic-
+and compound-formula clauses (`Grammar.lean`), matching the document's
+own description: "$\mathsf{copy}$ routes each shared variable to every
+component using it, built from $\mathsf{copy}$ and the symmetry of the
+CD category". -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- dedup-copy machinery's principal building block, structural on L
+def ctxCopy [DecidableEq sigG.Var] (D : DomInterpretation I J sigG) (Dl : List sigG.Var)
+    (hnd : Dl.Nodup) :
+    (L : List sigG.Var) → (∀ x ∈ L, x ∈ Dl) → letI := I.cd.instCat; letI := I.cd.instMonoidal;
+      ctxObj D Dl ⟶ ctxObj D L
+  | [], _ => letI := I.cd.instCat; letI := I.cd.instMonoidal;
+      ctxProjFilter D (fun _ => false) Dl ≫
+        eqToHom (congrArg (ctxObj D) (by simp : Dl.filter (fun _ => false) = []))
+  | x :: L', hL =>
+    letI := I.cd.instCat; letI := I.cd.instMonoidal; letI := I.cd.comon (ctxObj D Dl)
+    ComonObj.comul ≫
+      (projTo D Dl hnd x (hL x List.mem_cons_self) ⊗ₘ
+        ctxCopy D Dl hnd L' (fun y hy => hL y (List.mem_cons_of_mem x hy)))
+
+/-- Companion of `def:kleisli-interpretation`'s conn/quant BOTH-MARKERS
+repair (C3-B4-FIX item 3): `X^{⊠n} → 𝓜(X^{⊠n})`, collapsing `n`
+separately-monadic tensor factors into one `𝓜`-wrap via
+`StrongCatInterpretation.dst` at each step — the `n`-ary generalization
+of `TmList.sem`'s own single-step `dst` use, needed to adapt `⟦φ⃗⟧`'s
+always-`○`-marked output list against an `Id`-marked connective's or
+quantifier's plain-morphism input, matching `def:wire-adapters`' own
+`○`/`Id` bind-set row (no literal call to `feedForward`, consistent
+with `Kleisli.lean`'s module doc: this file rebuilds `⨟`-composites
+directly from `dst`/`strength`/`bind`, not by reusing `feedForward`). -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- n-ary strength-collapse adapting an Id-marked conn/quant symbol
+def dstFoldN (SI : StrongCatInterpretation I) (X : letI := I.cd.instCat; I.cd.C) :
+    (n : ℕ) → letI := I.cd.instCat; letI := I.cd.instMonoidal;
+      tensorList (List.replicate n (I.monad.obj X)) ⟶ I.monad.obj (tensorList (List.replicate n X))
+  | 0 => letI := I.cd.instCat; letI := I.cd.instMonoidal; I.monad.η.app (𝟙_ I.cd.C)
+  | n + 1 =>
+    letI := I.cd.instCat; letI := I.cd.instMonoidal
+    (𝟙 (I.monad.obj X) ⊗ₘ dstFoldN SI X n) ≫ SI.dst
 
 /-- Companion of `def:kleisli-interpretation`'s quantifier clause: `|𝓘([x⃗])|
 = ∏_j |𝓘([x_{p_j}])|`, the product-state cardinality of a variable list,
@@ -291,43 +430,46 @@ end
 of `Tm.KTyped` (module doc above): beyond `Fm.WellFormed`'s arity checks,
 an atomic formula's arguments must value-match `sigG.rari R`
 (`Tm.kcod`-based, as `Tm.KTyped`'s function-symbol case); a compound
-formula's connective is taken at its `○`-marked instance (disclosed
-below); a quantified formula's quantifier likewise; a substituted
+formula's connective/quantified formula's quantifier need no marker
+restriction at all (C3-B4-FIX item 3, BOTH MARKERS repair — `Fm.sem`
+below reads `sigB.connMonad c`/`sigB.quanMonad Q` and dispatches to the
+`Id`- or `○`-marked instance of `def:logical-interpretation`'s uniform
+`connMor`/`quanMor`, matching the document's own "the interpretation
+`𝓘(*)`/`𝓘(Q)_n` for each connective/quantifier symbol with monad symbol
+`M`" phrasing exactly, at whichever `M` the symbol actually carries — no
+longer the `○`-only restriction of a previous revision); a substituted
 formula's term must value-match the substituted variable's own domain
-(the natural well-typedness condition for substitution). **Disclosed
-simplification**: the `connMonad c = ○`/`quanMonad Q = ○` conjuncts
-restrict this environment's compound/quantified clauses to the `○`-marked
-instance of a connective/quantifier symbol — the case every one of this
-theory's four running quantifier families (Max, Min, the Σ-Π pair, their
-log twins) and its running connectives actually are (effectful,
-`○`-marked). `def:logical-signature` itself allows `Id`-marked
-connectives/quantifiers too; encoding that case needs an extra per-marker
-normalization this ticket does not build (`Kleisli.lean`'s module doc
-records the exact deviation). The substituted-formula case's own filter
-conjunct further restricts to a variable occurring **exactly once** in
-`body.on` — the document's "single-position insertion" reading; the
-general "copy the computation's value into every occurrence of `x`"
-reading it also describes (the dice-or-die example) needs an `n`-ary
-copy this ticket does not build, also disclosed in the module doc. -/
+(the natural well-typedness condition for substitution), and (C3-B4-FIX
+item 4) `x` must be a free variable of `body` — the document's own
+`x ∈ [φ]` side condition (`def:grammatical-signature`'s substitution
+rule) and nothing more: with `Fm.on` now genuinely deduplicating
+(`Grammar.lean`, C3-B4-FIX item 1), a previous revision's extra "`x`
+occurs *exactly once* in `body.on`" filter conjunct is no longer needed
+as a separate hypothesis — whenever `body.on` is itself Nodup (the
+`.rel`/`.conn`/`.quant` cases), mere membership already forces
+uniqueness, and `Fm.sem`'s substitution clause below only ever needs
+`x`'s *first* occurrence position regardless (`Grammar.lean`'s
+`list_split_pre_post`, needing only `x ∈ body.on`). -/
 @[blueprint_internal] -- companion of def:kleisli-interpretation: the
 -- formula-side extrinsic typing side condition
 def Fm.KTyped [DecidableEq sigG.Var] : Fm sigG sigB → Prop
   | .rel R args => (args.map Tm.kcod).flatten = sigG.rari R ∧ ∀ a ∈ args, a.KTyped
-  | .conn c args =>
-    sigB.connArity c = args.length ∧ sigB.connMonad c = MonSym.mon ∧ ∀ a ∈ args, a.KTyped
-  | .quant Q _ body => sigB.quanMonad Q = MonSym.mon ∧ body.KTyped
+  | .conn c args => sigB.connArity c = args.length ∧ ∀ a ∈ args, a.KTyped
+  | .quant _ _ body => body.KTyped
   | .subst body x t =>
-    Tm.kcod t = [(MonSym.id, sigG.varOver x)] ∧
-      body.on.filter (fun v => decide (v = x)) = [x] ∧ body.KTyped ∧ t.KTyped
+    Tm.kcod t = [(MonSym.id, sigG.varOver x)] ∧ x ∈ body.on ∧ body.KTyped ∧ t.KTyped
 
 mutual
 
 /-- Companion of `def:kleisli-interpretation`: `⟦φ⃗⟧`, the tensor of a
-formula list's own semantics — matching `Fm.on`'s flatten convention (no
-`copy` needed, same reasoning as `TmList.sem`), left uncollapsed (a plain
-tensor of `𝓜Ω`-valued factors, not bound into one `𝓜(Ω^{⊗n})`) since the
-connective clause consumes it directly against `connMor`'s own
-`(𝓘(M)Ω)^{⊠n}`-shaped domain. -/
+formula list's own semantics — the raw (non-deduplicated) concatenation
+of the arguments' own (individually already-deduplicated) `Fm.on`
+contexts, left uncollapsed (a plain tensor of `𝓜Ω`-valued factors, not
+bound into one `𝓜(Ω^{⊗n})`) since the connective clause consumes it
+directly against `connMor`'s own `(𝓘(M)Ω)^{⊠n}`-shaped domain, after
+routing (C3-B4-FIX item 1: `Fm.sem`'s `.conn` clause below prepends the
+`ctxCopy` companion, matching `Fm.on`'s own dedup'd `.conn` clause,
+`Grammar.lean`). -/
 @[blueprint_internal] -- companion of def:kleisli-interpretation: the
 -- formula-list semantics `⟦φ⃗⟧`
 def FmList.sem [DecidableEq sigG.Var] (K : KleisliInterpretation I SI J D) :
@@ -347,19 +489,32 @@ interpretation `⟦·⟧ : 𝓘([φ]) → 𝓜Ω` of the grammatical signature's
 formulas, by structural recursion on `Fm` (mutually with `Tm.sem`'s
 `⟦·⟧ : 𝓘(inn ξ) → 𝓜𝓘(kcod ξ)` on terms) over all six of
 `def:grammatical-signature`'s rules — variable and functional terms in
-`Tm.sem`; here, an atomic formula (`⟦R(ξ⃗)⟧ := ⟦ξ⃗⟧ ⨟_∘ 𝓘(R)`, the tensored
-argument semantics `TmList.sem` composed with `𝓘(R)`, `Tm.KTyped`'s
-value-match witness aligning `⟦ξ⃗⟧` with `sigG.rari R`); a compound
-formula (`⟦*(φ⃗)⟧ := ⟦φ⃗⟧ ⨟ 𝓘(*)`, `FmList.sem` composed with `𝓘(*)`, at
-the `○`-marked instance `Fm.KTyped` witnesses); a quantified formula
-(`⟦Qx⃗(φ)⟧ = ⊠_i ⟦φ⟧_{[⋯]} ⨟ 𝓘(Q)_N`, the product-state enumeration
-`listCard`/`listPt` over the positions of `x⃗` in `body.on`, `N`-ary
-self-copy `comulN` of the remaining context, per-state insertion via
-`ctxMerge`, `tensorFin`'s indexed tensor of the resulting semantics
-feeding `𝓘(Q)_N`); a substituted formula (`⟦φ[x:=ξ]⟧ = ⟦ξ⟧^{(p)} ⨟_∘
-⟦φ⟧`, the term's semantics tensored into `x`'s single-position slot via
-`ctxAppendIso`/`SI.strength`, joined into `body`'s own semantics via
-`ctxMerge` and `SI.bind`). -/
+`Tm.sem`; here, an atomic formula (`⟦R(ξ⃗)⟧ := \mathsf{copy} ⨟ ⟦ξ⃗⟧ ⨟_∘
+𝓘(R)`, C3-B4-FIX item 1: `ctxCopy` routes the deduplicated context to
+the tensored argument semantics `TmList.sem`'s own raw, not-deduplicated
+domain, then composes with `𝓘(R)`, `Tm.KTyped`'s value-match witness
+aligning `⟦ξ⃗⟧` with `sigG.rari R`); a compound formula (`⟦*(φ⃗)⟧ :=
+\mathsf{copy} ⨟ ⟦φ⃗⟧ ⨟ 𝓘(*)`, `ctxCopy` again, then `FmList.sem` composed
+with `𝓘(*)` at whichever marker `connMonad c` actually carries —
+C3-B4-FIX item 3, BOTH MARKERS: `○`-marked composes directly (`FmList.sem`
+already lands in the right `(𝓘(M)Ω)^{⊠n}` shape), `Id`-marked first
+collapses the `n` separately-monadic factors via `dstFoldN` before
+applying the plain morphism inside the monad — the `def:wire-adapters`
+`○`/`Id` bind-set row, rebuilt directly from `dst` rather than by
+literally invoking `feedForward`, per this file's module doc); a
+quantified formula (`⟦Qx⃗(φ)⟧ = ⊠_i ⟦φ⟧_{[⋯]} ⨟ 𝓘(Q)_N`, the product-state
+enumeration `listCard`/`listPt` over the positions of `x⃗` in `body.on`,
+`N`-ary self-copy `comulN` of the remaining context, per-state insertion
+via `ctxMerge`, `tensorFin`'s indexed tensor of the resulting semantics
+feeding `𝓘(Q)_N` at whichever marker `quanMonad Q` carries, the same
+BOTH-MARKERS `dstFoldN` adaptation as the connective clause); a
+substituted formula (`⟦φ[x:=ξ]⟧ = ⟦ξ⟧^{(p)} ⨟_∘ ⟦φ⟧`, C3-B4-FIX item 2,
+POSITIONAL SUBSTITUTION: the term's semantics — squeezed by the unitor
+down to the bare variable object `⟦ξ⟧ : 𝓘(inn ξ) → 𝓜𝓘([x])` — tensored
+in at `x`'s own position via `ctxAppendIso`/`SI.leftStrength`/
+`SI.strength`, then reassembled into `body.on`'s shape via a further
+`ctxAppendIso` and `Grammar.lean`'s `list_split_pre_post` positional
+identity, joined into `body`'s own semantics via `SI.bind`). -/
 def Fm.sem [DecidableEq sigG.Var] (K : KleisliInterpretation I SI J D) :
     ∀ φ : Fm sigG sigB, φ.KTyped → letI := I.cd.instCat; letI := I.cd.instMonoidal;
       ctxObj D φ.on ⟶ I.monad.obj J.Ω
@@ -367,28 +522,45 @@ def Fm.sem [DecidableEq sigG.Var] (K : KleisliInterpretation I SI J D) :
     letI := I.cd.instCat; letI := I.cd.instMonoidal
     simp only [Fm.on]
     simp only [Fm.KTyped] at ht
-    exact (ht.1 ▸ TmList.sem K args ht.2) ≫ I.monad.map (K.relMorK R)
+    exact ctxCopy D (firstDedup (args.map Tm.inn).flatten) (firstDedup_nodup _)
+        (args.map Tm.inn).flatten (fun y hy => mem_firstDedup hy) ≫
+      (ht.1 ▸ TmList.sem K args ht.2) ≫ I.monad.map (K.relMorK R)
   | .conn c args, ht => by
     letI := I.cd.instCat; letI := I.cd.instMonoidal
     simp only [Fm.on]
     simp only [Fm.KTyped] at ht
-    obtain ⟨harity, hmon, hargs⟩ := ht
+    obtain ⟨harity, hargs⟩ := ht
     have hsrc := FmList.sem K args hargs
     rw [List.map_const'] at hsrc
-    have hcm := J.connMor c
-    rw [hmon, harity] at hcm
-    exact hsrc ≫ hcm
+    have hcopy := ctxCopy D (firstDedup (args.map Fm.on).flatten) (firstDedup_nodup _)
+        (args.map Fm.on).flatten (fun y hy => mem_firstDedup hy)
+    have hconn : tensorList (List.replicate args.length (I.monad.obj J.Ω)) ⟶ I.monad.obj J.Ω := by
+      match hCM : sigB.connMonad c with
+      | .mon =>
+        have hcm := J.connMor c
+        rw [hCM, harity] at hcm
+        exact hcm
+      | .id =>
+        have hcm := J.connMor c
+        rw [hCM, harity] at hcm
+        exact dstFoldN SI J.Ω args.length ≫ I.monad.map hcm
+    exact hcopy ≫ hsrc ≫ hconn
   | .quant Q xs body, ht => by
     letI := I.cd.instCat; letI := I.cd.instMonoidal; letI := I.cd.instSymmetric
     simp only [Fm.on, decide_not]
     simp only [Fm.KTyped] at ht
-    obtain ⟨hQmon, hbody⟩ := ht
     have hquant :
         tensorList (List.replicate (listCard K (body.on.filter (fun v => decide (v ∈ xs))))
             (I.monad.obj J.Ω)) ⟶ I.monad.obj J.Ω := by
-      have hqm := J.quanMor Q (listCard K (body.on.filter (fun v => decide (v ∈ xs))))
-      rw [hQmon] at hqm
-      exact hqm
+      match hQM : sigB.quanMonad Q with
+      | .mon =>
+        have hqm := J.quanMor Q (listCard K (body.on.filter (fun v => decide (v ∈ xs))))
+        rw [hQM] at hqm
+        exact hqm
+      | .id =>
+        have hqm := J.quanMor Q (listCard K (body.on.filter (fun v => decide (v ∈ xs))))
+        rw [hQM] at hqm
+        exact dstFoldN SI J.Ω _ ≫ I.monad.map hqm
     exact comulN (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs))))
         (listCard K (body.on.filter (fun v => decide (v ∈ xs)))) ≫
       tensorFin (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs)))) (I.monad.obj J.Ω)
@@ -398,22 +570,36 @@ def Fm.sem [DecidableEq sigG.Var] (K : KleisliInterpretation I SI J D) :
               (𝟙 (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs)))) ⊗ₘ
                 listPt K (body.on.filter (fun v => decide (v ∈ xs))) i) ≫
               ctxMerge D (fun v => decide (v ∈ xs)) body.on) ≫
-            Fm.sem K body hbody) ≫
+            Fm.sem K body ht) ≫
       hquant
   | .subst body x t, ht => by
     letI := I.cd.instCat; letI := I.cd.instMonoidal; letI := I.cd.instSymmetric
-    simp only [Fm.on, ne_eq, decide_not]
+    simp only [Fm.on]
     simp only [Fm.KTyped] at ht
     obtain ⟨hkcod, hocc, hbody, ht⟩ := ht
-    have hT : ctxObj D t.inn ⟶ I.monad.obj (interpretMS I D.domObj [(MonSym.id, sigG.varOver x)]) :=
-      hkcod ▸ Tm.sem K t ht
-    have hins :
-        ctxObj D (body.on.filter (fun v => !decide (v = x))) ⊗ ctxObj D [x] ⟶ ctxObj D body.on :=
-      hocc ▸ ctxMerge D (fun v => decide (v = x)) body.on
-    exact (ctxAppendIso D (body.on.filter (fun v => !decide (v = x))) t.inn).hom ≫
-      (𝟙 (ctxObj D (body.on.filter (fun v => !decide (v = x)))) ⊗ₘ hT) ≫
+    have hT0 :
+        ctxObj D t.inn ⟶ I.monad.obj (interpretMS I D.domObj [(MonSym.id, sigG.varOver x)]) := by
+      have := Tm.sem K t ht
+      rw [hkcod] at this
+      exact this
+    have hT : ctxObj D t.inn ⟶ I.monad.obj (D.domObj (sigG.varOver x)) :=
+      hT0 ≫ I.monad.map (ρ_ (D.domObj (sigG.varOver x))).hom
+    have hsplit :
+        body.on.takeWhile (fun v => decide (v ≠ x)) ++
+          x :: (body.on.dropWhile (fun v => decide (v ≠ x))).tail = body.on :=
+      list_split_pre_post hocc
+    exact
+      (ctxAppendIso D (body.on.takeWhile (fun v => decide (v ≠ x)))
+          (t.inn ++ (body.on.dropWhile (fun v => decide (v ≠ x))).tail)).hom ≫
+      (𝟙 _ ⊗ₘ
+        (ctxAppendIso D t.inn (body.on.dropWhile (fun v => decide (v ≠ x))).tail).hom) ≫
+      (𝟙 _ ⊗ₘ (hT ⊗ₘ 𝟙 _)) ≫
+      (𝟙 _ ⊗ₘ SI.leftStrength) ≫
       SI.strength ≫
-      I.monad.map hins ≫
+      I.monad.map
+        ((ctxAppendIso D (body.on.takeWhile (fun v => decide (v ≠ x)))
+              (x :: (body.on.dropWhile (fun v => decide (v ≠ x))).tail)).inv ≫
+          eqToHom (congrArg (ctxObj D) hsplit)) ≫
       SI.bind (Fm.sem K body hbody)
 
 end
