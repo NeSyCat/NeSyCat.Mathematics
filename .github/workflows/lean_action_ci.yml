@@ -18,4 +18,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: leanprover/lean-action@v1
+
+  # doc-gen4 builds documentation for the whole Mathlib dependency tree:
+  # a multi-hour, memory-hungry job that OOM-kills standard runners when
+  # attached to every push (observed: 3h+ job-level failures with no
+  # failing step). Docs are generated on manual dispatch only.
+  docs:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v5
       - uses: leanprover-community/docgen-action@v1
