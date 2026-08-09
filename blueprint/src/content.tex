@@ -1609,6 +1609,8 @@ construction of Definition~\ref{def:order-family}.
 
 \begin{definition}[Logical signature]
 \label{def:logical-signature}
+\lean{NeSyCat.LogSignature}
+\leanok
 A \textbf{logical signature} $\Sigma_\beta$ consists of a \textbf{truth
 symbol} $\tau$, a set of \textbf{connective symbols} $\mathrm{Conn}$
 each with an arity $n \in \mathbb N_0$ and a monad symbol
@@ -1624,6 +1626,8 @@ with monad symbol $M$ is written $Q \colon M\tau$.
 
 \begin{definition}[Logical interpretation]
 \label{def:logical-interpretation}
+\lean{NeSyCat.LogInterpretation}
+\leanok
 A \textbf{logical interpretation} $\mathcal I_\beta$ of a logical
 signature $\Sigma_\beta$ (Definition~\ref{def:logical-signature}) in a
 CD category $(\mathcal C, \boxtimes, \mathrm I, \mathsf{copy}, \mathsf{del})$
@@ -1646,6 +1650,8 @@ $\mathcal I(M)$.
 
 \begin{definition}[Domain signature]
 \label{def:domain-signature}
+\lean{NeSyCat.DomSignature}
+\leanok
 A \textbf{domain signature} $\Sigma_\gamma$ is given by:
 \begin{itemize}
 \item a set of \textbf{domain symbols} $\mathrm{Dom}$ and a set of
@@ -1676,6 +1682,8 @@ A \textbf{domain signature} $\Sigma_\gamma$ is given by:
 
 \begin{definition}[Writing convention for typed symbols]
 \label{def:domain-signature-notation}
+\lean{NeSyCat.DomSignature.TypedSymbol.display}
+\leanok
 For a function symbol $f \in \Fun$ with domain
 $(M_1,S_1),\ldots,(M_n,S_n)$, codomain
 $(N_1,T_1),\ldots,(N_m,T_m)$, and parameter spaces
@@ -1699,6 +1707,8 @@ $\Theta$ is displayed $\theta \colon \Theta$.
 
 \begin{definition}[Domain interpretation]
 \label{def:domain-interpretation}
+\lean{NeSyCat.DomInterpretation}
+\leanok
 A \textbf{domain interpretation} $\mathcal I_\gamma$ of a domain
 signature $\Sigma_\gamma$ (Definition~\ref{def:domain-signature}) into
 the CD category $\mathcal C$ with its actegory $(\mathcal A, \actop)$
