@@ -101,27 +101,52 @@ unit clause): `lift_Bmon(Ret_{Bmon}(x)) = Ret_{Bmon M}(x)`. -/
 @[blueprint_internal]
 theorem liftBmon_ret (x : X) : (liftBmon (Bmon.ret x) : BmonT B M X) = pure x := rfl
 
+omit [LawfulMonad M] in
 /-- Blueprint `thm:batch-transformer` (`lift_Bmon` is a monad morphism,
 bind clause): `lift_Bmon(m \bind f) = lift_Bmon(m) \bind (lift_Bmon
-\circ f)`, using `Ret_M`'s naturality and `M`'s own left unit law
-(`pure_bind`). -/
+\circ f)`, using `Ret_M`'s naturality and `M`'s own left unit law.
+
+MINIMAL HYPOTHESIS (C3-EXEC-FIX2). This is the ONLY clause of the batch
+layer that uses a monad law at all, and the law it uses is the LEFT UNIT
+law alone — not associativity of `\bind`, and not the right unit law. It
+is therefore stated with that one law as an explicit hypothesis `hleft`,
+at exactly the two value types `X`/`Y` it is applied at, rather than with
+the whole `[LawfulMonad M]` bundle: under `[LawfulMonad M]` the
+hypothesis is discharged by Mathlib/core's `pure_bind` (see
+`batchTransformer_of_lawful` below, which is the pre-C3-EXEC-FIX2
+statement recovered verbatim). -/
 -- (A1 bijection-law companion of `batchTransformer`, content.tex thm:batch-transformer)
 @[blueprint_internal]
-theorem liftBmon_bind (m : Bmon B X) (f : X → Bmon B Y) :
+theorem liftBmon_bind (hleft : ∀ (x : X) (g : X → M Y), (pure x : M X) >>= g = g x)
+    (m : Bmon B X) (f : X → Bmon B Y) :
     (liftBmon (Bmon.bind m f) : BmonT B M Y) =
       liftBmon m >>= fun x => liftBmon (f x) := by
   apply ReaderT.ext
   intro b
   change pure ((Bmon.bind m f) b) = pure (m b) >>= fun x => pure (f x b)
-  rw [Bmon.bind, pure_bind]
+  rw [Bmon.bind, hleft]
 
-/-- Blueprint `thm:batch-transformer` (Batch transformer): for every
-strong monad `M` (`[Monad M] [LawfulMonad M]`, in particular for `M =
-MS S` of `thm:semiring-monad-laws`, or `M = Idmon`), `BmonT B M` is
-again a monad (Lean core's `LawfulMonad (ReaderT (Fin B) M)` instance,
-BACKGROUND machinery — see the module doc above), and the two
-canonical lifts `liftM`/`liftBmon` are monad morphisms. -/
-theorem batchTransformer :
+omit [LawfulMonad M] in
+/-- Blueprint `thm:batch-transformer` (Batch transformer): for `M` a
+monad (in particular for `M = MS S` of `thm:semiring-monad-laws`, or `M
+= Idmon`), `BmonT B M` is again a monad (Lean core's `LawfulMonad
+(ReaderT (Fin B) M)` instance, BACKGROUND machinery — see the module
+doc above), and the two canonical lifts `liftM`/`liftBmon` are monad
+morphisms.
+
+MINIMAL HYPOTHESIS (C3-EXEC-FIX2). `[LawfulMonad M]` is NOT assumed.
+Three of the four morphism clauses are definitional (`liftM_ret`,
+`liftM_bind`, `liftBmon_ret`, each `rfl`); the fourth, `liftBmon_bind`,
+consumes `M`'s left unit law and nothing else, carried here as the
+explicit hypothesis `hleft`. `batchTransformer_of_lawful` below recovers
+the pre-C3-EXEC-FIX2 statement verbatim by discharging `hleft` with
+`pure_bind`, so this statement implies that one. Note that the "`BmonT B
+M` is again a monad" half of the informal reading is background
+machinery cited in the module doc, not a conjunct of this theorem's own
+Lean statement; that half does need `[LawfulMonad M]`, which is why the
+blueprint's own sentence still names a lawful `M` for it. -/
+theorem batchTransformer
+    (hleft : ∀ (x : X) (g : X → M Y), (pure x : M X) >>= g = g x) :
     (∀ x : X, (liftM (pure x) : BmonT B M X) = pure x) ∧
       (∀ (m : M X) (k : X → M Y),
         (liftM (m >>= k) : BmonT B M Y) = liftM m >>= fun x => liftM (k x)) ∧
@@ -129,7 +154,23 @@ theorem batchTransformer :
       (∀ (m : Bmon B X) (f : X → Bmon B Y),
         (liftBmon (Bmon.bind m f) : BmonT B M Y) =
           liftBmon m >>= fun x => liftBmon (f x)) :=
-  ⟨liftM_ret, liftM_bind, liftBmon_ret, liftBmon_bind⟩
+  ⟨liftM_ret, liftM_bind, liftBmon_ret, liftBmon_bind hleft⟩
+
+/-- The pre-C3-EXEC-FIX2 form of `batchTransformer`, recovered verbatim:
+under `[LawfulMonad M]` the left unit hypothesis is `pure_bind`. Kept as
+a machine-checked witness that the weakened statement implies the one it
+replaced. -/
+-- (A1 bijection-law companion of `batchTransformer`, content.tex thm:batch-transformer)
+@[blueprint_internal]
+theorem batchTransformer_of_lawful :
+    (∀ x : X, (liftM (pure x) : BmonT B M X) = pure x) ∧
+      (∀ (m : M X) (k : X → M Y),
+        (liftM (m >>= k) : BmonT B M Y) = liftM m >>= fun x => liftM (k x)) ∧
+      (∀ x : X, (liftBmon (Bmon.ret x) : BmonT B M X) = pure x) ∧
+      (∀ (m : Bmon B X) (f : X → Bmon B Y),
+        (liftBmon (Bmon.bind m f) : BmonT B M Y) =
+          liftBmon m >>= fun x => liftBmon (f x)) :=
+  batchTransformer fun x g => pure_bind x g
 
 /-! ### `thm:pointwise-eval`, part 1: `ev_i` is a monad morphism -/
 
@@ -155,11 +196,13 @@ theorem ev_isMonadMorphism (i : Fin B) :
 /-! ### `thm:batch-exactness`: the batch layer's laws hold for an
 arbitrary carrier -/
 
+omit [LawfulMonad M] in
 /-- Blueprint `thm:batch-exactness` (Batching is exact): every clause of
 `thm:batch-transformer` and `thm:pointwise-eval`, bundled, for the value
 types `X Y : Type` completely unconstrained (no `Semiring`/`LatCSRng`/
-lattice hypothesis, no hypothesis whatsoever on the value carrier) and `M`
-an arbitrary lawful monad. The value types are `Type`, NOT `Type*`: the
+lattice hypothesis, no hypothesis whatsoever on the value carrier) and
+`M` an arbitrary monad, NOT assumed lawful. The value types are `Type`,
+NOT `Type*`: the
 file's `variable` block fixes `{X Y : Type}` because the inner monad is
 taken at `M : Type → Type*`, so its value types are small. Cited verbatim
 from `batchTransformer`/`ev_isMonadMorphism`, per the calibrated reuse
@@ -167,11 +210,22 @@ principle: nothing new is proved here, the point is that the statement
 names no algebraic class and no already-structured carrier at all —
 mechanically confirmed by `scripts/blueprint.sh`'s classification gate
 (C3-EXEC item 2, corrected and gated at C3-EXEC-FIX), which finds zero
-algebraic markers anywhere in this declaration's type. `[Monad M]
-[LawfulMonad M]` are not counted as such markers, deliberately: they
-constrain the AMBIENT monad, not the value carrier, and this theorem
-assumes rather than proves them. -/
-theorem batch_layer_exact (i : Fin B) :
+algebraic markers anywhere in this declaration's type. `[Monad M]` is
+not counted as such a marker, deliberately: it constrains the AMBIENT
+monad, not the value carrier, and this theorem assumes rather than
+proves it.
+
+MINIMAL HYPOTHESIS (C3-EXEC-FIX2). `[LawfulMonad M]` is NOT assumed.
+Five of the six clauses are definitional — see `batch_layer_exact_lawFree`
+below, which states exactly those five with no monad law whatsoever — and
+the sixth, `liftBmon`'s bind clause, consumes `M`'s LEFT UNIT law and
+nothing else, carried here as the explicit hypothesis `hleft` at exactly
+the two value types it is applied at. In particular no clause uses
+associativity of `\bind`. `batch_layer_exact_of_lawful` below recovers
+the pre-C3-EXEC-FIX2 statement verbatim by discharging `hleft` with
+`pure_bind`, so this statement implies that one. -/
+theorem batch_layer_exact (i : Fin B)
+    (hleft : ∀ (x : X) (g : X → M Y), (pure x : M X) >>= g = g x) :
     (∀ x : X, (liftM (pure x) : BmonT B M X) = pure x) ∧
       (∀ (m : M X) (k : X → M Y),
         (liftM (m >>= k) : BmonT B M Y) = liftM m >>= fun x => liftM (k x)) ∧
@@ -183,11 +237,53 @@ theorem batch_layer_exact (i : Fin B) :
       (∀ (m : BmonT B M X) (f : X → BmonT B M Y),
         ev i (m >>= f) = ev i m >>= fun x => ev i (f x)) := by
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
-  · exact (batchTransformer (X := X) (Y := Y)).1
-  · exact (batchTransformer (X := X) (Y := Y)).2.1
-  · exact (batchTransformer (X := X) (Y := Y)).2.2.1
-  · exact (batchTransformer (X := X) (Y := Y)).2.2.2
+  · exact (batchTransformer (X := X) (Y := Y) hleft).1
+  · exact (batchTransformer (X := X) (Y := Y) hleft).2.1
+  · exact (batchTransformer (X := X) (Y := Y) hleft).2.2.1
+  · exact (batchTransformer (X := X) (Y := Y) hleft).2.2.2
   · exact (ev_isMonadMorphism (X := X) (Y := Y) i).1
   · exact (ev_isMonadMorphism (X := X) (Y := Y) i).2
+
+omit [LawfulMonad M] in
+/-- The five clauses of `batch_layer_exact` that hold with NO monad law
+at all — `liftM`'s two morphism clauses, `liftBmon`'s unit clause, and
+both of `ev_i`'s — for an arbitrary `[Monad M]`. Every one of them is
+closed by `rfl` at its own declaration (`liftM_ret`, `liftM_bind`,
+`liftBmon_ret`, `ev_isMonadMorphism`): they are identities of the
+`ReaderT` encoding itself, true of any bind whatever, lawful or not.
+This is the statement behind the rendered document's claim that only one
+clause of the batch layer consumes a monad law. -/
+-- (A1 bijection-law companion of `batch_layer_exact`, content.tex thm:batch-exactness)
+@[blueprint_internal]
+theorem batch_layer_exact_lawFree (i : Fin B) :
+    (∀ x : X, (liftM (pure x) : BmonT B M X) = pure x) ∧
+      (∀ (m : M X) (k : X → M Y),
+        (liftM (m >>= k) : BmonT B M Y) = liftM m >>= fun x => liftM (k x)) ∧
+      (∀ x : X, (liftBmon (Bmon.ret x) : BmonT B M X) = pure x) ∧
+      (∀ x : X, ev i (pure x : BmonT B M X) = pure x) ∧
+      (∀ (m : BmonT B M X) (f : X → BmonT B M Y),
+        ev i (m >>= f) = ev i m >>= fun x => ev i (f x)) :=
+  ⟨liftM_ret, liftM_bind, liftBmon_ret,
+    (ev_isMonadMorphism (X := X) (Y := Y) i).1,
+    (ev_isMonadMorphism (X := X) (Y := Y) i).2⟩
+
+/-- The pre-C3-EXEC-FIX2 form of `batch_layer_exact`, recovered verbatim:
+under `[LawfulMonad M]` the left unit hypothesis is `pure_bind`. Kept as
+a machine-checked witness that the weakened statement implies the one it
+replaced. -/
+-- (A1 bijection-law companion of `batch_layer_exact`, content.tex thm:batch-exactness)
+@[blueprint_internal]
+theorem batch_layer_exact_of_lawful (i : Fin B) :
+    (∀ x : X, (liftM (pure x) : BmonT B M X) = pure x) ∧
+      (∀ (m : M X) (k : X → M Y),
+        (liftM (m >>= k) : BmonT B M Y) = liftM m >>= fun x => liftM (k x)) ∧
+      (∀ x : X, (liftBmon (Bmon.ret x) : BmonT B M X) = pure x) ∧
+      (∀ (m : Bmon B X) (f : X → Bmon B Y),
+        (liftBmon (Bmon.bind m f) : BmonT B M Y) =
+          liftBmon m >>= fun x => liftBmon (f x)) ∧
+      (∀ x : X, ev i (pure x : BmonT B M X) = pure x) ∧
+      (∀ (m : BmonT B M X) (f : X → BmonT B M Y),
+        ev i (m >>= f) = ev i m >>= fun x => ev i (f x)) :=
+  batch_layer_exact i fun x g => pure_bind x g
 
 end NeSyCat

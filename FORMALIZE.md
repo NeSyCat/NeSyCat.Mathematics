@@ -16,8 +16,24 @@ possible without stopping to ask questions.
 - `NeSyCat.lean` may ONLY be touched to add new
   `import NeSyCat.<NewFile>` lines when you create a new module.
 - NEVER edit: `lakefile.toml`, `lean-toolchain`, `lake-manifest.json`,
-  `scripts/`, `references/`, `.github/`, `.foreman/`,
-  `.gitignore`.
+  `.gitignore`, `CLAUDE.md`, `.github/`. These are the build pin, the
+  dependency lock, and the session's own configuration: nothing a
+  formalization ticket does legitimately touches them, and
+  `.claude/hooks/guard-scope.py` enforces exactly this list (deny in
+  grind mode, ask otherwise).
+- NEVER edit `.foreman/**` EXCEPT `.foreman/scratch/`, where a worker
+  writes its own report and bulk artifacts. The rest is the
+  orchestrator's ledger, and this rule is the only thing guarding it:
+  the hook deliberately does not, since prompting on routine ledger
+  bookkeeping was pure noise (2026-08-07).
+- TICKET-SCOPED, not forbidden: `FORMALIZE.md`, `scripts/`,
+  `references/`, and `.claude/`. These were removed from hard protection
+  on 2026-08-09 (user decision after the E8 law-patch prompt; recorded
+  in `.claude/hooks/guard-scope.py`, whose `protected_prefixes` no
+  longer lists them). The harness itself needs them editable: gate work
+  edits `scripts/blueprint.sh`, law patches edit this file, and a paper
+  pin lands under `references/`. Edit them only when your ticket's write
+  set names them, and never to weaken a gate you are failing.
 - NEVER run `lake update`.
 
 ## Never lose work

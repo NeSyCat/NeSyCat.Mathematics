@@ -2833,21 +2833,36 @@ the continuation at index $b$ sees only index $b$'s value.
 \label{thm:batch-transformer}
 \lean{NeSyCat.batchTransformer}
 \leanok
-For every strong monad $\mathcal M$ (in particular for every
-$\mathcal M = \MS{S}$ of Definition~\ref{def:semiring-monad}, or
-$\mathcal M = \Idmon$), the composite
+Let $\mathcal M$ be a monad, \emph{not} assumed lawful. The composite
 \[
   \Bmon\mathcal M X := \bigl(\Bidx \to \mathcal M X\bigr)
 \]
-is again a monad (the reader monad transformer at $\Bidx$ applied to
-$\mathcal M$), and there are two canonical monad morphisms into it:
+is the reader monad transformer at $\Bidx$ applied to $\mathcal M$, and
+carries two canonical maps
 \[
   \mathrm{lift}_{\mathcal M} \colon \mathcal M X \to \Bmon\mathcal M X,\
   \mathrm{lift}_{\mathcal M} := \mathrm{const},
   \qquad
   \mathrm{lift}_{\Bmon} \colon \Bmon X \to \Bmon\mathcal M X,\
-  \mathrm{lift}_{\Bmon}(m) := m \seq \Ret_{\mathcal M}.
+  \mathrm{lift}_{\Bmon}(m) := m \seq \Ret_{\mathcal M},
 \]
+each satisfying the unit identity and the bind identity of a monad
+morphism. Three of those four identities hold for an arbitrary
+$\mathcal M$. The fourth, $\mathrm{lift}_{\Bmon}$'s bind identity, holds
+as soon as $\mathcal M$ satisfies the left unit law
+$\Ret_{\mathcal M}(x) \bind_{\mathcal M} g = g(x)$, which is the only
+monad law this theorem assumes. When $\mathcal M$ is moreover lawful (in
+particular for every $\mathcal M = \MS{S}$ of
+Definition~\ref{def:semiring-monad}, or $\mathcal M = \Idmon$),
+$\Bmon\mathcal M$ is again a monad and the two maps are monad morphisms
+between monads.
+% The final sentence's "is again a monad" half is the reader
+% transformer's own LawfulMonad instance, cited as background machinery
+% (see BatchTransformer.lean's module doc) and not a conjunct of
+% NeSyCat.batchTransformer's Lean statement; the four identities are.
+% batchTransformer's binders after C3-EXEC-FIX2: {B : ℕ} {M : Type →
+% Type u} {X Y : Type} [Monad M] and the left unit law as an explicit
+% hypothesis -- no [LawfulMonad M].
 \uses{def:batch-monad, thm:semiring-monad-laws}
 \end{theorem}
 
@@ -2858,29 +2873,46 @@ transformer's (cited, not reproved by this theorem's own Lean
 declaration): unit and bind are Definition~\ref{def:batch-monad}'s
 taken pointwise in $\mathcal M X$, so its laws reduce, index by index,
 to the monad laws of $\mathcal M$ (Theorem~\ref{thm:semiring-monad-laws}).
-What this theorem's own proof supplies are the four morphism
+That citation is the one place lawfulness of $\mathcal M$ is used, and
+it buys the composite's own laws, not any of the four identities below.
+What this theorem's own proof supplies are those four morphism
 identities, one unit/bind pair per lift.
 $\mathrm{lift}_{\mathcal M}$'s pair, each an unfolding identity since a
 constant family trivially commutes with diagonal bind:
-% liftM_ret, liftM_bind, BatchTransformer.lean -- both rfl
+% liftM_ret, liftM_bind, BatchTransformer.lean -- both rfl, both stated
+% under `omit [LawfulMonad M]`
 \[
   \mathrm{lift}_{\mathcal M}\bigl(\Ret_{\mathcal M}(x)\bigr) = \Ret_{\Bmon\mathcal M}(x),
   \qquad
   \mathrm{lift}_{\mathcal M}(m \bind_{\mathcal M} k) =
   \mathrm{lift}_{\mathcal M}(m) \bind \bigl(x \mapsto \mathrm{lift}_{\mathcal M}(k(x))\bigr).
 \]
-$\mathrm{lift}_{\Bmon}$'s pair, the unit clause again an unfolding
-identity and the bind clause from $\Ret_{\mathcal M}$'s naturality
-together with the left unit law of $\mathcal M$
-(Theorem~\ref{thm:semiring-monad-laws}):
-% liftBmon_ret (rfl), liftBmon_bind (Ret_M naturality + pure_bind),
-% BatchTransformer.lean
+$\mathrm{lift}_{\Bmon}$'s unit clause is an unfolding identity too, both
+sides being the constant family $\Ret_{\mathcal M}(x)$:
+% liftBmon_ret, BatchTransformer.lean -- rfl, under `omit [LawfulMonad M]`
 \[
-  \mathrm{lift}_{\Bmon}\bigl(\Ret_{\Bmon}(x)\bigr) = \Ret_{\Bmon\mathcal M}(x),
-  \qquad
-  \mathrm{lift}_{\Bmon}(m \bind_{\Bmon} f) =
-  \mathrm{lift}_{\Bmon}(m) \bind \bigl(x \mapsto \mathrm{lift}_{\Bmon}(f(x))\bigr).
+  \mathrm{lift}_{\Bmon}\bigl(\Ret_{\Bmon}(x)\bigr) = \Ret_{\Bmon\mathcal M}(x).
 \]
+Its bind clause is the only one of the four that consumes a law.
+Evaluated at an index $b \in \Bidx$, and unfolding
+Definition~\ref{def:batch-monad}'s diagonal bind, the two sides are the
+$\mathcal M$-computations
+% liftBmon_bind, BatchTransformer.lean -- the `change` step exhibits
+% exactly these two sides; the left unit law is the theorem's own
+% explicit hypothesis `hleft` after C3-EXEC-FIX2, discharged by
+% pure_bind wherever [LawfulMonad M] is at hand.
+\begin{align*}
+  \mathrm{lift}_{\Bmon}(m \bind_{\Bmon} f)(b)
+    &= \Ret_{\mathcal M}\bigl(f(m(b))(b)\bigr), \\
+  \bigl(\mathrm{lift}_{\Bmon}(m) \bind
+    \bigl(x \mapsto \mathrm{lift}_{\Bmon}(f(x))\bigr)\bigr)(b)
+    &= \Ret_{\mathcal M}(m(b)) \bind_{\mathcal M}
+       \bigl(x \mapsto \Ret_{\mathcal M}(f(x)(b))\bigr),
+\end{align*}
+and the left unit law of $\mathcal M$, applied at $x := m(b)$ and
+$g := \bigl(x \mapsto \Ret_{\mathcal M}(f(x)(b))\bigr)$, rewrites the
+second to the first. Associativity of $\bind_{\mathcal M}$ is used
+nowhere in the four, and neither is the right unit law.
 \end{proof}
 
 $\mathrm{lift}_{\mathcal M}$ embeds a batch-constant effect.
@@ -2893,7 +2925,11 @@ observation.
 \leanok
 For each $i \in \Bidx$, evaluation
 $\mathrm{ev}_i \colon \Bmon\mathcal M X \to \mathcal M X$,
-$m \mapsto m(i)$, is a monad morphism.
+$m \mapsto m(i)$, satisfies the unit and bind identities of a monad
+morphism. No monad law of $\mathcal M$ is assumed: $\mathcal M$ is an
+arbitrary monad, lawful or not.
+% NeSyCat.ev_isMonadMorphism carries `omit [LawfulMonad M]` and both
+% clauses are `rfl` (BatchTransformer.lean).
 \uses{thm:batch-transformer}
 \end{theorem}
 
@@ -2903,7 +2939,8 @@ $\mathrm{ev}_i(\Ret_{\Bmon\mathcal M}(a)) = \mathrm{const}(a)(i) = a =
 \Ret_{\mathcal M}(a)$. $\mathrm{ev}_i(m \bind f) = f(m(i))(i) = m(i)
 \bind_{\mathcal M} (\lambda x.\, f(x)(i)) = \mathrm{ev}_i(m) \bind
 (f \seq \mathrm{ev}_i)$, unfolding the diagonal bind of
-Definition~\ref{def:batch-monad}.
+Definition~\ref{def:batch-monad}. Each chain is a chain of unfoldings
+of the encoding, so each holds whatever $\bind_{\mathcal M}$ is.
 \end{proof}
 
 \begin{theorem}[Batching is exact]
@@ -2912,11 +2949,19 @@ Definition~\ref{def:batch-monad}.
 \leanok
 The four identities of Theorem~\ref{thm:batch-transformer} and the two
 of Theorem~\ref{thm:pointwise-eval}, conjoined, hold for all value
-types $X$ and $Y$ of the lowest type universe and every lawful monad
-$\mathcal M$, with no hypothesis on the arithmetic of $X$ or $Y$ and no
-assumption on $\mathcal M$ beyond lawfulness. (The universe restriction
+types $X$ and $Y$ of the lowest type universe and every monad
+$\mathcal M$ satisfying the left unit law
+$\Ret_{\mathcal M}(x) \bind_{\mathcal M} g = g(x)$, with no hypothesis
+on the arithmetic of $X$ or $Y$ and no assumption on $\mathcal M$ beyond
+that one law. Five of the six identities hold with no monad law at all;
+the left unit law is consumed by the sixth alone,
+$\mathrm{lift}_{\Bmon}$'s bind identity. (The universe restriction
 is the inner monad's: $\mathcal M$ is taken with signature
 $\mathsf{Type} \to \mathsf{Type}\,u$, so its value types are small.)
+% NeSyCat.batch_layer_exact after C3-EXEC-FIX2: binders {B : ℕ}
+% {M : Type → Type u} {X Y : Type} [Monad M] (i : Fin B) and the left
+% unit law as an explicit hypothesis; no [LawfulMonad M]. The five
+% law-free clauses are their own statement, batch_layer_exact_lawFree.
 \uses{thm:batch-transformer, thm:pointwise-eval}
 \end{theorem}
 
@@ -2946,20 +2991,49 @@ verbatim, one projection apiece:
 \end{align*}
 What the bundle adds is its own hypothesis list, quantified over all
 six clauses at once: a batch size $B$, an index $i \in \Bidx$, value
-types $X$ and $Y$, and a lawful $\mathcal M$. No other hypothesis
-appears.
+types $X$ and $Y$, a monad $\mathcal M$, and the left unit law of
+$\mathcal M$ at $X$ and $Y$. No other hypothesis appears. Deleting the
+fourth row leaves the left unit law with nothing to do, and the
+remaining five hold for a monad $\mathcal M$ carrying no law whatever.
+% batch_layer_exact_lawFree, BatchTransformer.lean -- rows 1, 2, 3, 5, 6
+% under [Monad M] alone, proof `⟨liftM_ret, liftM_bind, liftBmon_ret,
+% (ev_isMonadMorphism i).1, (ev_isMonadMorphism i).2⟩`, every component
+% an `rfl`. batch_layer_exact_of_lawful recovers the pre-C3-EXEC-FIX2
+% six-clause statement under [LawfulMonad M] by discharging the left
+% unit hypothesis with pure_bind.
 \end{proof}
 
 No hypothesis in Theorem~\ref{thm:batch-exactness}'s statement names an
 algebra on the value types $X$ and $Y$. Instantiating $X$ at a type of
 float-valued tensors is therefore permitted, and the six identities
 hold there verbatim, exactly as they hold when $X$ is instantiated at
-any other type. That is a statement about the value slot alone. It is
-not a statement about the inner monad slot: $\mathcal M$ is assumed
-lawful, and nothing here proves that a floating-point implementation
-of $\MS S$, or of any other monad, satisfies the monad laws. The batch
+any other type. That is a statement about the value slot alone. The
+inner monad slot is asked for one law and no more: the left unit law,
+for the fourth identity, and nothing at all for the other five. It is
+still not a statement about what a floating-point implementation
+satisfies. Nothing here proves that a floating-point implementation of
+$\MS S$, or of any other monad, satisfies the left unit law or any
+other; what is proved is that the batch layer asks for that one law
+alone. The batch
 layer reads and rearranges values that $\mathcal M$ computes; it never
 computes with them, so it contributes no error of its own.
+
+The one law it does ask for is not the law floating-point arithmetic
+breaks. Associativity of $\bind_{\MS S}$ is where the associativity of
+$S$'s addition enters the monad laws: its proof rearranges a double sum
+into the other nesting, which needs $\oplus$ to associate and
+$\otimes$ to distribute over it. The left unit law needs neither. It
+needs only that a point mass collapses, $\Ret(x) \bind k = 1 \otimes
+k(x) = k(x)$, so the only arithmetic it touches is multiplication by
+$1$.
+% ret_bind, SemiringMonad.lean -- `Finsupp.sum_single_index` then
+% `one_smul`; bind_assoc, same file -- `Finsupp.sum_sum_index` (⊕
+% associates/commutes) with `add_smul` (⊗ distributes over ⊕) and
+% `mul_smul`. The batch layer cites neither: no clause of
+% batchTransformer, ev_isMonadMorphism, or batch_layer_exact uses
+% bind_assoc.
+Floating-point addition is not associative, and no clause of the batch
+layer invokes an associativity of $\bind$ that would rest on it.
 
 Whether $\mathcal M$'s own float arithmetic matches the real-valued
 semantics of Definition~\ref{def:semiring-monad} up to some bound is a
@@ -3018,9 +3092,12 @@ formalized statements themselves rather than assigned by hand.
   {\raggedright\textbf{What an implementation gets}\par} \\
 \hline
 {\raggedright carrier-agnostic ($3$ of $59$)\par} &
-  {\raggedright nothing at all: the value types are bare types\par} &
+  {\raggedright nothing at all: the value types are bare types, and of
+   the ambient monad at most the left unit law\par} &
   {\raggedright the identity holds exactly, in any implementation,
-   whatever the values are and however they are computed\par} \\
+   whatever the values are and however they are computed, provided the
+   implementation's $\bind$ satisfies the left unit law; five of the six
+   identities not even that\par} \\
 {\raggedright carrier-algebraic ($56$ of $59$)\par} &
   {\raggedright a semiring, a lattice or an order, a monoidal or
    braided category, or a fixed carrier ($\MassS$, $\MassSInf$,
@@ -3043,13 +3120,32 @@ associativity of a product is. A batch size $B$ and an index
 $i \in \Bidx$ count as neither, on either side: they shape a batch and
 ask nothing of the values in it.
 
-Two things the carrier-agnostic column does not say. It does not say
-that the inner monad $\mathcal M$ is lawful. Lawfulness is a hypothesis
-of all three statements, and whether some particular implementation's
-$\mathcal M$ satisfies it is a question about that implementation, not
-answered here. Nor does the column say that the values are computed
-exactly: $X$ and $Y$ range over types, and a value can be a float
-tensor carrying whatever error its own arithmetic carries.
+What the carrier-agnostic column asks of the ambient monad, it asks
+sparingly, and it is worth being exact about how sparingly.
+Theorem~\ref{thm:pointwise-eval} assumes no law of $\mathcal M$ at all,
+and neither do five of Theorem~\ref{thm:batch-exactness}'s six
+identities. One identity, $\mathrm{lift}_{\Bmon}$'s bind clause, assumes
+exactly one law, the left unit law
+$\Ret_{\mathcal M}(x) \bind_{\mathcal M} g = g(x)$. Associativity of
+$\bind$ is assumed by none of the three, and that is the load-bearing
+point for an implementation: associativity is the law floating-point
+arithmetic breaks, entering the monad laws of $\MS S$ through the
+associativity of $S$'s own addition
+(Theorem~\ref{thm:semiring-monad-laws}), and floating-point addition
+does not associate. The batch layer never calls on it.
+% Mechanically: no clause of batchTransformer, ev_isMonadMorphism, or
+% batch_layer_exact cites bind_assoc; the three Lean statements carry
+% [Monad M] and, for two of them, the left unit law as an explicit
+% hypothesis. See BatchTransformer.lean after C3-EXEC-FIX2.
+
+Two things the column still does not say. It does not say that a
+floating-point implementation of $\MS S$, or of any other monad,
+satisfies even the left unit law. Whether it does is a question about
+that implementation, not answered here; what is answered here is how
+little the batch layer needs it to satisfy. Nor does the column say
+that the values are computed exactly: $X$ and $Y$ range over types, and
+a value can be a float tensor carrying whatever error its own
+arithmetic carries.
 % ------------------------------------------------------------
 
 \begin{theorem}[Pointwise evaluation commutes with the Kleisli interpretation]
