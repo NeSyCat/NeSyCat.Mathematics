@@ -296,12 +296,11 @@ step below.
   run of items sharing the same citation where that reads better as a
   story, never dropped. An open theorem gets the same commentary
   treatment for uniformity, governed otherwise by statement-
-  minimality. **Pinned exemption:** `def:domain-signature-notation`
-  ("Writing convention for typed symbols", Domain layer) is the one
-  `definition` environment with no Lean counterpart, by explicit user
-  decision predating and surviving this law for this specific item —
-  the sweep, the lint advisory, and the kind-check gate all exempt it
-  by label, and it is never dissolved into prose. Enforced
+  minimality. The former pinned exemption
+  (`def:domain-signature-notation`) was retired at C3-B2: its writing
+  convention is formalized as a display function
+  (`DomSignature.TypedSymbol.display`), and no definition environment
+  lacks a Lean counterpart. Enforced
   advisory-side by the lint hooks' commentary/provenance marker scan
   (bracketed `[NeSy26`/`[Girard`/... tags, or phrases like "Distilled
   from", "unlike a", "transported along", "see Remark", "the source");
@@ -513,6 +512,30 @@ step below.
      handful of `%` citation blocks for correct classification, and
      confirms every prose attribution names a real source its
      adjacent `%` comment substantiates.
+
+- **Sequential composition decree (C2-E10, USER DECREE 2026-08-09).**
+  Composition is always written sequentially, with the fat semicolon:
+  "first $f$, then $g$" is $f \seq g$. `\circ` is banned — never write
+  it for map composition, in either LaTeX source. `\seq`/`\fatsemi`
+  are single-sourced in `NeSyCat.Logics/macros.sty` (the shared-macro
+  import all three papers use); `blueprint/src/macros/common.tex`
+  pulls them in via its existing wholesale `\input` of that file, not
+  a local re-`\newcommand` copy — the single-sourcing law is satisfied
+  by that live import, not a textual duplicate. Function APPLICATION
+  is untouched by this decree: $f(x)$, $f(g(x))$, $\Ret(m(b))$ stay
+  exactly as written regardless of how many arguments are nested —
+  only the composition OPERATOR $\circ$ converts, and only where the
+  source already writes it that way; never rewrite a nested
+  application into a composition chain (that changes expression
+  style, not notation). A genuinely foreign, non-composition `\circ`
+  (quoting another author's own notation verbatim, e.g. a citation
+  describing a cited paper's own operator) is exempted precisely, by
+  its own fixed surrounding phrase, and disclosed at the exemption
+  site — never a silent allowance. Enforced by `lint-blueprint.py`
+  (both copies): a `CIRC_RE`/`circ_scan` advisory on every `\circ` in
+  `content.tex` (math or prose) except the document's own sentence
+  naming the banned symbol, matched by its fixed preceding phrase
+  ("never write"), RED/GREEN-tested through the hook entry point.
 
 ## Work strategy
 
