@@ -152,4 +152,36 @@ theorem ev_isMonadMorphism (i : Fin B) :
         ev i (m >>= f) = ev i m >>= fun x => ev i (f x)) :=
   ⟨fun _ => rfl, fun _ _ => rfl⟩
 
+/-! ### `thm:batch-exactness`: the batch layer's laws hold for an
+arbitrary carrier -/
+
+/-- Blueprint `thm:batch-exactness` (Batching is exact): every clause of
+`thm:batch-transformer` and `thm:pointwise-eval`, bundled, for `X Y : Type*`
+completely unconstrained (no `Semiring`/`LatCSRng`/lattice hypothesis, no
+hypothesis whatsoever on the value carrier) and `M` an arbitrary lawful
+monad. Cited verbatim from `batchTransformer`/`ev_isMonadMorphism`, per the
+calibrated reuse principle: nothing new is proved here, the point is that
+the statement names no algebraic class and no already-structured carrier
+at all — mechanically confirmed by `scripts/blueprint.sh`'s classification
+gate (C3-EXEC item 2), which finds zero algebraic markers anywhere in this
+declaration's type. -/
+theorem batch_layer_exact (i : Fin B) :
+    (∀ x : X, (liftM (pure x) : BmonT B M X) = pure x) ∧
+      (∀ (m : M X) (k : X → M Y),
+        (liftM (m >>= k) : BmonT B M Y) = liftM m >>= fun x => liftM (k x)) ∧
+      (∀ x : X, (liftBmon (Bmon.ret x) : BmonT B M X) = pure x) ∧
+      (∀ (m : Bmon B X) (f : X → Bmon B Y),
+        (liftBmon (Bmon.bind m f) : BmonT B M Y) =
+          liftBmon m >>= fun x => liftBmon (f x)) ∧
+      (∀ x : X, ev i (pure x : BmonT B M X) = pure x) ∧
+      (∀ (m : BmonT B M X) (f : X → BmonT B M Y),
+        ev i (m >>= f) = ev i m >>= fun x => ev i (f x)) := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
+  · exact (batchTransformer (X := X) (Y := Y)).1
+  · exact (batchTransformer (X := X) (Y := Y)).2.1
+  · exact (batchTransformer (X := X) (Y := Y)).2.2.1
+  · exact (batchTransformer (X := X) (Y := Y)).2.2.2
+  · exact (ev_isMonadMorphism (X := X) (Y := Y) i).1
+  · exact (ev_isMonadMorphism (X := X) (Y := Y) i).2
+
 end NeSyCat

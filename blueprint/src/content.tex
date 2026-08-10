@@ -341,6 +341,23 @@ $\wedge{=}\min$, $0{=}0$, $1{=}1$, $\oplus{=}{+}$, $\otimes{=}\cdot$.
 \uses{def:comm-lattice-semiring, lem:prob-not-semiring}
 \end{instance}
 
+\begin{instance}[Rational mass row]
+\label{inst:qmass-latcsrng}
+\lean{NeSyCat.instLatCSRngNNRat}
+\leanok
+Carrier $\mathbb Q_{\ge 0}$, with the same
+$\bot,\vee,\wedge,0,1,\oplus,\otimes$ as the mass row.
+\uses{def:comm-lattice-semiring, inst:massS-latcsrng}
+\end{instance}
+
+$\MassS$ is built from Cauchy sequences: not every step of its own
+construction is decidable, so Lean marks its lattice-semiring instance
+\texttt{noncomputable}, and it does not run under \texttt{\#eval}.
+$\mathbb Q_{\ge 0}$ is the nonnegative rationals: every field is a pair
+of integers, every step decidable, so the identical instance carries
+no such marker and does run. This is the reference evaluator's carrier
+throughout the rest of this section.
+
 \begin{instance}[Log row]
 \label{inst:logS-latcsrng}
 \lean{NeSyCat.instLatCSRngLogS}
@@ -2887,6 +2904,41 @@ $\mathrm{ev}_i(\Ret_{\Bmon\mathcal M}(a)) = \mathrm{const}(a)(i) = a =
 Definition~\ref{def:batch-monad}.
 \end{proof}
 
+\begin{theorem}[Batching is exact]
+\label{thm:batch-exactness}
+\lean{NeSyCat.batch_layer_exact}
+\leanok
+The four identities of Theorem~\ref{thm:batch-transformer} and the two
+of Theorem~\ref{thm:pointwise-eval}, conjoined, hold for every type $X$
+and every lawful monad $\mathcal M$, with no hypothesis on $X$'s
+arithmetic and no assumption on $\mathcal M$ beyond lawfulness.
+\uses{thm:batch-transformer, thm:pointwise-eval}
+\end{theorem}
+
+\begin{proof}
+\leanok
+The six identities are Theorem~\ref{thm:batch-transformer}'s four
+clauses and Theorem~\ref{thm:pointwise-eval}'s two clauses, cited
+verbatim.
+\end{proof}
+
+No hypothesis in Theorem~\ref{thm:batch-exactness}'s statement names an
+algebra on $X$. So the theorem holds for a float-valued tensor carrier
+exactly as it holds for $\MS S$: the batch layer contributes no error
+of its own to a computation running on it. This does not say that
+float arithmetic itself is exact. The batch layer only reads and
+rearranges values that $\mathcal M$ computes; it never computes with
+them.
+
+Whether $\mathcal M$'s own float arithmetic matches the real-valued
+semantics of Definition~\ref{def:semiring-monad} up to some bound is a
+separate question, and it stays open. Lean's floating-point type
+carries no kernel semantics, and Mathlib has no IEEE-754
+formalization, so no such bound is proved here.
+Theorem~\ref{thm:chain-bound} is the template for the shape such a
+bound would take: two evaluations of the same computation, bounded
+against each other.
+
 \begin{theorem}[Pointwise evaluation commutes with the Kleisli interpretation]
 \label{thm:pointwise-eval-kleisli}
 Assume every symbol and quantifier interpretation of
@@ -3523,6 +3575,54 @@ Lemma~\ref{lem:mass-preserving-closure}, since $h\seq\Ret$ is mass
 preserving for every pure $h$.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
 % This example is due to [NeSy26, App.~B draft/T3; \S 5].
+
+\begin{definition}[Rational mass row]
+\label{def:rational-mass-row}
+\lean{NeSyCat.QRow.bind}
+\leanok
+For a finite value type $X$, the \textbf{rational mass row}
+$\mathrm{QRow}\,X$ is the plain function $X \to \mathbb Q_{\ge 0}$, with
+\[
+  \Ret(x) := \bigl(y \mapsto \text{if } y = x \text{ then } 1 \text{
+  else } 0\bigr), \qquad
+  (f \bind k)(y) := \sum_{x \in X} f(x) \cdot k(x)(y).
+\]
+\uses{inst:qmass-latcsrng}
+\end{definition}
+
+\begin{theorem}[Rational mass row monad laws]
+\label{thm:rational-mass-row-monad}
+\lean{NeSyCat.QRow_monad_laws}
+\leanok
+$(\mathrm{QRow}, \Ret, \bind)$ of Definition~\ref{def:rational-mass-row}
+is a monad: the left unit law, the right unit law $f \bind \Ret = f$,
+and associativity of $\bind$ all hold, the same three laws
+Theorem~\ref{thm:semiring-monad-laws} proves for $\MS S$.
+\uses{def:rational-mass-row, thm:semiring-monad-laws}
+\end{theorem}
+
+\begin{proof}
+\leanok
+Left unit and associativity are finite-sum rearrangements of the
+identical shape Theorem~\ref{thm:semiring-monad-laws}'s proof uses,
+summed over $X$'s whole finite carrier rather than a separately
+tracked support. Right unit is folded inline, the same
+calibrated-reuse fold as there.
+\end{proof}
+
+$\MS{\mathbb Q_{\ge 0}}$ itself stays \texttt{noncomputable}: its
+$\Ret$/$\bind$ are built from a Mathlib finite-support type whose own
+core operations carry that marker, independently of which semiring
+values it holds. $\mathrm{QRow}$ carries no such marker anywhere. A
+bind chain over it computes to a concrete numeral, not an unevaluated
+term, for the same reason Instance~\ref{inst:qmass-latcsrng} does: every
+step of $\mathbb Q_{\ge 0}$'s own arithmetic is decidable.
+
+The log row $\LogS$ admits no such exact model over $\mathbb Q_{\ge
+0}$: the logarithm of a rational number is not, in general, rational.
+So a finite-precision log-space implementation is compared against the
+rational mass reference through Lemma~\ref{lem:log-iso}, never by
+transporting $\mathrm{QRow}$'s own arithmetic directly.
 
 % ============================================================
 % Bibliography (C2-E8, Law 2: visible attribution). Plain-LaTeX

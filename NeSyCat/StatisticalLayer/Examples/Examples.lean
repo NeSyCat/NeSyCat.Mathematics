@@ -6,9 +6,9 @@ Authors: Daniel Romero Schellhorn
 /-!
 # Examples
 
-Blueprint §6.3 Examples. No Lean content yet; see blueprint §6.3.
-This file is the folder's structure-mirror anchor (STRUCTURE-MIRROR
-ENFORCEMENT, C2-E6): it exists purely so the `NeSyCat/` tree carries a
-folder for every blueprint section/subsection, even before that
-section has any formalized content.
+Blueprint §6.3 Examples. Root module for the `Examples`-mirroring folder
+(STRUCTURE-MIRROR ENFORCEMENT, C2-E6): the rational mass row content
+lives in `RationalMassRow.lean` alongside this file. No declarations
+live here -- this file is a pure module-doc anchor so `NeSyCat.lean` can
+import one name per mirrored folder.
 -/

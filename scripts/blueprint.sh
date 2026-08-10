@@ -904,6 +904,130 @@ def cmd_census_classify(content_tex_path, census_lean_out_path, repo_root):
     return 1 if unclassified else 0
 
 
+# STRUCTURAL/ARITHMETIC CLASSIFICATION (C3-EXEC item 2, USER DECREE
+# 2026-08-10): every cited THEOREM/LEMMA-kind declaration is partitioned by
+# whether its own Lean statement (the full type -- every binder plus the
+# conclusion, not just the top-level telescope) depends anywhere on an
+# algebraic hypothesis or a fixed already-structured carrier, or holds
+# genuinely for a bare, unconstrained type. Mechanical, kernel-truth, same
+# fold discipline as the CENSUS above: `cmd_emit_classify_lean` prints a
+# scratch file that looks each cited name up via `getConstInfo`, keeps only
+# theorem-kind ones, and dumps `Expr.getUsedConstants` over the declaration's
+# own `.type` (parameters AND conclusion, so an algebraic dependency baked
+# into a concrete instantiation -- e.g. `chain_bound`'s `NNReal`/`Real.log`,
+# reached only through `PulloutChain`/`Tens`/`dec`, never through an
+# instance-implicit binder on its own -- is caught, not just a bare
+# `[Semiring S]`-style hypothesis); `cmd_classify_report` reads that dump
+# back and buckets each name against the DISCLOSED marker list below: a
+# match makes the theorem ARITHMETIC (it requires the carrier's own algebra
+# somewhere in its statement, hence holds in an implementation only insofar
+# as that implementation's arithmetic does); no match makes it STRUCTURAL
+# (its Lean statement names no algebraic class and no already-structured
+# concrete carrier anywhere, hence it holds verbatim for any carrier
+# whatsoever, exactly as implemented, float tensors included -- this is the
+# mechanical confirmation of `thm:batch-exactness`, C3-EXEC item 1). The
+# marker list mixes Mathlib's own algebraic/order class names (`Semiring`,
+# `Lattice`, `LinearOrder`, ...) with the library's own algebraic
+# vocabulary (`LatCSRng`, `BLat2Mon`, ...) AND its fixed already-structured
+# carrier definitions (`BoolW`, `LogS`, `Tens`, `LogTens`, `PulloutChain`,
+# `Dist`, `MS`) -- a theorem tied to one of those concrete carriers depends
+# on that carrier's arithmetic exactly as much as one guarded by an
+# explicit instance hypothesis, even though no instance binder names it.
+# `Monad`/`LawfulMonad` (generic monadic-effect scaffolding, not a
+# carrier-value algebra) and pure category-theoretic classes
+# (`CategoryTheory.*`) are deliberately absent from the marker list: they
+# describe the computational framework a statement is generic IN, not an
+# algebraic constraint on its value carrier -- exactly why the Batching
+# layer (`batchTransformer`, `ev_isMonadMorphism`, both `[Monad M]
+# [LawfulMonad M]`-only) and the abstract nesting theorem
+# (`simQuant_nest`, pure `CategoryTheory`) land STRUCTURAL. Disclosed and
+# reproducible, in the same spirit as the CENSUS's own suffix/exempt lists
+# above: not a full semantic understanding of algebra, a fixed, auditable
+# name list checked by prefix/component match, calibrated against every
+# name cited in `content.tex` at authoring time (59 theorem-kind names, 4
+# structural / 55 arithmetic) and open to a disclosed extension the moment
+# a genuinely new algebraic vocabulary word is cited.
+CLASSIFY_ALGEBRAIC_MARKERS = [
+    "Semiring", "CommSemiring", "Ring", "CommRing", "Field",
+    "Lattice", "BoundedOrder", "DistribLattice", "LinearOrder",
+    "NNReal", "ENNReal", "Real", "Matrix", "TrivSqZeroExt", "unitInterval",
+    "NeSyCat.LatSRng", "NeSyCat.LatCSRng", "NeSyCat.BLatSRng", "NeSyCat.BLatCSRng",
+    "NeSyCat.BLat2Mon", "NeSyCat.BLat2CMon", "NeSyCat.LinBLat2Mon", "NeSyCat.LinBLat2CMon",
+    "NeSyCat.DMStructure", "NeSyCat.ZeroBot", "NeSyCat.OneTop", "NeSyCat.UnitBounds",
+    "NeSyCat.TNorm", "NeSyCat.GradSemiring", "NeSyCat.MassPreserving", "NeSyCat.TruthSpace",
+    "NeSyCat.BoolW", "NeSyCat.LogS", "NeSyCat.Tens", "NeSyCat.LogTens",
+    "NeSyCat.PulloutChain", "NeSyCat.Dist", "NeSyCat.MS", "NeSyCat.QRow",
+]
+
+
+def cmd_emit_classify_lean(names):
+    print("import NeSyCat")
+    print("import Mathlib")
+    print()
+    print("open Lean Meta")
+    print()
+    quoted = ", ".join(f"`{nm}" for nm in names)
+    print(f"def classifyNames : List Name := [{quoted}]")
+    print()
+    print("#eval show MetaM Unit from do")
+    print("  let env <- getEnv")
+    print("  for nm in classifyNames do")
+    print("    match env.find? nm with")
+    print("    | none => pure ()")
+    print("    | some info =>")
+    print("      let isThm := match info with | .thmInfo _ => true | _ => false")
+    print("      if isThm then")
+    print("        let consts := info.type.getUsedConstants")
+    print("        let names := consts.toList.map toString")
+    print("        IO.println (s!\"CLASS\\t{nm}\\t\" ++ String.intercalate \",\" names)")
+
+
+def _classify_head_matches(const_name, marker):
+    """A used-constant counts as carrying marker `marker` if it IS that
+    name, or is a dot-qualified descendant of it (`Semiring.toAddCommMonoid`
+    matches marker `Semiring`; `NeSyCat.LatCSRng.toLatSRng` matches marker
+    `NeSyCat.LatCSRng`) -- the same component-prefix discipline the CENSUS
+    above already uses for auxiliary-suffix matching."""
+    return const_name == marker or const_name.startswith(marker + ".")
+
+
+def cmd_classify_report(classify_out_path):
+    structural = []
+    arithmetic = []
+    with open(classify_out_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if not line.startswith("CLASS\t"):
+                continue
+            _, name, consts_raw = line.split("\t", 2)
+            consts = [c for c in consts_raw.split(",") if c]
+            hit = None
+            for c in consts:
+                for m in CLASSIFY_ALGEBRAIC_MARKERS:
+                    if _classify_head_matches(c, m):
+                        hit = m
+                        break
+                if hit:
+                    break
+            if hit:
+                arithmetic.append((name, hit))
+            else:
+                structural.append(name)
+    total = len(structural) + len(arithmetic)
+    print(f"CLASSIFY-SUMMARY\t{total} cited theorem/lemma declarations "
+          f"classified: {len(structural)} structural (bare-type, no "
+          f"algebraic hypothesis anywhere in the statement -- holds "
+          f"exactly for any carrier) / {len(arithmetic)} arithmetic "
+          "(the statement depends somewhere on an algebraic hypothesis "
+          "or a fixed already-structured carrier -- holds in an "
+          "implementation only insofar as its arithmetic does)")
+    for n in sorted(structural):
+        print("CLASSIFY-STRUCTURAL\t" + n)
+    for n, m in sorted(arithmetic):
+        print(f"CLASSIFY-ARITHMETIC\t{n} (via {m})")
+    return 0
+
+
 # STRUCTURE-MIRROR (C2-E6, USER DECREE 2026-08-09): the blueprint's
 # \section/\subsection tree and the NeSyCat/ folder tree must mirror each
 # other exactly, computed and self-updating rather than hand-maintained.
@@ -1010,6 +1134,11 @@ def main():
         return 0
     if mode == "census-classify":
         return cmd_census_classify(sys.argv[2], sys.argv[3], sys.argv[4])
+    if mode == "emit-classify-lean":
+        cmd_emit_classify_lean(sys.argv[2:])
+        return 0
+    if mode == "classify-report":
+        return cmd_classify_report(sys.argv[2])
     if mode == "structure-mirror":
         return cmd_structure_mirror(sys.argv[2], sys.argv[3])
     print(f"unknown mode: {mode}", file=sys.stderr)
@@ -1109,6 +1238,24 @@ fi
 # cited theorem/lemma folding candidates, never a gate violation.
 printf '%s\n' "$CENSUS_OUT" | grep "^ADVISORY-SUMMARY${TAB}" | sed -E "s/^ADVISORY-SUMMARY${TAB}/reuse-advisory: /"
 printf '%s\n' "$CENSUS_OUT" | grep "^ADVISORY${TAB}" | sed -E "s/^ADVISORY${TAB}/  - /"
+
+echo "==> structural/arithmetic classification (C3-EXEC item 2, mechanical fold)"
+if [ "${#DECL_NAMES[@]}" -eq 0 ]; then
+  echo "classification: OK (0 names, vacuous -- no \\lean{...} names to classify)"
+else
+  CLASSIFY_LEAN="$SCRATCH_DIR/classify.lean"
+  CLASSIFY_LEAN_OUT="$SCRATCH_DIR/classify.out"
+  python3 "$CORR_PY" emit-classify-lean "${DECL_NAMES[@]}" > "$CLASSIFY_LEAN"
+  if ! lake env lean "$CLASSIFY_LEAN" > "$CLASSIFY_LEAN_OUT" 2>&1; then
+    echo "classification: Lean elaboration failed:"
+    cat "$CLASSIFY_LEAN_OUT"
+    fail 1
+  fi
+  CLASSIFY_OUT="$(python3 "$CORR_PY" classify-report "$CLASSIFY_LEAN_OUT")" || true
+  printf '%s\n' "$CLASSIFY_OUT" | grep "^CLASSIFY-SUMMARY${TAB}" | sed -E "s/^CLASSIFY-SUMMARY${TAB}/classification: /"
+  printf '%s\n' "$CLASSIFY_OUT" | grep "^CLASSIFY-STRUCTURAL${TAB}" | sed -E "s/^CLASSIFY-STRUCTURAL${TAB}/  structural: /"
+  printf '%s\n' "$CLASSIFY_OUT" | grep "^CLASSIFY-ARITHMETIC${TAB}" | sed -E "s/^CLASSIFY-ARITHMETIC${TAB}/  arithmetic: /"
+fi
 
 echo "==> registry sync (macros.sty <-> NeSyCat/Notation.lean)"
 MACROS_STY="$REPO_ROOT/../NeSyCat.Logics/macros.sty"

@@ -295,6 +295,44 @@ the blueprint it is delivered separately, in `NeSyCat/CategoricalLayer/SemiringM
 (`instLatCSRngLogS`), by transporting the mass instance along the log
 isomorphism (`lem:log-iso`). -/
 
+/-! ### The computable rational mass row (`ℚ≥0`, C3-EXEC item 3)
+
+Mathlib's `ℝ` is a Cauchy-sequence quotient with no decidable equality and
+no executable arithmetic (`#eval` on an `ℝ`/`ℝ≥0` expression returns an
+unevaluated term, never a numeral, kernel-verified directly against this
+very file's own `instLatCSRngNNReal` above: it needs the `noncomputable`
+marker because its proof obligations bottom out in `ℝ`'s classical
+construction). `ℚ≥0` (Mathlib's `NNRat`) is not: rationals are pairs of
+integers, every field is decidable, and the semiring/lattice/order
+instances Mathlib attaches to `NNRat` are ordinary computable definitions.
+So the identical `LatCSRng` proof obligations discharge here with **no**
+`noncomputable` marker at all -- this instance genuinely runs, not just
+type-checks; `#eval (2 : ℚ≥0) + (3 : ℚ≥0)` reduces to the numeral `5`
+(`.foreman/scratch/C3-EXEC-report.md` records the exact transcript,
+`ℝ≥0`'s side by side). This is the reference evaluator's carrier: the
+computable exact-rational row against which a finite-precision
+implementation's own arithmetic is compared, playing the role `ℝ≥0`
+plays in the blueprint's own semiring-monad narrative but with results
+that can actually be checked by running them. -/
+
+open scoped NNRat
+
+/-- Blueprint `inst:qmass-latcsrng` (rational mass row): on `ℚ≥0` (`⊕ = +`,
+`⊗ = ·`), the same four monotonicity fields as `inst:massS-latcsrng`'s
+`ℝ≥0` row, closed the same way by `gcongr`. Unlike `instLatCSRngNNReal`,
+this instance carries **no** `noncomputable` marker: `ℚ≥0`'s own
+`CommSemiring`/`Lattice`/order instances are all computable, so this
+`LatCSRng` bundle is too, and `#eval`-executable end to end (module doc
+comment above; report transcript in `.foreman/scratch/C3-EXEC-report.md`).
+No `BoundedOrder ℚ≥0` instance is used, for the same reason as `ℝ≥0`: no
+in-carrier top. -/
+instance instLatCSRngNNRat : LatCSRng ℚ≥0 where
+  add_le_add_left h c := by gcongr
+  add_le_add_right h c := by gcongr
+  mul_le_mul_left h c := by gcongr
+  mul_le_mul_right h c := by gcongr
+  mul_comm := mul_comm
+
 /-! ### `lem:prob-not-semiring`: probability is not a semiring -/
 
 /-- Blueprint `def:psum` (Probabilistic sum, C2-E4a/A2 audit fruit: real,
