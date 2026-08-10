@@ -2237,8 +2237,8 @@ $a \in \LogS^X$ (allowing $-\infty$ coordinates for zero mass). Define
 \textbf{Scope disclosure.} $\dec_X$ lands in the full mass carrier
 underlying $\Dmon X$, not the mass-one submonad itself: at the all-$-\infty$
 log-weight vector ($Z_X(a) = 0$), softmax's division by $Z_X(a)$ has no
-mass-one value to return, so $\dec_X(a)$ is there the zero function, by the
-ambient $0/0 = 0$ convention. Every other coordinate of $\Tmon X$ decodes to
+mass-one value to return; the inverse of $0$ is $0$, so $\dec_X(a)$ is
+there the zero function. Every other value of $\Tmon X$ decodes to
 a genuine mass-one distribution.
 
 \begin{lemma}[Pure maps]
@@ -2346,6 +2346,8 @@ effectful factor $a$.
 
 \begin{lemma}[Tilt]
 \label{lem:tilt}
+\lean{NeSyCat.tilt_bind}
+\leanok
 Let $a \in \Tmon X$ and $k \colon X \to \Tmon Y$, with $\bind$ the
 $\Tmon$-bind of Definition~\ref{def:semiring-monad} (i.e.\
 $(a \bind k)_y = \lse_x(a_x+k(x)_y)$). Assume $Z(k(x)) > 0$ for every
@@ -2362,6 +2364,7 @@ and hence for $\mathrm{tilt}$ to be well-defined. Then
 \end{lemma}
 
 \begin{proof}
+\leanok
 Expand both sides at $y \in Y$: the left side is
 $e^{\lse_x(a_x+k(x)_y)}/Z(a\bind k) = \sum_x e^{a_x}e^{k(x)_y} /
 \sum_{x,y'}e^{a_x+k(x)_{y'}}$; the right side is
@@ -2375,6 +2378,8 @@ $\sum_x e^{a_x}Z(k(x))/Z(a) = \sum_{x,y'}e^{a_x+k(x)_{y'}}/Z(a)$.
 
 \begin{definition}[Mass preserving]
 \label{def:mass-preserving}
+\lean{NeSyCat.MassPreserving}
+\leanok
 An arrow $k \colon X \to \Tmon Y$ is \textbf{mass preserving} if
 $x \mapsto Z(k(x))$ is constant on $X$.
 \uses{def:dec-enc-mass}
@@ -2382,6 +2387,8 @@ $x \mapsto Z(k(x))$ is constant on $X$.
 
 \begin{lemma}[Mass-preserving arrows are closed]
 \label{lem:mass-preserving-closure}
+\lean{NeSyCat.mass_preserving_closure}
+\leanok
 The class of mass-preserving arrows (Definition~\ref{def:mass-preserving})
 contains $h \seq \Ret_{\Tmon}$ for every pure $h$, every lift
 $\Tmon(h)$, the units of Lemma~\ref{lem:units}, and the strengths of
@@ -2393,6 +2400,7 @@ $\otimes$ (Lemma~\ref{lem:tensor}), and under the structural wiring
 \end{lemma}
 
 \begin{proof}
+\leanok
 $Z(\Ret_{\Tmon}(h(x))) = 1$ for all $x$ (Lemma~\ref{lem:units}): this
 is constant. $Z(\Tmon(h)(a)) = Z(a)$ (Lemma~\ref{lem:pure-maps})
 exhibits $\Tmon(h)$ as mass-preserving only when precomposed with a
@@ -2409,6 +2417,8 @@ trivially preserves any constant-mass property.
 
 \begin{theorem}[Pull out]
 \label{thm:pullout}
+\lean{NeSyCat.pullout}
+\leanok
 Let $\Phi = L \seq B_1 \seq \cdots \seq B_r$ be the point-free chain
 of a feed-forward composite, where $L$ tensors together the leaves
 (via Lemma~\ref{lem:tensor}, landing in $\Tmon(Y_1\times\cdots\times
@@ -2431,6 +2441,7 @@ $\tilt_{k_i \seq Z}$ per offending bind.
 \end{theorem}
 
 \begin{proof}
+\leanok
 Induction on $r$: each non-bind factor commutes with
 $\dec$ by Lemmas~\ref{lem:pure-maps}, \ref{lem:tensor},
 \ref{lem:units}, \ref{lem:strengths}; a bind factor commutes with
