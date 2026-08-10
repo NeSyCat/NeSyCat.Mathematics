@@ -35,12 +35,15 @@ import NeSyCat.GrammaticalLayer.Context
 import NeSyCat.GrammaticalLayer.Grammar
 import NeSyCat.GrammaticalLayer.WireAdapters
 import NeSyCat.GrammaticalLayer.Kleisli
+import NeSyCat.GrammaticalLayer.QuantifierNestable
+import NeSyCat.GrammaticalLayer.QuantifierColumns
 
 -- Statistical layer (blueprint §6)
 import NeSyCat.StatisticalLayer.StatisticalLayer
 import NeSyCat.StatisticalLayer.Batching.Batching
 import NeSyCat.StatisticalLayer.Batching.BatchMonad
 import NeSyCat.StatisticalLayer.Batching.BatchTransformer
+import NeSyCat.StatisticalLayer.Batching.PointwiseKleisli
 import NeSyCat.StatisticalLayer.BridgesNormalization.BridgesNormalization
 import NeSyCat.StatisticalLayer.BridgesNormalization.DecEncMass
 import NeSyCat.StatisticalLayer.BridgesNormalization.Tilt

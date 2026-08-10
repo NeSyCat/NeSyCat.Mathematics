@@ -1,0 +1,578 @@
+/-
+Copyright (c) 2026 The NeSyCat Project (Daniel Romero Schellhorn). All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Daniel Romero Schellhorn
+-/
+import Mathlib
+import NeSyCat.BlueprintAttr
+import NeSyCat.LogicalLayer.LogicalSignatures.LogicalSignatures
+
+/-!
+# Quantifier nestability (C3-B4b)
+
+Toward blueprint item `lem:quantifier-nestable`
+(`blueprint/src/content.tex`, §"Grammatical layer"): for a symmetric,
+nestable quantifier family, the simultaneous interpretation
+`⟦Qx⃗(φ)⟧` of `def:kleisli-interpretation` equals the iterated
+interpretation `⟦Qx₁(Qx₂(⋯))⟧`.
+
+**Honest scope (disclosed, C3-B4b).** This file formalizes the env's
+two hypothesis predicates (`Nestable`, `SymmetricFamily`) and proves
+the env's own proof plan — base case and inductive step — at the
+combinator level: `simQuant` below is the
+`comulN ⨟ tensorFin ⨟ 𝓘(Q)_N` shape of `Fm.sem`'s quantifier clause
+(`NeSyCat/GrammaticalLayer/Kleisli.lean`), stated generically over a
+braided monoidal category with comonoid data (the CD-category fragment
+the clause actually uses). `simQuant_peel` is the env's inductive step
+(peel one variable's block structure off the lexicographic
+enumeration), and `simQuant_nest` iterates it into the full
+simultaneous-equals-iterated statement over a list of quantified
+variables with classical enumeration points (`PointedObj`), the
+head-slow block decomposition (`blockIdx j i = n * j + i`) matching
+`listPt`'s own `finProdFinEquiv` convention. Tensor powers here are
+built tail-first (`tensorPow X (n+1) = tensorPow X n ⊗ X`), so every
+recursion on `ℕ` is cast-free; `Kleisli.lean`'s
+`tensorList (List.replicate n X)` is head-first, and the connecting
+coherence iso is part of the disclosed syntax-bridge remainder.
+
+The env carries NO `\lean`/`\leanok` mark, for two kernel-checked
+reasons the statement as written does not survive: (1) the equality
+NEEDS the enumeration states to be CLASSICAL points (copyable and
+discardable, `IsClassicalPoint` below) — the iterated reading inserts
+the head state once and then copies the enlarged context, while the
+simultaneous reading inserts a fresh state into each copy, and in a CD
+category a general state is not copyable, so the two sides genuinely
+differ for a non-classical (e.g. randomized) enumeration; the env
+states no such proviso. (2) an `Id`-marked quantifier's clause wraps
+the family in `dstFoldN` (`StrongCatInterpretation.dst`), and
+`StrongCatInterpretation` carries strength as bare DATA with no laws,
+so no block coherence for `dstFoldN` is provable at all; only the
+`○`-marked case (where the clause consumes `𝓘(Q)_N` directly, the
+shape `simQuant` captures) is provable. The remaining bridge from
+this file to `Fm.sem`'s own syntax-level clause (the `ctxMerge`
+two-stage factorization, the head/tail tensor convention iso, and
+`Fm.sem`'s tactic-elaborated equation lemmas), and the "any ordering"
+clause's permutation action (`SymmetricFamily` is defined but its
+strided-regrouping consequence is not proved), are reported as the
+exact remainder in `.foreman/scratch/C3-B4b-report.md`.
+-/
+
+open CategoryTheory MonoidalCategory
+open scoped ComonObj
+
+universe u v
+
+namespace NeSyCat
+
+variable {C : Type u} [Category.{v} C] [MonoidalCategory C]
+
+/-- Toward `lem:quantifier-nestable`: `X^{⊠n}`, the `n`-fold tensor
+power, built tail-first so that recursion on `ℕ` is cast-free
+(`Nat.add`/`Nat.mul` reduce on their second argument). -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: tensor power
+def tensorPow (X : C) : ℕ → C
+  | 0 => 𝟙_ C
+  | n + 1 => tensorPow X n ⊗ X
+
+/-- Toward `lem:quantifier-nestable`: `⊠ᵢ fᵢ : X^{⊠n} ⟶ Y^{⊠n}`, the
+indexed tensor of `n` parallel morphisms, position `p` carrying
+`f p`. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: indexed
+-- tensor of parallel morphisms
+def tensorFinHom {X Y : C} : (n : ℕ) → (Fin n → (X ⟶ Y)) →
+    (tensorPow X n ⟶ tensorPow Y n)
+  | 0, _ => 𝟙 (𝟙_ C)
+  | n + 1, f => tensorFinHom n (fun i => f i.castSucc) ⊗ₘ f (Fin.last n)
+
+/-- Toward `lem:quantifier-nestable`: the `n`-ary self-copy
+`X ⟶ X^{⊠n}` from `X`'s comonoid (the `comulN` of `Kleisli.lean`'s
+quantifier clause, tail-first). -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: n-ary
+-- comultiplication
+def comulPow (X : C) [ComonObj X] : (n : ℕ) → (X ⟶ tensorPow X n)
+  | 0 => ε
+  | n + 1 => Δ ≫ (comulPow X n ▷ X)
+
+/-- Toward `lem:quantifier-nestable`: `X^{⊠(a+b)} ≅ X^{⊠a} ⊗ X^{⊠b}`,
+splitting a tensor power at position `a`, cast-free by recursion on
+`b`. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: tensor-power
+-- addition split
+def tensorPowAddIso (X : C) (a : ℕ) : (b : ℕ) →
+    tensorPow X (a + b) ≅ tensorPow X a ⊗ tensorPow X b
+  | 0 => (ρ_ (tensorPow X a)).symm
+  | b + 1 =>
+    whiskerRightIso (tensorPowAddIso X a b) X ≪≫
+      α_ (tensorPow X a) (tensorPow X b) X
+
+/-- Toward `lem:quantifier-nestable`: `X^{⊠(n·m)} ≅ (X^{⊠n})^{⊠m}`,
+the grouping of `n·m` tensor factors into `m` blocks of `n` — the
+regrouping implicit in the env's "grouping `mn` inputs into `m` blocks
+of `n`". Block `j` occupies positions `[n·j, n·j + n)`, matching
+`finProdFinEquiv`'s head-slow lexicographic convention
+(`(j, i) ↦ i + n·j`), the convention `listPt` uses. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: block
+-- regrouping iso
+def tensorPowMulIso (X : C) (n : ℕ) : (m : ℕ) →
+    tensorPow X (n * m) ≅ tensorPow (tensorPow X n) m
+  | 0 => Iso.refl (𝟙_ C)
+  | m + 1 =>
+    tensorPowAddIso X (n * m) n ≪≫
+      whiskerRightIso (tensorPowMulIso X n m) (tensorPow X n)
+
+/-- Toward `lem:quantifier-nestable`: the lexicographic block index,
+`blockIdx j i = n·j + i` — block `j`, offset `i`; the same head-slow
+convention as `finProdFinEquiv (j, i) = i + n·j` (`listPt`,
+`Kleisli.lean`). -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: lexicographic
+-- block index
+def blockIdx {m n : ℕ} (j : Fin m) (i : Fin n) : Fin (n * m) :=
+  ⟨n * j.1 + i.1, by
+    calc n * j.1 + i.1 < n * j.1 + n := Nat.add_lt_add_left i.isLt _
+    _ = n * (j.1 + 1) := (Nat.mul_succ n j.1).symm
+    _ ≤ n * m := Nat.mul_le_mul_left n j.isLt⟩
+
+@[reassoc, blueprint_internal] -- toward lem:quantifier-nestable:
+-- composition law of the indexed tensor
+theorem tensorFinHom_comp {X Y Z : C} : ∀ (n : ℕ) (f : Fin n → (X ⟶ Y))
+    (g : Fin n → (Y ⟶ Z)),
+    tensorFinHom n f ≫ tensorFinHom n g = tensorFinHom n fun i => f i ≫ g i
+  | 0, _, _ => Category.comp_id _
+  | n + 1, f, g => by
+    change (tensorFinHom n (fun i => f i.castSucc) ⊗ₘ f (Fin.last n)) ≫
+        (tensorFinHom n (fun i => g i.castSucc) ⊗ₘ g (Fin.last n)) =
+      tensorFinHom n (fun i => f i.castSucc ≫ g i.castSucc) ⊗ₘ
+        (f (Fin.last n) ≫ g (Fin.last n))
+    rw [tensorHom_comp_tensorHom, tensorFinHom_comp n]
+
+@[blueprint_internal] -- toward lem:quantifier-nestable: comulPow
+-- splits along tensor-power addition, by coassociativity
+theorem comulPow_add (X : C) [ComonObj X] (a : ℕ) : ∀ b : ℕ,
+    comulPow X (a + b) ≫ (tensorPowAddIso X a b).hom =
+      Δ ≫ (comulPow X a ⊗ₘ comulPow X b)
+  | 0 => by
+    change comulPow X a ≫ (ρ_ (tensorPow X a)).inv =
+      Δ ≫ (comulPow X a ⊗ₘ ε[X])
+    rw [ComonObj.comul_counit_hom]
+  | b + 1 => by
+    change (Δ ≫ (comulPow X (a + b) ▷ X)) ≫
+        ((tensorPowAddIso X a b).hom ▷ X ≫
+          (α_ (tensorPow X a) (tensorPow X b) X).hom) =
+      Δ ≫ (comulPow X a ⊗ₘ (Δ ≫ (comulPow X b ▷ X)))
+    simp only [Category.assoc]
+    rw [← comp_whiskerRight_assoc, comulPow_add X a b, comp_whiskerRight,
+      Category.assoc, ComonObj.comul_assoc_flip_assoc]
+    have key : (α_ X X X).inv ≫ ((comulPow X a ⊗ₘ comulPow X b) ▷ X) ≫
+        (α_ (tensorPow X a) (tensorPow X b) X).hom =
+        comulPow X a ⊗ₘ (comulPow X b ▷ X) := by
+      rw [Iso.inv_comp_eq]
+      simpa only [tensorHom_id] using
+        associator_naturality (comulPow X a) (comulPow X b) (𝟙 X)
+    rw [key, whiskerLeft_comp_tensorHom]
+
+@[blueprint_internal] -- toward lem:quantifier-nestable: tensorFinHom
+-- splits along tensor-power addition
+theorem tensorFinHom_add {X Y : C} (a : ℕ) : ∀ (b : ℕ)
+    (f : Fin (a + b) → (X ⟶ Y)),
+    tensorFinHom (a + b) f ≫ (tensorPowAddIso Y a b).hom =
+      (tensorPowAddIso X a b).hom ≫
+        (tensorFinHom a (fun i => f (Fin.castAdd b i)) ⊗ₘ
+          tensorFinHom b (fun i => f (Fin.natAdd a i)))
+  | 0, f => by
+    change tensorFinHom a f ≫ (ρ_ (tensorPow Y a)).inv =
+      (ρ_ (tensorPow X a)).inv ≫
+        (tensorFinHom a (fun i => f (Fin.castAdd 0 i)) ⊗ₘ 𝟙 (𝟙_ C))
+    rw [tensorHom_id, rightUnitor_inv_naturality]
+    congr 2
+  | b + 1, f => by
+    change (tensorFinHom (a + b) (fun i => f i.castSucc) ⊗ₘ
+        f (Fin.last (a + b))) ≫
+        ((tensorPowAddIso Y a b).hom ▷ Y ≫
+          (α_ (tensorPow Y a) (tensorPow Y b) Y).hom) =
+      ((tensorPowAddIso X a b).hom ▷ X ≫
+          (α_ (tensorPow X a) (tensorPow X b) X).hom) ≫
+        (tensorFinHom a (fun i => f (Fin.castAdd (b + 1) i)) ⊗ₘ
+          (tensorFinHom b (fun i => f (Fin.natAdd a i.castSucc)) ⊗ₘ
+            f (Fin.natAdd a (Fin.last b))))
+    rw [← Category.assoc, tensorHom_comp_whiskerRight,
+      tensorFinHom_add a b (fun i => f i.castSucc)]
+    have e1 : (fun i => f (Fin.castAdd b i).castSucc) =
+        fun i : Fin a => f (Fin.castAdd (b + 1) i) :=
+      funext fun i => congrArg f (Fin.ext rfl)
+    have e2 : (fun i => f (Fin.natAdd a i).castSucc) =
+        fun i : Fin b => f (Fin.natAdd a i.castSucc) :=
+      funext fun i => congrArg f (Fin.ext rfl)
+    have e3 : f (Fin.last (a + b)) = f (Fin.natAdd a (Fin.last b)) :=
+      congrArg f (Fin.ext rfl)
+    rw [← whiskerRight_comp_tensorHom]
+    simp only [Category.assoc]
+    rw [associator_naturality, e1, e2, e3]
+
+@[reassoc, blueprint_internal] -- toward lem:quantifier-nestable:
+-- comulPow refines along the block regrouping
+theorem comulPow_mul (X : C) [ComonObj X] (n : ℕ) : ∀ m : ℕ,
+    comulPow X (n * m) ≫ (tensorPowMulIso X n m).hom =
+      comulPow X m ≫ tensorFinHom m fun _ => comulPow X n
+  | 0 => rfl
+  | m + 1 => by
+    change comulPow X (n * m + n) ≫
+        ((tensorPowAddIso X (n * m) n).hom ≫
+          ((tensorPowMulIso X n m).hom ▷ tensorPow X n)) =
+      (Δ ≫ (comulPow X m ▷ X)) ≫
+        (tensorFinHom m (fun _ => comulPow X n) ⊗ₘ comulPow X n)
+    rw [← Category.assoc, comulPow_add X (n * m) n]
+    simp only [Category.assoc]
+    rw [tensorHom_comp_whiskerRight, comulPow_mul X n m,
+      whiskerRight_comp_tensorHom]
+
+@[reassoc, blueprint_internal] -- toward lem:quantifier-nestable:
+-- tensorFinHom refines along the block regrouping
+theorem tensorFinHom_mul {X Y : C} (n : ℕ) : ∀ (m : ℕ)
+    (f : Fin (n * m) → (X ⟶ Y)),
+    tensorFinHom (n * m) f ≫ (tensorPowMulIso Y n m).hom =
+      (tensorPowMulIso X n m).hom ≫
+        tensorFinHom m fun j => tensorFinHom n fun i => f (blockIdx j i)
+  | 0, _ => rfl
+  | m + 1, f => by
+    change tensorFinHom (n * m + n) f ≫
+        ((tensorPowAddIso Y (n * m) n).hom ≫
+          ((tensorPowMulIso Y n m).hom ▷ tensorPow Y n)) =
+      ((tensorPowAddIso X (n * m) n).hom ≫
+          ((tensorPowMulIso X n m).hom ▷ tensorPow X n)) ≫
+        (tensorFinHom m (fun j => tensorFinHom n fun i =>
+            f (blockIdx j.castSucc i)) ⊗ₘ
+          tensorFinHom n fun i => f (blockIdx (Fin.last m) i))
+    rw [← Category.assoc, tensorFinHom_add (n * m) n f]
+    simp only [Category.assoc]
+    rw [tensorHom_comp_whiskerRight, tensorFinHom_mul n m,
+      ← whiskerRight_comp_tensorHom]
+    have e1 : (fun j => tensorFinHom n fun i =>
+        f (Fin.castAdd n (blockIdx j i))) =
+        fun j : Fin m => tensorFinHom n fun i => f (blockIdx j.castSucc i) :=
+      funext fun j => congrArg (tensorFinHom n)
+        (funext fun i => congrArg f (Fin.ext rfl))
+    have e2 : (fun i => f (Fin.natAdd (n * m) i)) =
+        fun i : Fin n => f (blockIdx (Fin.last m) i) :=
+      funext fun i => congrArg f (Fin.ext rfl)
+    rw [e1, e2]
+
+/-- Toward `lem:quantifier-nestable`: the env's NESTABLE hypothesis on
+a quantifier family `𝓘(Q)ₙ`,
+`𝓘(Q)_{mn} = (𝓘(Q)_n)^{⊠m} ⨟ 𝓘(Q)_m` (grouping `mn` inputs into `m`
+blocks of `n`, the canonical regrouping `tensorPowMulIso` left
+implicit in the env's own display). -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: the env's
+-- nestability hypothesis predicate
+def Nestable {X : C} (q : ∀ n, tensorPow X n ⟶ X) : Prop :=
+  ∀ m n : ℕ,
+    q (n * m) = (tensorPowMulIso X n m).hom ≫
+      tensorFinHom m (fun _ => q n) ≫ q m
+
+/-- Toward `lem:quantifier-nestable`: the braiding of two adjacent
+tensor-power factors, positions `a` and `a + 1` inside
+`X^{⊠(a+2+b)}` — the generator of the permutation action on the
+family's inputs. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: adjacent
+-- transposition on a tensor power
+def swapPow (X : C) [BraidedCategory C] (a : ℕ) : (b : ℕ) →
+    (tensorPow X ((a + 2) + b) ⟶ tensorPow X ((a + 2) + b))
+  | 0 =>
+    (α_ (tensorPow X a) X X).hom ≫
+      (tensorPow X a ◁ (β_ X X).hom) ≫ (α_ (tensorPow X a) X X).inv
+  | b + 1 => swapPow X a b ▷ X
+
+/-- Toward `lem:quantifier-nestable`: the env's SYMMETRIC hypothesis
+on a quantifier family — `𝓘(Q)ₙ` is invariant under permutations of
+its `n` inputs, stated on the adjacent transpositions `swapPow` that
+generate every permutation. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: the env's
+-- symmetry hypothesis predicate
+def SymmetricFamily [BraidedCategory C] {X : C}
+    (q : ∀ n, tensorPow X n ⟶ X) : Prop :=
+  ∀ a b : ℕ, swapPow X a b ≫ q ((a + 2) + b) = q ((a + 2) + b)
+
+/-- Toward `lem:quantifier-nestable`: a CLASSICAL point of a comonoid
+object — a state that the comonoid structure copies and discards, the
+implicit hypothesis on `def:kleisli-interpretation`'s lexicographic
+enumeration states this file's module doc discloses (in a CD category
+a general state is neither). -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: classical
+-- (copyable, discardable) point
+structure IsClassicalPoint {W : C} [ComonObj W] (p : 𝟙_ C ⟶ W) : Prop where
+  /-- The comultiplication copies the point. -/
+  copy : p ≫ Δ = (λ_ (𝟙_ C)).inv ≫ (p ⊗ₘ p)
+  /-- The counit discards the point. -/
+  del : p ≫ ε = 𝟙 (𝟙_ C)
+
+/-- Toward `lem:quantifier-nestable`: insert a state of `W` alongside
+a context `Z` — the combinator shape of `Fm.sem`'s per-state insertion
+`ρ⁻¹ ⨟ (id ⊗ 𝓘([x])ᵢ)` (`Kleisli.lean`'s quantifier clause). -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: per-state
+-- insertion combinator
+def insertPoint {Z W : C} (p : 𝟙_ C ⟶ W) : Z ⟶ Z ⊗ W :=
+  (ρ_ Z).inv ≫ (Z ◁ p)
+
+@[blueprint_internal] -- toward lem:quantifier-nestable: insertion of
+-- a classical point respects the counit
+theorem insertPoint_counit [BraidedCategory C] {Z W : C} [ComonObj Z]
+    [ComonObj W] {p : 𝟙_ C ⟶ W} (hp : IsClassicalPoint p) :
+    insertPoint (Z := Z) p ≫ ε[Z ⊗ W] = ε[Z] := by
+  rw [insertPoint, Comon.tensorObj_counit]
+  simp only [Category.assoc]
+  rw [whiskerLeft_comp_tensorHom_assoc, hp.del, tensorHom_id,
+    ← rightUnitor_inv_naturality_assoc, MonoidalCategory.unitors_equal]
+  simp
+
+@[blueprint_internal] -- toward lem:quantifier-nestable: insertion of
+-- a classical point respects the comultiplication
+theorem insertPoint_comul [BraidedCategory C] {Z W : C} [ComonObj Z]
+    [ComonObj W] {p : 𝟙_ C ⟶ W} (hp : IsClassicalPoint p) :
+    insertPoint (Z := Z) p ≫ Δ[Z ⊗ W] =
+      Δ[Z] ≫ (insertPoint p ⊗ₘ insertPoint p) := by
+  simp only [insertPoint]
+  rw [Comon.tensorObj_comul]
+  simp only [Category.assoc]
+  rw [whiskerLeft_comp_tensorHom_assoc, hp.copy,
+    ← tensorHom_comp_whiskerLeft_assoc, tensorμ_natural_right]
+  have htμ : tensorμ Z Z (𝟙_ C) (𝟙_ C) =
+      ((Z ⊗ Z) ◁ (λ_ (𝟙_ C)).hom) ≫ (ρ_ (Z ⊗ Z)).hom ≫
+        ((ρ_ Z).inv ⊗ₘ (ρ_ Z).inv) := by
+    rw [tensor_right_unitality]
+    simp
+  rw [reassoc_of% htμ, tensorHom_comp_whiskerLeft_assoc]
+  simp only [Iso.inv_hom_id, tensorHom_id]
+  rw [rightUnitor_naturality_assoc, Iso.inv_hom_id_assoc,
+    tensorHom_comp_tensorHom]
+
+@[blueprint_internal] -- toward lem:quantifier-nestable: inserting a
+-- classical point commutes with the n-ary self-copy — the exact step
+-- where the env's proof silently copies an enumeration state
+theorem comulPow_insertPoint [BraidedCategory C] {Z W X : C} [ComonObj Z]
+    [ComonObj W] {p : 𝟙_ C ⟶ W} (hp : IsClassicalPoint p) :
+    ∀ (n : ℕ) (g : Fin n → (Z ⊗ W ⟶ X)),
+    comulPow Z n ≫ tensorFinHom n (fun i => insertPoint p ≫ g i) =
+      insertPoint p ≫ comulPow (Z ⊗ W) n ≫ tensorFinHom n g
+  | 0, g => by
+    change ε[Z] ≫ 𝟙 (𝟙_ C) = insertPoint p ≫ ε[Z ⊗ W] ≫ 𝟙 (𝟙_ C)
+    rw [Category.comp_id, Category.comp_id, insertPoint_counit hp]
+  | n + 1, g => by
+    change (Δ ≫ (comulPow Z n ▷ Z)) ≫
+        (tensorFinHom n (fun i => insertPoint p ≫ g i.castSucc) ⊗ₘ
+          (insertPoint p ≫ g (Fin.last n))) =
+      insertPoint p ≫ (Δ ≫ (comulPow (Z ⊗ W) n ▷ (Z ⊗ W))) ≫
+        (tensorFinHom n (fun i => g i.castSucc) ⊗ₘ g (Fin.last n))
+    simp only [Category.assoc]
+    rw [whiskerRight_comp_tensorHom,
+      comulPow_insertPoint hp n (fun i => g i.castSucc),
+      whiskerRight_comp_tensorHom, reassoc_of% (insertPoint_comul hp),
+      tensorHom_comp_tensorHom]
+
+/-- Toward `lem:quantifier-nestable`: the SIMULTANEOUS quantification
+combinator — copy the context `N` times, apply the per-state maps in
+parallel, feed the family: the exact `comulN ⨟ tensorFin ⨟ 𝓘(Q)_N`
+shape of `Fm.sem`'s quantifier clause (`Kleisli.lean`). -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: the
+-- simultaneous quantification combinator
+def simQuant {Z X : C} [ComonObj Z] (q : ∀ k, tensorPow X k ⟶ X) (n : ℕ)
+    (f : Fin n → (Z ⟶ X)) : Z ⟶ X :=
+  comulPow Z n ≫ tensorFinHom n f ≫ q n
+
+/-- Toward `lem:quantifier-nestable` (C3-B4b), the env's own INDUCTIVE
+STEP: for a nestable family `q` and classical enumeration points
+`p j` of a variable object `W`, the simultaneous quantification over
+the `n·m` lexicographic product states (head-slow blocks
+`blockIdx j i`, the `finProdFinEquiv` convention of `listPt`) equals
+the head variable's quantification of the inner simultaneous
+quantification over the remaining `n` states. Nestability collapses
+the blocked tensor; the classical-point hypothesis absorbs the copy
+of the inserted head state that the iterated reading performs and the
+simultaneous reading does not. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: the peel
+-- theorem (the env's inductive step), env stays unmarked
+theorem simQuant_peel [BraidedCategory C] {Z W X : C} [ComonObj Z]
+    [ComonObj W] {q : ∀ k, tensorPow X k ⟶ X} (hq : Nestable q)
+    {m n : ℕ} {p : Fin m → (𝟙_ C ⟶ W)}
+    (hp : ∀ j, IsClassicalPoint (p j)) (g : Fin n → (Z ⊗ W ⟶ X))
+    (F : Fin (n * m) → (Z ⟶ X))
+    (hF : ∀ (j : Fin m) (i : Fin n),
+      F (blockIdx j i) = insertPoint (p j) ≫ g i) :
+    simQuant q (n * m) F =
+      simQuant q m fun j => insertPoint (p j) ≫ simQuant q n g := by
+  unfold simQuant
+  rw [hq m n, tensorFinHom_mul_assoc, comulPow_mul_assoc,
+    tensorFinHom_comp_assoc, tensorFinHom_comp_assoc]
+  have hfun : (fun j => (comulPow Z n ≫ tensorFinHom n fun i =>
+      F (blockIdx j i)) ≫ q n) =
+      fun j : Fin m =>
+        insertPoint (p j) ≫ comulPow (Z ⊗ W) n ≫ tensorFinHom n g ≫ q n := by
+    funext j
+    simp only [hF]
+    rw [← Category.assoc, comulPow_insertPoint (hp j) n g]
+    simp only [Category.assoc]
+  rw [hfun]
+
+/-- Toward `lem:quantifier-nestable`: the inverse block decomposition,
+outer (head-slow) component `k / n`. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: block index,
+-- outer component
+def blockOuter {m n : ℕ} (k : Fin (n * m)) : Fin m :=
+  ⟨k.1 / n, by
+    have hn : 0 < n := by
+      by_contra hcon
+      have hn0 : n = 0 := by omega
+      subst hn0
+      have hk := k.2
+      have h0 : 0 * m = 0 := Nat.zero_mul m
+      omega
+    have hk := k.2
+    have hcomm : n * m = m * n := Nat.mul_comm n m
+    exact (Nat.div_lt_iff_lt_mul hn).mpr (by omega)⟩
+
+/-- Toward `lem:quantifier-nestable`: the inverse block decomposition,
+inner (fast) component `k % n`. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: block index,
+-- inner component
+def blockInner {m n : ℕ} (k : Fin (n * m)) : Fin n :=
+  ⟨k.1 % n, by
+    have hn : 0 < n := by
+      by_contra hcon
+      have hn0 : n = 0 := by omega
+      subst hn0
+      have hk := k.2
+      have h0 : 0 * m = 0 := Nat.zero_mul m
+      omega
+    exact Nat.mod_lt _ hn⟩
+
+@[blueprint_internal] -- toward lem:quantifier-nestable: block divmod,
+-- outer round trip
+theorem blockOuter_blockIdx {m n : ℕ} (j : Fin m) (i : Fin n) :
+    blockOuter (blockIdx j i) = j := by
+  apply Fin.ext
+  change (n * j.1 + i.1) / n = j.1
+  rw [Nat.mul_add_div i.pos, Nat.div_eq_of_lt i.isLt, Nat.add_zero]
+
+@[blueprint_internal] -- toward lem:quantifier-nestable: block divmod,
+-- inner round trip
+theorem blockInner_blockIdx {m n : ℕ} (j : Fin m) (i : Fin n) :
+    blockInner (blockIdx j i) = i := by
+  apply Fin.ext
+  change (n * j.1 + i.1) % n = i.1
+  rw [Nat.mul_add_mod, Nat.mod_eq_of_lt i.isLt]
+
+/-- Toward `lem:quantifier-nestable`: one quantified variable of the
+env's `x⃗` — its interpretation object, its chosen comonoid, and its
+finite lexicographic enumeration by classical points (the `varCard`/
+`varPt` data of `Kleisli.lean`'s `KleisliInterpretation`, with the
+classicality proviso this file's module doc discloses). -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: a quantified
+-- variable with classical enumeration
+structure PointedObj (C : Type u) [Category.{v} C] [MonoidalCategory C] where
+  /-- The variable's interpretation object `𝓘([x])`. -/
+  W : C
+  /-- The chosen comonoid on `W` (the CD category's `comon`). -/
+  comon : ComonObj W
+  /-- `|𝓘([x])|`, the enumeration's cardinality. -/
+  card : ℕ
+  /-- `𝓘([x])ᵢ`, the enumeration states. -/
+  pt : Fin card → (𝟙_ C ⟶ W)
+  /-- Every enumeration state is classical. -/
+  classical : ∀ j, letI := comon; IsClassicalPoint (pt j)
+
+/-- Toward `lem:quantifier-nestable`: the context enlarged by the
+whole variable list, `Z ⊗ W₁ ⊗ ⋯ ⊗ Wₗ` (left-nested). -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: iterated
+-- context enlargement
+def iterCtx : C → List (PointedObj C) → C
+  | Z, [] => Z
+  | Z, v :: L => iterCtx (Z ⊗ v.W) L
+
+/-- Toward `lem:quantifier-nestable`: `|𝓘([x⃗])| = ∏ⱼ |𝓘([x_j])|`, the
+product-state cardinality, head factor slowest (the `listCard`
+convention of `Kleisli.lean`). -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: product-state
+-- cardinality
+def nestCard (v : PointedObj C) : List (PointedObj C) → ℕ
+  | [] => v.card
+  | w :: L => nestCard w L * v.card
+
+/-- Toward `lem:quantifier-nestable`: insertion of the `k`-th
+lexicographic product state, head component slowest — the `listPt`/
+insertion composite of `Fm.sem`'s quantifier clause at the combinator
+level. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: product-state
+-- insertion
+def nestInsert : (v : PointedObj C) → (L : List (PointedObj C)) → (Z : C) →
+    Fin (nestCard v L) → (Z ⟶ iterCtx (Z ⊗ v.W) L)
+  | v, [], _, j => insertPoint (v.pt j)
+  | v, w :: L, Z, k =>
+    insertPoint (v.pt (blockOuter k)) ≫ nestInsert w L (Z ⊗ v.W) (blockInner k)
+
+/-- Toward `lem:quantifier-nestable`: the ITERATED interpretation
+`⟦Qx₁(Qx₂(⋯(φ)⋯))⟧` at the combinator level — one `simQuant` per
+variable, innermost first, each outer variable's state inserted and
+then carried through the inner quantifications. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: the iterated
+-- quantification combinator
+def iterQuant [BraidedCategory C] {X : C} (q : ∀ k, tensorPow X k ⟶ X) :
+    (v : PointedObj C) → (L : List (PointedObj C)) → (Z : C) → [ComonObj Z] →
+      (iterCtx (Z ⊗ v.W) L ⟶ X) → (Z ⟶ X)
+  | v, [], _, _, h =>
+    letI := v.comon
+    simQuant q v.card fun j => insertPoint (v.pt j) ≫ h
+  | v, w :: L, Z, _, h =>
+    letI := v.comon
+    simQuant q v.card fun j =>
+      insertPoint (v.pt j) ≫ iterQuant q w L (Z ⊗ v.W) h
+
+/-- Toward `lem:quantifier-nestable` (C3-B4b), the env's STATEMENT at
+the combinator level: for a nestable quantifier family and a
+(nonempty) list of quantified variables with classical enumeration
+points, the simultaneous quantification over the lexicographic
+product states equals the iterated one-variable-at-a-time
+quantification. Induction on the variable list; the base case `l = 1`
+is definitional and the inductive step is `simQuant_peel`, exactly
+the env's own proof. The env's remaining "for any ordering of `x⃗`"
+clause is the `SymmetricFamily` remainder disclosed in the module
+doc. -/
+@[blueprint_internal] -- toward lem:quantifier-nestable: simultaneous
+-- equals iterated (the env's statement, combinator level), env
+-- stays unmarked pending its provisos
+theorem simQuant_nest [BraidedCategory C] {X : C}
+    {q : ∀ k, tensorPow X k ⟶ X} (hq : Nestable q) :
+    ∀ (L : List (PointedObj C)) (v : PointedObj C) (Z : C) [ComonObj Z]
+      (h : iterCtx (Z ⊗ v.W) L ⟶ X) (F : Fin (nestCard v L) → (Z ⟶ X)),
+      (∀ k, F k = nestInsert v L Z k ≫ h) →
+      simQuant q (nestCard v L) F = iterQuant q v L Z h
+  | [], v, Z, inst, h, F, hF => by
+    letI := v.comon
+    change simQuant q v.card F =
+      simQuant q v.card fun j => insertPoint (v.pt j) ≫ h
+    exact congrArg (simQuant q v.card) (funext hF)
+  | w :: L, v, Z, inst, h, F, hF => by
+    letI := v.comon
+    letI := w.comon
+    change simQuant q (nestCard w L * v.card) F =
+      simQuant q v.card fun j =>
+        insertPoint (v.pt j) ≫ iterQuant q w L (Z ⊗ v.W) h
+    have hFblk : ∀ (j : Fin v.card) (i : Fin (nestCard w L)),
+        F (blockIdx j i) =
+          insertPoint (v.pt j) ≫ (nestInsert w L (Z ⊗ v.W) i ≫ h) := by
+      intro j i
+      rw [hF (blockIdx j i)]
+      change (insertPoint (v.pt (blockOuter (blockIdx j i))) ≫
+          nestInsert w L (Z ⊗ v.W) (blockInner (blockIdx j i))) ≫ h = _
+      rw [blockOuter_blockIdx, blockInner_blockIdx, Category.assoc]
+    rw [simQuant_peel hq v.classical
+      (fun i => nestInsert w L (Z ⊗ v.W) i ≫ h) F hFblk]
+    congr 1
+    funext j
+    congr 1
+    exact simQuant_nest hq L w (Z ⊗ v.W) h
+      (fun i => nestInsert w L (Z ⊗ v.W) i ≫ h) (fun _ => rfl)
+
+-- (completeness census: `@[reassoc]`-generated companions, post-hoc
+-- tagged -- not blueprint-cited, plumbing)
+attribute [blueprint_internal] tensorFinHom_comp_assoc comulPow_mul_assoc
+  tensorFinHom_mul_assoc
+
+end NeSyCat

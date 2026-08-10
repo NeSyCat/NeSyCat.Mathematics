@@ -2500,7 +2500,9 @@ $\nrm(a) = a - \log Z(a)\cdot\mathbf 1$ (the log-softmax).
 $\nrm$ (Definition~\ref{def:normalizer}) satisfies:
 \begin{enumerate}
 \item[(i)] $\nrm \seq \dec = \dec$ (predictions unchanged);
-\item[(ii)] $Z(\nrm(a)) = 1$ (mass one);
+% Erratum (C3-B9, kernel-verified): the unconditioned claim fails at the
+% zero vector; real heads (finite logits) always satisfy the proviso.
+\item[(ii)] $Z(\nrm(a)) = 1$ whenever $Z(a) > 0$ (mass one);
 \item[(iii)] $\nrm(a + c\cdot\mathbf 1) = \nrm(a)$ for every constant
   $c$ (kills the shift);
 \item[(iv)] $\nrm \seq \nrm = \nrm$ (idempotent).
@@ -2522,9 +2524,12 @@ to $\nrm(a)$, using (ii).
 \label{lem:normalized-heads}
 \lean{NeSyCat.normalized_heads}
 \leanok
+% Erratum (C3-B9, kernel-verified): the unconditioned claim fails at the
+% zero vector; real heads (finite logits) always satisfy the proviso.
 If every neural symbol interpretation is post-composed with $\nrm$
-(Definition~\ref{def:normalizer}), then every leaf and every bound
-continuation has mass one, hence is mass preserving
+(Definition~\ref{def:normalizer}), provided each head's mass is nowhere
+zero, then every leaf and every bound continuation has mass one, hence
+is mass preserving
 (Definition~\ref{def:mass-preserving}), and Theorem~\ref{thm:pullout}
 applies to \emph{every} program: $t_{\Tmon} = t_{\Dmon}$ for arbitrary
 chains of neural symbols. By property (i) of
