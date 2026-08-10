@@ -9,7 +9,11 @@ import NeSyCat.CategoricalLayer.SemiringMonads.LatticeSemiring
 import NeSyCat.CategoricalLayer.SemiringMonads.SemiringMonad
 import NeSyCat.CategoricalLayer.SemiringMonads.Dist
 import NeSyCat.CategoricalLayer.SemiringMonads.LogIso
+import NeSyCat.CategoricalLayer.SemiringMonads.Support
+import NeSyCat.CategoricalLayer.SemiringMonads.GradientSemiring
 import NeSyCat.CategoricalLayer.Signatures.Signatures
+import NeSyCat.CategoricalLayer.Embedding.Embedding
+import NeSyCat.CategoricalLayer.Embedding.EmbeddingExact
 
 -- Logical layer (blueprint §3)
 import NeSyCat.LogicalLayer.LogicalLayer

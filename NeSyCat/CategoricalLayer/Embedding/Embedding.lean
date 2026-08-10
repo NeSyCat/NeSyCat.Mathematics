@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Daniel Romero Schellhorn
 -/
 /-!
-# Categorical layer
+# Embedding-space reasoning
 
-Blueprint §2 Categorical layer. Root module for the `Categorical layer`-mirroring
-folder (STRUCTURE-MIRROR ENFORCEMENT, C2-E6): its subsections are `SemiringMonads/` (§2.1),
-`Signatures/` (§2.2), and `Embedding/` (§2.3, C3-TL-A).
+Blueprint §2.3 Embedding-space reasoning. Root module for the
+`Embedding-space reasoning`-mirroring folder (STRUCTURE-MIRROR ENFORCEMENT,
+C2-E6): the embedding content lives in `EmbeddingExact.lean` alongside this
+file.
 No declarations live here -- this file is a pure module-doc anchor so
 `NeSyCat.lean` can import one name per mirrored folder.
 -/

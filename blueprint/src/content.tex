@@ -205,9 +205,13 @@ their commutative and bounded refinements, then states the monad's
 laws and its commutativity. It gives the log isomorphism linking the
 mass and log rows.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
-% Every item in this subsection is due to [NeSy26, App.~A], except the
-% commutativity direction of Theorem~\ref{thm:semiring-monad-commutative},
-% credited below also to Coumans--Jacobs, Lem.~23.
+% Every item in this subsection through lem:log-iso is due to [NeSy26,
+% App.~A], except the commutativity direction of
+% Theorem~\ref{thm:semiring-monad-commutative}, credited below also to
+% Coumans--Jacobs, Lem.~23. The support-readout and gradient-semiring
+% items after it (def:support-readout through inst:gradsemiring-log) are
+% new library items added at C3-TL-A, each carrying its own provenance
+% comment.
 
 \begin{class}[Lattice-semiring]
 \label{def:lattice-semiring}
@@ -622,6 +626,163 @@ Theorem~\ref{thm:semiring-monad-laws}, carried through the semiring
 isomorphism. So $\log$ is a monad isomorphism
 $\MS{\MassS} \cong \MS{\LogS}$.
 \end{proof}
+
+\begin{definition}[Support readout]
+\label{def:support-readout}
+\lean{NeSyCat.supp}
+\leanok
+On a semiring $S$, the \textbf{support readout}
+$\mathrm{supp} \colon S \to \BoolS$ sends $a$ to $1$ when $a \ne 0$, and
+to $0$ when $a = 0$.
+\end{definition}
+
+% Claim source: Domingos, Tensor Logic (arXiv:2510.12269), Sec. 3.1:
+% asserts that a Datalog rule is an einsum over Boolean tensors followed
+% elementwise by the Heaviside step function H(x) = 1 if x>0 else 0,
+% presented as the paper's founding correspondence, with no statement of
+% which semirings this readout is a homomorphism on. Proved here.
+\begin{lemma}[Support readout is a homomorphism]
+\label{lem:support-hom-iff}
+\lean{NeSyCat.support_hom_iff}
+\leanok
+On a nontrivial semiring $S$, the support readout $\mathrm{supp}$
+(Definition~\ref{def:support-readout}) preserves $0$, $1$, $+$, and
+$\times$ if and only if $S$ is zerosumfree ($a+b=0 \implies a=0 \wedge
+b=0$) and has no zero divisors ($ab=0 \implies a=0 \vee b=0$).
+\uses{def:support-readout}
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\mathrm{supp}$ always preserves $0$, and preserves $1$ since $S$ is
+nontrivial. In every semiring, $a=0$ and $b=0$ already imply $a+b=0$,
+and $a=0$ or $b=0$ already imply $ab=0$, so each preservation
+biconditional holds in one direction unconditionally. Zerosumfreeness
+and the absence of zero divisors are exactly the converse directions,
+so $\mathrm{supp}$ preserves $+$ and $\times$ precisely when both hold.
+\end{proof}
+
+\begin{lemma}[Support fails on a ring]
+\label{lem:support-fails-ring}
+\lean{NeSyCat.support_fails_ring}
+\leanok
+There exist $a,b \in \mathbb Z$ with $\mathrm{supp}(a+b) \ne
+\mathrm{supp}(a) + \mathrm{supp}(b)$ (Definition~\ref{def:support-readout}).
+\uses{def:support-readout}
+\end{lemma}
+
+\begin{proof}
+\leanok
+Take $a=1$, $b=-1$. Then $\mathrm{supp}(1+(-1)) = \mathrm{supp}(0) = 0$,
+while $\mathrm{supp}(1) + \mathrm{supp}(-1) = 1+1 = 1$, and $0 \ne 1$.
+\end{proof}
+
+\begin{definition}[Gradient semiring]
+\label{def:gradient-semiring}
+\lean{NeSyCat.GradSemiring}
+\leanok
+On a commutative semiring $S$, the \textbf{gradient semiring} pairs a
+value with its derivative. Its carrier is $S \times S$, with
+\[
+  (a,da) \oplus (b,db) := (a+b,\, da+db), \qquad
+  (a,da) \otimes (b,db) := (ab,\, a\,db + da\,b).
+\]
+\uses{def:comm-lattice-semiring}
+\end{definition}
+
+This is exactly the expectation semiring of
+\citet{eisnerExpectationSemiring2002}.
+
+% Claim source: Domingos, Tensor Logic (arXiv:2510.12269), Sec. 3.3:
+% asserts "the gradient of a tensor logic program is also a tensor logic
+% program" via an informal product-rule computation on tensor equations,
+% naming no algebraic structure and identifying it with no prior
+% construction. Proved here as an identification with a semiring.
+\begin{lemma}[Gradient semiring laws]
+\label{lem:gradient-semiring-laws}
+\lean{NeSyCat.gradient_semiring_laws}
+\leanok
+On the gradient semiring (Definition~\ref{def:gradient-semiring}) over a
+commutative semiring $S$, the first projection $(a,da) \mapsto a$ is a
+semiring homomorphism to $S$, and the second coordinate obeys the
+Leibniz rule under $\otimes$: $(a,da) \otimes (b,db)$ has second
+coordinate $a\,db + da\,b$.
+\uses{def:gradient-semiring}
+\end{lemma}
+
+\begin{proof}
+\leanok
+The first projection sends $0 \mapsto 0$, $1 \mapsto 1$, and
+$(a,da)+(b,db) \mapsto a+b$ directly from the carrier's componentwise
+addition and units. It sends $(a,da) \otimes (b,db) \mapsto ab$, since
+that product's first coordinate is $ab$ by definition. The Leibniz rule
+is the same product's second coordinate.
+\end{proof}
+
+\begin{instance}[Gradient semiring, mass row]
+\label{inst:gradsemiring-mass}
+\lean{NeSyCat.instCommSemiringGradSemiringMass}
+\leanok
+The gradient semiring (Definition~\ref{def:gradient-semiring}) over the
+mass row $\MassS$ (Instance~\ref{inst:massS-latcsrng}) is a commutative
+semiring.
+\uses{def:gradient-semiring, inst:massS-latcsrng}
+\end{instance}
+
+\begin{instance}[Gradient semiring, log row]
+\label{inst:gradsemiring-log}
+\lean{NeSyCat.instCommSemiringGradSemiringLog}
+\leanok
+The gradient semiring (Definition~\ref{def:gradient-semiring}) over the
+log row $\LogS$ (Instance~\ref{inst:logS-latcsrng}) is a commutative
+semiring.
+\uses{def:gradient-semiring, inst:logS-latcsrng}
+\end{instance}
+
+% ------------------------------------------------------------
+\subsection{Embedding-space reasoning}  % lean-dir: CategoricalLayer/Embedding
+\label{sec:embedding}
+
+A finite relation between finite sets is a Boolean matrix. Cast into
+$\mathbb R$, it becomes a real matrix $R$ with entries $0$ or $1$, and
+chaining it against a value $v$ is matrix-vector multiplication $Rv$,
+the same operation Lemma~\ref{lem:bind-matrix-mult} identifies with
+$\bind$. An embedding matrix $E$ maps the relation's index set into a
+lower-dimensional latent space, so a value can be represented instead
+by its embedded code $Ev$.
+
+% Claim source: Domingos, Tensor Logic (arXiv:2510.12269), Sec. 5:
+% derives D[A,B] = EmbR[i,j] Emb[A,i] Emb[B,j] approximately equal to
+% R(A,B) for random unit-vector embeddings, the step valid "because
+% einsums are commutative and associative" (his own phrase) together
+% with the dot product of two random unit vectors being approximately
+% 0; no exact case, and no proof of the error bound, is given. Proved
+% here for the exact orthonormal case.
+\begin{theorem}[Exact embedded chaining]
+\label{thm:embedding-exact}
+\lean{NeSyCat.embedding_exact}
+\leanok
+Let $E$ be a $d \times Y$ embedding matrix over $\mathbb R$ with
+orthonormal columns, $E^\top E = 1$. Then retrieval is exact,
+$E^\top(Ev) = v$ for every $v \colon Y \to \mathbb R$, and chaining a
+relation $R$ against an embedded-then-retrieved value equals chaining
+$R$ against the value directly: $(RE^\top)(Ev) = Rv$.
+\end{theorem}
+
+\begin{proof}
+\leanok
+Both identities follow from associativity of matrix multiplication
+together with $E^\top E = 1$. For retrieval, $E^\top(Ev) =
+(E^\top E)v = v$. For chaining, $(RE^\top)(Ev) = R(E^\top(Ev)) =
+R((E^\top E)v) = Rv$.
+\end{proof}
+
+The hypothesis $E^\top E = 1$ needs the embedding to be exactly
+orthonormal. A random unit-vector embedding satisfies it only
+approximately, with the entries of $E^\top E - 1$ concentrating around
+$0$ at a rate that depends on the embedding dimension. That
+approximate case, and its error bound, belong to a probability layer
+this library does not yet have.
 
 % ------------------------------------------------------------
 \subsection{Categorical signatures and CD semantics}  % lean-dir: CategoricalLayer/Signatures
@@ -2350,13 +2511,12 @@ $Z(\Ret_{\Tmon}(x)) = e^0 + \sum_{x'\ne x}e^{-\infty} = 1$.
 \end{proof}
 
 \textbf{Scope disclosure.} The identities of Lemma~\ref{lem:units} are
-exact only over the true log semiring $\LogS = \mathbb R \cup
-\{-\infty\}$ of Class~\ref{def:lattice-semiring}. The numerical
+exact only over the true log semiring $\LogS$ of Class~\ref{def:lattice-semiring}. The numerical
 $\epsilon$-floor implementation substitutes a large negative finite
 number for $-\infty$, so it satisfies these identities only up to
 $O(\epsilon)$ error. The reason: $\Ret_{\Tmon}(x)$ genuinely needs a
 $-\infty$ coordinate, not merely a small one, at every $x' \ne x$, for
-$\Ret_{\Dmon}\seq\enc = \Ret_{\Tmon}$ to hold on the nose.
+$\Ret_{\Dmon}\seq\enc = \Ret_{\Tmon}$ to hold.
 
 \begin{lemma}[Strengths]
 \label{lem:strengths}
@@ -2530,6 +2690,16 @@ record it here as a standing research target of this library. No proof
 or proof sketch elsewhere in this document may cite it as proved for
 $r > 1$ binds.
 
+% Claim source: Domingos, Tensor Logic (arXiv:2510.12269), Sec. 4.4:
+% the table entry "P(Query|Evidence) = Prog(Q,E)/Prog(E)" and the running
+% text "the conditional probability of a query given evidence can be
+% computed as P(E) = P(Q,E)/P(E)" state conditioning as a plain division
+% of two program evaluations, outside the tensor-equation language the
+% paper's own Sec. 3.1 fixes as its one construct. This section's
+% normalizer/normalized-heads pair (below, already \leanok pre-C3-TL) is
+% the bridge that keeps conditioning-by-division outside that
+% one-construct language honest: it renormalizes inside the semiring
+% monad itself, never asserting a bare division as a tensor equation.
 \begin{definition}[Normalizer]
 \label{def:normalizer}
 \lean{NeSyCat.nrm}
@@ -2682,4 +2852,5 @@ preserving for every pure $h$.
 \bibitem[Girard(1987)]{girardLinearLogic1987} Jean-Yves Girard. Linear logic. \textit{Theoretical Computer Science}, 50(1), pages 1 to 101, 1987.
 \bibitem[Coumans and Jacobs(2013)]{coumansJacobsScalars2013} Dion Coumans and Bart Jacobs. Scalars, monads, and categories. In Chris Heunen, Mehrnoosh Sadrzadeh, and Edward Grefenstette, editors, \textit{Quantum Physics and Linguistics: A Compositional, Diagrammatic Discourse}. Oxford University Press, 2013. arXiv:1003.0585.
 \bibitem[Maene et~al.(2025)]{maeneKLay2025} Jaron Maene, Vincent Derkinderen, and Pedro Zuidberg Dos Martires. KLay: accelerating arithmetic circuits for neurosymbolic AI. In \textit{International Conference on Learning Representations (ICLR)}, 2025. arXiv:2410.11415.
+\bibitem[Eisner(2002)]{eisnerExpectationSemiring2002} Jason Eisner. Parameter estimation for probabilistic finite-state transducers. In \textit{Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics (ACL)}, pages 1 to 8, 2002.
 \end{thebibliography}
