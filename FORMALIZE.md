@@ -169,8 +169,10 @@ step below.
   either the statement or the proof side (there is nothing formalized
   to mark). `scripts/blueprint.sh` enforces this structurally: an
   "Open."-body proof carrying `\leanok` is a hard violation, and so is
-  its paired statement carrying `\leanok`. Current instance:
-  `thm:chain-bound` ("How wrong can it get").
+  its paired statement carrying `\leanok`. The convention currently has
+  no live instance: its founding case, `thm:chain-bound` ("How wrong
+  can it get"), was proved at C3-CB (2026-08-10), equality clause
+  included.
 - **The bijection law (C2-E4a/A1, USER DECREE 2026-08-09).** The
   LaTeX↔Lean correspondence is one-to-one: every environment that
   carries a `\lean{}` mark at all carries EXACTLY ONE name, its
