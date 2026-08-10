@@ -1998,14 +1998,27 @@ $\BoolS$'s bounded-lattice structure, not a claim that $\MS{\BoolS}\BoolS$'s
 lifted $\oplus,\otimes$ agree with $\wedge,\vee$ in general, which
 fails on inspection). Units-vs-bounds splits by sign: positive on the
 normalized row (Class~\ref{def:unit-bounds}, cited), negative at
-$S=\MassS$, where $\Ret(0)=(1,0)$ in the two-slot coordinates of
-Definition~\ref{def:order-family} but
-% not_isBot_orderedTwoSlot_ret_zero, ThreeLayers.lean: witness v=(2,0)
+$S=\MassS$. On that carrier the negative claim cannot be phrased as an
+inequation with $\bot$ at all: $\MassS$ has no $\top_{\MassS}$, so the
+bound $\bot = (\top_S,\bot_S)$ of Definition~\ref{def:order-family} is
+one of the cases that definition defers to an adjoined $\infty$, and
+what the witness refutes is instead leastness. The $\oplus$-unit
+supplies it. In the two-slot coordinates of
+Definition~\ref{def:order-family}, $\Ret(0) = (1,0)$, and a least
+element lies below every point, $v = (2,0)$ among them:
+% not_isBot_orderedTwoSlot_ret_zero, ThreeLayers.lean: the statement is
+% \neg IsBot (orderedTwoSlot (ret 0 : MS \Rge0 BoolW)); the proof
+% instantiates IsBot at v = (toDual 2, 0) and reads slot 0, where
+% toDual 1 \le toDual 2 unfolds to 2 \le 1
 \[
-  \bot = (\top_{\MassS},\bot_{\MassS}) \quad\text{tested against}\quad
-  v = (2,0) \ \text{forces}\ 1 \ge 2,
+  \Ret(0) \le (2,0)
+  \quad\iff\quad
+  0 \le_{\MassS} 0 \ \text{and}\ 1 \ge_{\MassS} 2,
 \]
-false, so $\Ret(0)$ is not $\bot$.
+by the two clauses of the order family, and the slot-$0$ clause is
+false. So $\Ret(0)$ is not a least element of the order family on
+$\MS{\MassS}\BoolS$, and no coincidence of $\dzero$ with a bound is
+available here.
 \end{proof}
 
 % ------------------------------------------------------------
@@ -2831,11 +2844,18 @@ and hence for $\mathrm{tilt}$ to be well-defined. Then
 
 \begin{proof}
 \leanok
-\emph{Degenerate case}, $Z(a) = 0$: the ambient $0^{-1}=0$ convention
-(Definition~\ref{def:dec-enc-mass}) forces $a$'s own weights to vanish,
-so $\dec(a) = 0$; the mass of $a \bind k$ is then also $0$ (it sums the
-vanishing weights of $a$), so $\dec(a \bind k) = 0$ by the same
-convention, and $\tilt_{k \seq Z}(\dec(a)) = 0$ since $\tilt$
+\emph{Degenerate case}, $Z(a) = 0$: the mass $Z(a)$ is a sum of
+nonnegative weights, so it vanishes only if every weight of $a$ does,
+% ofLogTens_eq_zero_of_Z_eq_zero, Tilt.lean: Z a = 0 \to ofLogTens a x
+% = 0, by Finset.sum_eq_zero_iff_of_nonneg on the support sum
+and $\dec(a) = Z(a)^{-1}\cdot 0 = 0$ follows by scaling that zero
+weight vector, with no appeal to the inverse convention yet; the mass
+of $a \bind k$ is then also $0$ (it sums the
+vanishing weights of $a$), and here, one step later, the ambient
+$0^{-1}=0$ convention (Definition~\ref{def:dec-enc-mass}) does the
+work: $\dec(a \bind k)_y = e^{(a \bind k)_y}/Z(a \bind k)$ with
+$Z(a \bind k) = 0$, hence $\dec(a \bind k) = 0$; and
+$\tilt_{k \seq Z}(\dec(a)) = 0$ since $\tilt$
 reweights the zero function. Binding either side of the claimed
 identity against the zero function returns the zero function, so both
 sides agree trivially, with no positivity hypothesis needed here.
@@ -2915,7 +2935,7 @@ of a feed-forward composite, where $L$ tensors together the leaves
 Y_n)$) and each $B_i$ is a lifted pure map $\Tmon(h)$
 (Lemma~\ref{lem:pure-maps}), a unit insertion
 (Lemma~\ref{lem:units}), a strength factor
-(Lemma~\ref{lem:strengths}), or a bind $({-}\bind k_i)$. If every
+(Lemma~\ref{lem:tensor}), or a bind $({-}\bind k_i)$. If every
 bound continuation $k_i$ is mass preserving
 (Definition~\ref{def:mass-preserving}), then
 \[
@@ -2963,11 +2983,17 @@ Lemma~\ref{lem:tilt} gives
   \dec(\Phi_{\Tmon}) = \dec(\Psi_{\Tmon} \bind k_i)
     = \tilt_{k_i \seq Z}\bigl(\dec(\Psi_{\Tmon})\bigr) \bind (k_i \seq \dec).
 \]
-Mass preservation makes $x \mapsto Z(k_i(x))$ constant, so its
-reweighting leaves $\tilt_{k_i \seq Z}$ the identity, reducing the
-right side to $\dec(\Psi_{\Tmon}) \bind (k_i \seq \dec) = \Psi_{\Dmon}
-\bind (k_i \seq \dec) = \Phi_{\Dmon}$, the middle equality again the
-induction hypothesis.
+Mass preservation makes $x \mapsto Z(k_i(x))$ constant, say at the
+value $c$. For $c \ne 0$ the reweighting by that constant leaves
+$\tilt_{k_i \seq Z}$ the identity, since the constant cancels against
+the reweighting's own denominator; for $c = 0$ every $\dec(k_i(x))$
+vanishes instead, and both sides bind against the zero continuation, so
+both are $0$.
+% dec_bind_of_massPreserving, Tilt.lean: by_cases on the constant c,
+% tilt_const_dec (c \ne 0) against bind_zero_cont (c = 0)
+Either way the right side reduces to $\dec(\Psi_{\Tmon}) \bind
+(k_i \seq \dec) = \Psi_{\Dmon} \bind (k_i \seq \dec) = \Phi_{\Dmon}$,
+the middle equality again the induction hypothesis.
 \end{proof}
 
 If some $k_i$ is not mass preserving, the two sides differ in general, and
@@ -3003,7 +3029,7 @@ Then at every outcome $y$,
   \qquad\text{and}\qquad
   \pi_m \cdot \Phi_{\Dmon}(y) \;\le\; \pi_M \cdot \dec(\Phi_{\Tmon})(y).
 \]
-\uses{def:dec-enc-mass, lem:pure-maps, lem:tensor, lem:units, lem:strengths, lem:bind-matrix-mult, thm:pullout}
+\uses{def:dec-enc-mass, lem:pure-maps, lem:tensor, lem:units, lem:bind-matrix-mult, thm:pullout}
 \end{theorem}
 
 \begin{proof}
@@ -3011,7 +3037,14 @@ Then at every outcome $y$,
 No case below needs $m_i > 0$: $\dec$'s own $0^{-1} = 0$ convention
 (Definition~\ref{def:dec-enc-mass}) already disposes of every
 degenerate ratio, so the induction on $\Phi$'s structure proceeds
-unconditionally.
+unconditionally. Throughout, $L$ and $U$ name the two bound products
+$\pi_m,\pi_M$ of whichever subchain $\Psi$ the induction hypothesis
+speaks about, so that hypothesis reads
+$L\cdot\dec(\Psi_{\Tmon})(x) \le U\cdot\Psi_{\Dmon}(x)$ and its mirror,
+at every $x$. A pure map, a unit insertion, and a strength all leave
+the list of bounds untouched and so inherit the ambient $L,U$
+unchanged; only a bind step lengthens the list, by its own pair
+$(m,M)$.
 
 \emph{Base case} ($r = 0$): $\pi_m = \pi_M = 1$, the empty products,
 and $\Phi_{\Tmon}$, $\Phi_{\Dmon}$ read the same leaf value, so both
@@ -3048,8 +3081,8 @@ hypothesis scales directly:
 
 \emph{Bind step}, the substantive case: write $a$ for $\Phi_{\Tmon}$
 before the bind, $q$ for $\Phi_{\Dmon}$ before it, $k$ for the bind's
-continuation with $m \le Z(k(x)) \le M$ for all $x$, and $L, U$ for the
-accumulated products over the remaining chain, so the induction
+continuation with $m \le Z(k(x)) \le M$ for all $x$; here $L,U$ are the
+products over the chain remaining after this bind, and the induction
 hypothesis gives $L \cdot \dec(a)(x) \le U \cdot q(x)$ and its mirror
 for every $x$. Lemma~\ref{lem:bind-matrix-mult}'s matrix form of
 $\bind$ writes the numerator and mass of $a \bind k$ at $y$ as finite

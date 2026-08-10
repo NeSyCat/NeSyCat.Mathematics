@@ -48,6 +48,59 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 
 ## Notes
 
+- **C3-E13-FIX (display-fidelity fixes + audit of the sweep campaign's
+  displays, 2026-08-10):** `blueprint/src/content.tex` only, no Lean
+  changes. Four verifier-confirmed defects fixed. (1) BLOCKING,
+  `thm:three-layers`' units-vs-bounds negative witness: the display
+  claimed `\bot = (\top_\MassS, \bot_\MassS)` "tested against
+  `v = (2,0)`", an object that cannot be FORMED — `orderBot` needs
+  `[BoundedOrder S]` (`Lifted.lean`) and `ℝ≥0` has no top, which is
+  exactly why `not_isBot_orderedTwoSlot_ret_zero` states `¬ IsBot`
+  rather than `≠ ⊥` — and read literally its test came out TRUE,
+  contradicting the conclusion drawn from it. Rewritten to state the
+  Lean lemma: `\Ret(0) = (1,0)`, leastness would put it below
+  `v = (2,0)`, and the order family's two clauses give `0 \le 0` and
+  `1 \ge 2`, the slot-`0` clause false. (2) `lem:tilt`'s degenerate
+  branch mis-attributed the vanishing of `a`'s weights to the
+  `0^{-1}=0` convention; in `tilt_bind'` that step is
+  `ofLogTens_eq_zero_of_Z_eq_zero`, whose mechanism is
+  `Finset.sum_eq_zero_iff_of_nonneg` (NONNEGATIVITY), with
+  `\dec(a) = 0` following by `smul_zero`. The convention's genuine use
+  is one step later, at `\dec(a \bind k)`, now named there explicitly.
+  (3) `thm:chain-bound-sandwich`: dropped the unused `lem:strengths`
+  `\uses` entry (`ChainBound.lean`'s `strengthStep` branch closes by
+  `dec_dstL` + `sandwich_mul_right`, i.e. `lem:tensor` alone — the same
+  entry removed from `thm:pullout` in C3-E13), and introduced `L,U`
+  in the proof's opening paragraph, before the two steps that used
+  them. (4) STATEMENT TEXT (authorized, cross-reference only):
+  `thm:pullout`'s "a strength factor (Lemma~\ref{lem:strengths})" ->
+  "(Lemma~\ref{lem:tensor})", matching both its own proof and the Lean
+  (`pullout`'s `strengthStep` branch is `rw [dec_dstL, ih hm]`, with
+  no `dec_ret`). AUDIT of the campaign's other swept displays
+  (`thm:pullout`, `thm:chain-lin`, `thm:square-not-lin`,
+  `thm:semiring-monad-laws`, `thm:batch-transformer`,
+  `thm:embedding-exact`, `lem:support-hom-iff`,
+  `thm:semiring-monad-commutative`, `thm:chain-bound-sandwich`,
+  `thm:chain-bound`), each re-derived from its Lean by transcription:
+  one further gap fixed (`thm:pullout`'s bind case asserted that a
+  constant tilt weight leaves `\tilt` the identity, true only for a
+  NONZERO constant — `tilt_const_dec` carries `c \ne 0`, and
+  `dec_bind_of_massPreserving` splits `by_cases c = 0` with the zero
+  branch collapsing through `bind_zero_cont`; the branch is now shown),
+  one arguable divergence reported and NOT edited
+  (`thm:embedding-exact`'s chaining display associates as
+  `R(E^\top(Ev))` where the Lean groups matrices first,
+  `mulVec_mulVec` then `mul_assoc` — same identity, different
+  bracketing). Gates: `scripts/check.sh` GREEN,
+  `scripts/sorry-report.sh` 0/0, `scripts/blueprint.sh` GREEN with
+  sentinels UNCHANGED (106 envs / 103 kind-checked names / census
+  614/103/511/0 / registry 9 / structure-mirror 16/0), pdf+web
+  rebuilt with 0 `Overfull \hbox`, `lint-blueprint.py` silent.
+  ENVIRONMENT NOTE: the structure-mirror gate first came up RED on an
+  orphan `NeSyCat/LogicalLayer/Completions/` folder — empty, untracked,
+  created outside this ticket; removed with `rmdir` (git tracks no
+  empty directory, so nothing was lost) to restore the 16/0 sentinel.
+
 - **C2-E11 (dep-graph proved-status collapse for definition-like kinds,
   2026-08-10):** web-only, no `.tex` content or Lean touched. Symptom:
   `class`/`abbreviation` envs never got a background fill on `\leanok`
