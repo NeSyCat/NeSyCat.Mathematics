@@ -136,21 +136,32 @@ here rather than as its own top-level declaration (the former
 `bind`/`ret` against `Finsupp.smul_single'`/`Finsupp.sum_single`, using
 only the unit law `w * 1 = w` of `S`) and SINGLE-PURPOSE (existed only to
 feed this theorem, zero other call sites) — the calibrated reuse
-principle's "folds" branch. -/
+principle's "folds" branch.
+
+Proof steps are named after the mathematics they carry, and
+`blueprint/src/content.tex`'s `thm:semiring-monad-laws` proof cites those
+names in its `% lean-step:` tags (FORMALIZE.md's step-tag convention):
+`left_unit`, `right_unit`, `assoc`, and, inside the right unit law,
+`smul_delta_eq_single` for the pointwise identity `w • δ_x = single x w`
+that the fold consumes. -/
 theorem semiring_monad_laws :
     (∀ (x : X) (k : X → MS S Y), bind (ret x) k = k x) ∧
       (∀ f : MS S X, bind f ret = f) ∧
       (∀ (f : MS S X) (k : X → MS S Y) (l : Y → MS S Z),
         bind (bind f k) l = bind f (fun x => bind (k x) l)) := by
-  refine ⟨ret_bind, ?_, bind_assoc⟩
-  intro f
-  unfold bind ret
-  have hpt : (fun (x : X) (w : S) => w • Finsupp.single x (1 : S)) =
-      fun (x : X) (w : S) => Finsupp.single x w := by
-    funext x w
-    rw [Finsupp.smul_single', mul_one]
-  rw [hpt]
-  exact Finsupp.sum_single f
+  have left_unit : ∀ (x : X) (k : X → MS S Y), bind (ret x) k = k x := ret_bind
+  have right_unit : ∀ f : MS S X, bind f ret = f := by
+    intro f
+    unfold bind ret
+    have smul_delta_eq_single : (fun (x : X) (w : S) => w • Finsupp.single x (1 : S)) =
+        fun (x : X) (w : S) => Finsupp.single x w := by
+      funext x w
+      rw [Finsupp.smul_single', mul_one]
+    rw [smul_delta_eq_single]
+    exact Finsupp.sum_single f
+  have assoc : ∀ (f : MS S X) (k : X → MS S Y) (l : Y → MS S Z),
+      bind (bind f k) l = bind f (fun x => bind (k x) l) := bind_assoc
+  exact ⟨left_unit, right_unit, assoc⟩
 
 /-! ### `thm:semiring-monad-commutative`: the double-strength/interchange maps
 

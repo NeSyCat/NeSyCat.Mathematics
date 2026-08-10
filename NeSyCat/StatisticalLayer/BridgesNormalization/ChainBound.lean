@@ -693,7 +693,15 @@ outcome `y`, `Π m_i · dec(Φ_Tmon)(y) ≤ Π M_i · Φ_Dmon(y)` and
 hypotheses: degenerate cases collapse under the `0⁻¹ = 0` convention.
 Promoted from an unmarked internal companion of `chain_bound` to its
 own cited principal at C3-E12's CB-RESTRUCT (USER DECREE 2026-08-10);
-`chain_bound` (the log form below) now `\uses` this theorem. -/
+`chain_bound` (the log form below) now `\uses` this theorem.
+
+Proof steps are named after the mathematics, and `content.tex`'s
+`thm:chain-bound-sandwich` proof cites those names, together with the
+induction's own case labels, in its `% lean-step:` tags (FORMALIZE.md's
+step-tag convention): `empty_bounds` for the base case, `tmon_reading` /
+`dmon_reading` / `fiber_sum_carries` for the pure-map step,
+`tmon_reading` / `dmon_reading` and `sandwich_mul_right` for the unit and
+strength steps, and `bind_layer_sandwich` for the bind step. -/
 theorem chain_bound_sandwich :
     ∀ {W : Type} (c : PulloutChain W) (bs : List (ℝ≥0 × ℝ≥0)),
       c.HasMassBounds bs → ∀ y : W,
@@ -703,72 +711,74 @@ theorem chain_bound_sandwich :
   induction c with
   | base a =>
       intro bs hbs y
-      have hnil : bs = [] := hbs
-      subst hnil
+      have empty_bounds : bs = [] := hbs
+      subst empty_bounds
       simp only [lbProd_nil, ubProd_nil, one_mul]
       exact ⟨le_rfl, le_rfl⟩
-  | pureMap h rest ih =>
+  | @pureMap B C h rest ih =>
       intro bs hbs y
       classical
-      have hbs' : rest.HasMassBounds bs := hbs
-      have hTm : dec (PulloutChain.pureMap h rest).toTmon
+      have bounds_of_rest : rest.HasMassBounds bs := hbs
+      have tmon_reading : dec (PulloutChain.pureMap h rest).toTmon
           = Finsupp.mapDomain h (dec rest.toTmon) := (pure_maps h rest.toTmon).2
-      have hDm : (PulloutChain.pureMap h rest).toDmon
+      have dmon_reading : (PulloutChain.pureMap h rest).toDmon
           = Finsupp.mapDomain h rest.toDmon := rfl
-      rw [hTm, hDm,
+      rw [tmon_reading, dmon_reading,
         mapDomain_apply_sum h (dec rest.toTmon)
           (s := (dec rest.toTmon).support ∪ rest.toDmon.support)
           Finset.subset_union_left y,
         mapDomain_apply_sum h rest.toDmon
           (s := (dec rest.toTmon).support ∪ rest.toDmon.support)
           Finset.subset_union_right y]
-      constructor
-      · rw [Finset.mul_sum, Finset.mul_sum]
+      have fiber_sum_carries : ∀ (p q : Tens B) (Lb Ub : ℝ≥0),
+          (∀ x, Lb * p x ≤ Ub * q x) →
+          Lb * ∑ x ∈ (dec rest.toTmon).support ∪ rest.toDmon.support,
+              (if h x = y then p x else 0)
+            ≤ Ub * ∑ x ∈ (dec rest.toTmon).support ∪ rest.toDmon.support,
+              (if h x = y then q x else 0) := by
+        intro p q Lb Ub hpq
+        rw [Finset.mul_sum, Finset.mul_sum]
         refine Finset.sum_le_sum fun x _ => ?_
         by_cases hxy : h x = y
         · rw [if_pos hxy, if_pos hxy]
-          exact (ih bs hbs' x).1
+          exact hpq x
         · rw [if_neg hxy, if_neg hxy, mul_zero, mul_zero]
-      · rw [Finset.mul_sum, Finset.mul_sum]
-        refine Finset.sum_le_sum fun x _ => ?_
-        by_cases hxy : h x = y
-        · rw [if_pos hxy, if_pos hxy]
-          exact (ih bs hbs' x).2
-        · rw [if_neg hxy, if_neg hxy, mul_zero, mul_zero]
+      exact ⟨fiber_sum_carries _ _ _ _ fun x => (ih bs bounds_of_rest x).1,
+        fiber_sum_carries _ _ _ _ fun x => (ih bs bounds_of_rest x).2⟩
   | unitIns c' rest ih =>
       intro bs hbs y
       obtain ⟨b₁, c₂⟩ := y
-      have hbs' : rest.HasMassBounds bs := hbs
-      have hTm : dec (PulloutChain.unitIns c' rest).toTmon
+      have bounds_of_rest : rest.HasMassBounds bs := hbs
+      have tmon_reading : dec (PulloutChain.unitIns c' rest).toTmon
           = dstL (dec rest.toTmon) (ret c') := by
         have h := dec_dstL rest.toTmon (ret c' : LogTens _)
         rw [dec_ret] at h
         exact h
-      have hDm : (PulloutChain.unitIns c' rest).toDmon
+      have dmon_reading : (PulloutChain.unitIns c' rest).toDmon
           = dstL rest.toDmon (ret c') := rfl
-      rw [hTm, hDm, dstL_apply, dstL_apply]
-      exact ⟨sandwich_mul_right (ih bs hbs' b₁).1,
-        sandwich_mul_right (ih bs hbs' b₁).2⟩
+      rw [tmon_reading, dmon_reading, dstL_apply, dstL_apply]
+      exact ⟨sandwich_mul_right (ih bs bounds_of_rest b₁).1,
+        sandwich_mul_right (ih bs bounds_of_rest b₁).2⟩
   | strengthStep leaf rest ih =>
       intro bs hbs y
       obtain ⟨b₁, x₂⟩ := y
-      have hbs' : rest.HasMassBounds bs := hbs
-      have hTm : dec (PulloutChain.strengthStep leaf rest).toTmon
+      have bounds_of_rest : rest.HasMassBounds bs := hbs
+      have tmon_reading : dec (PulloutChain.strengthStep leaf rest).toTmon
           = dstL (dec rest.toTmon) (dec leaf) := dec_dstL rest.toTmon leaf
-      have hDm : (PulloutChain.strengthStep leaf rest).toDmon
+      have dmon_reading : (PulloutChain.strengthStep leaf rest).toDmon
           = dstL rest.toDmon (dec leaf) := rfl
-      rw [hTm, hDm, dstL_apply, dstL_apply]
-      exact ⟨sandwich_mul_right (ih bs hbs' b₁).1,
-        sandwich_mul_right (ih bs hbs' b₁).2⟩
+      rw [tmon_reading, dmon_reading, dstL_apply, dstL_apply]
+      exact ⟨sandwich_mul_right (ih bs bounds_of_rest b₁).1,
+        sandwich_mul_right (ih bs bounds_of_rest b₁).2⟩
   | bindStep k rest ih =>
       intro bs hbs y
       cases bs with
       | nil => exact hbs.elim
       | cons b bs' =>
-          obtain ⟨hk, hbs'⟩ := hbs
+          obtain ⟨hk, bounds_of_rest⟩ := hbs
           rw [lbProd_cons, ubProd_cons]
           exact bind_layer_sandwich rest.toTmon rest.toDmon k hk
-            (fun x => (ih bs' hbs' x).1) (fun x => (ih bs' hbs' x).2) y
+            (fun x => (ih bs' bounds_of_rest x).1) (fun x => (ih bs' bounds_of_rest x).2) y
 
 /-! ### The equality converse -/
 
@@ -1066,7 +1076,14 @@ plus the log bridge `log_ratio_sum` give the bound (positivity of
 the binds are all mass preserving (`allMassPreserving_of_bounds_eq`) and
 `thm:pullout` makes both sides `0`; conversely an attained bound forces,
 at a witness index per bind, `Z(k_i) = m_i` and `Z(k_i) = M_i`
-simultaneously (`chain_bound_eq_upper`/`chain_bound_eq_lower`). -/
+simultaneously (`chain_bound_eq_upper`/`chain_bound_eq_lower`).
+
+Proof steps are named after the mathematics, and `content.tex`'s
+`thm:chain-bound` proof cites those names in its `% lean-step:` tags
+(FORMALIZE.md's step-tag convention): `sandwich`, `tmon_pos`,
+`log_gap_upper`, `log_gap_lower`, `abs_log_gap_bound` for the bound;
+`sandwich_attained` and `bound_vanishes` for the two directions of the
+equality case. -/
 theorem chain_bound {W : Type} (c : PulloutChain W) (bs : List (ℝ≥0 × ℝ≥0))
     (hbs : c.HasMassBounds bs) (hb : ∀ b ∈ bs, 0 < b.1 ∧ b.1 ≤ b.2)
     (y : W) (hD : 0 < c.toDmon y) :
@@ -1080,73 +1097,73 @@ theorem chain_bound {W : Type} (c : PulloutChain W) (bs : List (ℝ≥0 × ℝ�
   have hb2 : ∀ b ∈ bs, 0 < b.2 := fun b h => lt_of_lt_of_le (hb b h).1 (hb b h).2
   have hL : 0 < lbProd bs := lbProd_pos hb1
   have hU : 0 < ubProd bs := ubProd_pos hb2
-  have hs := chain_bound_sandwich c bs hbs y
-  have hT : 0 < dec c.toTmon y := by
+  have sandwich := chain_bound_sandwich c bs hbs y
+  have tmon_pos : 0 < dec c.toTmon y := by
     rw [pos_iff_ne_zero]
     intro h0
-    have hle := hs.2
+    have hle := sandwich.2
     rw [h0, mul_zero] at hle
     rcases mul_eq_zero.mp (le_antisymm hle zero_le) with h | h
     · exact hL.ne' h
     · exact hD.ne' h
-  have hTr : (0 : ℝ) < dec c.toTmon y := by exact_mod_cast hT
+  have hTr : (0 : ℝ) < dec c.toTmon y := by exact_mod_cast tmon_pos
   have hDr : (0 : ℝ) < c.toDmon y := by exact_mod_cast hD
   have hLr : (0 : ℝ) < lbProd bs := by exact_mod_cast hL
   have hUr : (0 : ℝ) < ubProd bs := by exact_mod_cast hU
-  have hS := log_ratio_sum hb
-  have hup : Real.log (dec c.toTmon y) - Real.log (c.toDmon y)
+  have log_ratio_sum_eq := log_ratio_sum hb
+  have log_gap_upper : Real.log (dec c.toTmon y) - Real.log (c.toDmon y)
       ≤ Real.log (ubProd bs) - Real.log (lbProd bs) := by
     have h1 : (lbProd bs : ℝ) * dec c.toTmon y
-        ≤ (ubProd bs : ℝ) * c.toDmon y := by exact_mod_cast hs.1
+        ≤ (ubProd bs : ℝ) * c.toDmon y := by exact_mod_cast sandwich.1
     have h2 := Real.log_le_log (by positivity) h1
     rw [Real.log_mul hLr.ne' hTr.ne', Real.log_mul hUr.ne' hDr.ne'] at h2
     linarith
-  have hdown : Real.log (c.toDmon y) - Real.log (dec c.toTmon y)
+  have log_gap_lower : Real.log (c.toDmon y) - Real.log (dec c.toTmon y)
       ≤ Real.log (ubProd bs) - Real.log (lbProd bs) := by
     have h1 : (lbProd bs : ℝ) * c.toDmon y
-        ≤ (ubProd bs : ℝ) * dec c.toTmon y := by exact_mod_cast hs.2
+        ≤ (ubProd bs : ℝ) * dec c.toTmon y := by exact_mod_cast sandwich.2
     have h2 := Real.log_le_log (by positivity) h1
     rw [Real.log_mul hLr.ne' hDr.ne', Real.log_mul hUr.ne' hTr.ne'] at h2
     linarith
-  have hbound : |Real.log (dec c.toTmon y) - Real.log (c.toDmon y)|
+  have abs_log_gap_bound : |Real.log (dec c.toTmon y) - Real.log (c.toDmon y)|
       ≤ (bs.map fun b => Real.log ((b.2 : ℝ) / (b.1 : ℝ))).sum := by
-    rw [hS]
-    exact abs_le.mpr ⟨by linarith, hup⟩
-  refine ⟨hbound, ?_, ?_⟩
+    rw [log_ratio_sum_eq]
+    exact abs_le.mpr ⟨by linarith, log_gap_upper⟩
+  refine ⟨abs_log_gap_bound, ?_, ?_⟩
   · -- attained bound forces every pair to coincide
     intro heq
-    rw [hS] at heq
+    rw [log_ratio_sum_eq] at heq
     have hS0 : 0 ≤ Real.log (ubProd bs) - Real.log (lbProd bs) :=
       heq ▸ abs_nonneg _
     rcases (abs_eq hS0).mp heq with hcase | hcase
-    · have hlog : Real.log ((lbProd bs : ℝ) * dec c.toTmon y)
+    · have log_attained : Real.log ((lbProd bs : ℝ) * dec c.toTmon y)
           = Real.log ((ubProd bs : ℝ) * c.toDmon y) := by
         rw [Real.log_mul hLr.ne' hTr.ne', Real.log_mul hUr.ne' hDr.ne']
         linarith
-      have hexp := congrArg Real.exp hlog
+      have hexp := congrArg Real.exp log_attained
       rw [Real.exp_log (by positivity), Real.exp_log (by positivity)] at hexp
-      have hnn : lbProd bs * dec c.toTmon y = ubProd bs * c.toDmon y := by
+      have sandwich_attained : lbProd bs * dec c.toTmon y = ubProd bs * c.toDmon y := by
         exact_mod_cast hexp
-      exact chain_bound_eq_upper c bs hbs hb y hD hnn
-    · have hlog : Real.log ((lbProd bs : ℝ) * c.toDmon y)
+      exact chain_bound_eq_upper c bs hbs hb y hD sandwich_attained
+    · have log_attained : Real.log ((lbProd bs : ℝ) * c.toDmon y)
           = Real.log ((ubProd bs : ℝ) * dec c.toTmon y) := by
         rw [Real.log_mul hLr.ne' hDr.ne', Real.log_mul hUr.ne' hTr.ne']
         linarith
-      have hexp := congrArg Real.exp hlog
+      have hexp := congrArg Real.exp log_attained
       rw [Real.exp_log (by positivity), Real.exp_log (by positivity)] at hexp
-      have hnn : lbProd bs * c.toDmon y = ubProd bs * dec c.toTmon y := by
+      have sandwich_attained : lbProd bs * c.toDmon y = ubProd bs * dec c.toTmon y := by
         exact_mod_cast hexp
-      exact chain_bound_eq_lower c bs hbs hb y hD hnn
+      exact chain_bound_eq_lower c bs hbs hb y hD sandwich_attained
   · -- coinciding pairs make both sides zero via `thm:pullout`
     intro hall
-    have hTD := pullout c (allMassPreserving_of_bounds_eq c bs hbs hall)
-    have hzero : (bs.map fun b => Real.log ((b.2 : ℝ) / (b.1 : ℝ))).sum = 0 := by
+    have exact_agreement := pullout c (allMassPreserving_of_bounds_eq c bs hbs hall)
+    have bound_vanishes : (bs.map fun b => Real.log ((b.2 : ℝ) / (b.1 : ℝ))).sum = 0 := by
       apply List.sum_eq_zero
       intro v hv
       rcases List.mem_map.mp hv with ⟨b, hbmem, rfl⟩
       have h1 : (b.1 : ℝ) ≠ 0 := by exact_mod_cast (hb1 b hbmem).ne'
       rw [hall b hbmem, div_self h1, Real.log_one]
-    rw [hzero, hTD]
+    rw [bound_vanishes, exact_agreement]
     simp
 
 end NeSyCat

@@ -188,10 +188,16 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
   monad law. (4) FORMALIZE.md's scope rail updated to match
   `.claude/hooks/guard-scope.py`, which removed `FORMALIZE.md`,
   `scripts/`, `references/`, and `.claude/` from protection on
-  2026-08-09; the rail now lists what IS still protected
-  (`lakefile.toml`, `lean-toolchain`, `lake-manifest.json`, `.github/`,
-  `.foreman/`, `.gitignore`) and records that `scripts/` edits are
-  ticket-scoped rather than forbidden. Gates: `scripts/check.sh` GREEN
+  2026-08-09; the rail now lists what the hook still enforces
+  (`lakefile.toml`, `lean-toolchain`, `lake-manifest.json`,
+  `.gitignore`, `CLAUDE.md`, and the `.github/` prefix) and records that
+  `scripts/` edits are ticket-scoped rather than forbidden. `.foreman/`
+  is NOT on that list: `guard-scope.py` deliberately leaves it
+  unenforced (user decision 2026-08-07, recorded in the hook's own
+  comment), and FORMALIZE.md's never-edit rule is the only thing
+  guarding it. An earlier version of this entry omitted `CLAUDE.md` and
+  listed `.foreman/`, getting both halves backwards (corrected
+  C3-ISAR P1). Gates: `scripts/check.sh` GREEN
   (whole project), `scripts/sorry-report.sh` 0/0, `scripts/blueprint.sh`
   GREEN (structure 119 environments unchanged, kind-check 117 names
   unchanged, kernel-truth OK, census 653/117/536/0 -> 656/117/539/0 —

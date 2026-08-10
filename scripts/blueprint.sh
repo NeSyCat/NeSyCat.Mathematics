@@ -97,6 +97,20 @@
 #      printed. The identical check also gates every commit (see
 #      scripts/git-hooks/commit-msg and its .git/hooks/ install), since a
 #      mismatched tree must never even be committable.
+#   f. STEP CORRESPONDENCE (C3-ISAR phase 1, USER DECREE 2026-08-10) — the
+#      `% lean-step:` convention. Each display in a phase-covered
+#      theorem-family proof carries an adjacent `% lean-step: <name>[,
+#      <name>...]` comment naming the Lean step it transcribes (a lemma
+#      the proof uses, or a labelled `have`/case step in its source). The
+#      gate resolves each named step against the CITED declaration's own
+#      proof and fails RED on a name that does not occur there. Phase
+#      gating: only labels listed on content.tex's `% LEAN-STEP-PHASE:`
+#      line are checked, so the convention lands incrementally without a
+#      document-wide RED; `% LEAN-STEP-SENTINEL:` records the counts and
+#      is asserted, exactly like CLASSIFY-SENTINEL (and NOT `|| true`).
+#      See the Python section comment at `cmd_lean_step_scan` for the
+#      resolution rule, its transitive closure through
+#      `@[blueprint_internal]` companions, and its honest limits.
 #   e. STRUCTURAL/ARITHMETIC CLASSIFICATION (C3-EXEC item 2, corrected and
 #      GATED by C3-EXEC-FIX) — every cited theorem/lemma is bucketed, from
 #      its full Lean type, into carrier-agnostic (holds exactly in any
@@ -970,12 +984,19 @@ def cmd_census_classify(content_tex_path, census_lean_out_path, repo_root):
 # which are separate markers of their own.
 # DELIBERATELY NOT MARKERS, each for a stated reason:
 #   - `Monad`/`LawfulMonad`: effect scaffolding on the AMBIENT monad, not
-#     algebra on the VALUE carrier. A STRUCTURAL verdict therefore means
-#     "no constraint on the value carrier", and it still PRESUPPOSES the
-#     ambient monad is lawful -- a separate property of an implementation,
-#     not something this fold or any theorem here certifies. content.tex's
-#     dichotomy table states that caveat in the rendered document; it must
-#     never be dropped when quoting the counts.
+#     algebra on the VALUE carrier. A STRUCTURAL verdict means "no
+#     constraint on the value carrier"; whatever it assumes of the ambient
+#     monad is then read off the statement itself, not supplied by this
+#     comment. As of dbea786 (C3-EXEC-FIX2) the three structural
+#     statements assume no lawfulness at all: `[LawfulMonad M]` was
+#     dropped from `batchTransformer` and `batch_layer_exact`, each now
+#     carrying the ONE law it uses, the left unit law, as an explicit
+#     hypothesis; `ev_isMonadMorphism` assumes no monad law whatever, and
+#     neither do five of `batch_layer_exact`'s six identities.
+#     content.tex's dichotomy table quotes exactly that, and an earlier
+#     version of this comment asserted the retracted "presupposes the
+#     ambient monad is lawful" caveat and instructed that it be preserved
+#     -- kept here as the record of what NOT to reintroduce.
 #   - `Nat`/`Fin`/`List`/`Prod`/`Set`/`Finset`/`Function`/`Eq`: index,
 #     shape, and metadata types. `B : Nat` is a batch SIZE and `i : Fin B`
 #     a batch INDEX; neither asks anything of the values being batched.
@@ -1104,6 +1125,308 @@ def cmd_classify_report(classify_out_path):
     return 0
 
 
+# STEP CORRESPONDENCE (C3-ISAR phase 1, USER DECREE 2026-08-10).
+#
+# THE CONVENTION. Inside the `proof` env of a theorem-family item that the
+# current phase covers, every displayed-math block carries an adjacent
+# `% lean-step: <name>[, <name>...]` comment naming the Lean step it
+# transcribes. "Adjacent" means the comment sits in the contiguous run of
+# `%` comment lines immediately above the display's opening line. Several
+# names are allowed where a display legitimately fuses steps, and a fusion
+# must be honest: EVERY name listed has to occur.
+#
+# WHAT COUNTS AS OCCURRING (the resolution rule, disclosed in full). For a
+# cited declaration N, the gate builds one resolution set:
+#   (1) CONSTANTS. `getUsedConstants` over N's own proof term, closed
+#       transitively through exactly those used constants carrying
+#       `@[blueprint_internal]`. The bijection law (A1) says an internal is
+#       a technical companion of some principal, so descending into one
+#       stays inside the same proof; the closure STOPS at any independently
+#       cited declaration, whose own proof is a separate blueprint item
+#       with its own displays. Without this closure the rule would be
+#       useless on a cited principal that delegates: `tilt_bind`'s whole
+#       proof term is `tilt_bind' a k`, and `lem:tilt`'s mathematics lives
+#       in `tilt_bind'`.
+#   (2) LABELS. The source slice of N -- and of every internal in the
+#       closure -- via `Lean.findDeclarationRanges?` (module + line range
+#       from the kernel; the file path is the module name's own path), with
+#       Lean comments stripped, scanned for `have <id>`, `set <id>`, and
+#       induction/`cases` alternative labels `| <id> =>`. These are Lean's
+#       own named proof steps, and naming them meaningfully is a HOUSE
+#       convention (Mathlib has no rule on `have` names) precisely because
+#       the blueprint cites them.
+# A tag name matches if it is a full constant name in (1), or `NeSyCat.` +
+# the tag is, or it is a label in (2), or (last resort, disclosed) it is
+# the final component of some constant in (1).
+#
+# HONEST LIMITS, stated here rather than oversold. The constant set is the
+# proof TERM's, so it also contains the constants of N's own statement: a
+# tag naming a definition the statement mentions passes without saying
+# anything. And no gate of this shape can catch a display that names a real
+# step and states it WRONGLY -- the formability clause and the human
+# verifier stay load-bearing for content. What it does catch is a display
+# attributing a step to a lemma that does not occur in the cited proof, a
+# display naming a step that does not exist, and a covered proof with
+# displays and no tags at all.
+LEAN_STEP_TAG_RE = re.compile(r'%\s*lean-step:\s*(.+?)\s*$')
+LEAN_STEP_PHASE_RE = re.compile(r'^%\s*LEAN-STEP-PHASE:\s*(.*?)\s*$')
+DISPLAY_OPEN_RE = re.compile(
+    r'^\s*(?:\\\[|\\begin\{(?:align\*?|gather\*?|multline\*?|equation\*?)\})')
+COMMENT_ONLY_RE = re.compile(r'^\s*%')
+# Lean's own named proof steps, read out of the declaration's source slice.
+LEAN_HAVE_RE = re.compile(r'(?:^|\s)have\s+([A-Za-z_][A-Za-z0-9_\']*)')
+LEAN_SET_RE = re.compile(r'(?:^|\s)set\s+([A-Za-z_][A-Za-z0-9_\']*)')
+LEAN_ALT_RE = re.compile(r'^\s*\|\s*@?([A-Za-z_][A-Za-z0-9_\']*)')
+
+
+def _display_lines(raw_lines, start, end):
+    """Line indices of displayed-math openers strictly inside [start, end]."""
+    out = []
+    for i in range(start + 1, end):
+        if DISPLAY_OPEN_RE.match(raw_lines[i]):
+            out.append(i)
+    return out
+
+
+def _tag_above(raw_lines, idx, lo):
+    """The `% lean-step:` names attached to the display opening at `idx`:
+    scan upward through the contiguous run of comment-only lines, stopping
+    at the first line that is not a comment."""
+    names = []
+    j = idx - 1
+    while j > lo and COMMENT_ONLY_RE.match(raw_lines[j]):
+        m = LEAN_STEP_TAG_RE.search(raw_lines[j])
+        if m:
+            names = [x.strip() for x in m.group(1).split(',') if x.strip()] + names
+        j -= 1
+    return names
+
+
+def cmd_lean_step_scan(tex_path):
+    with open(tex_path, encoding="utf-8") as f:
+        raw_lines = [l.rstrip("\n") for l in f.readlines()]
+    code_lines = [strip_comment(l) for l in raw_lines]
+    envs = parse_envs(code_lines)
+
+    violations = []
+
+    phase = None
+    for line in raw_lines:
+        m = LEAN_STEP_PHASE_RE.match(line)
+        if m:
+            phase = [x.strip() for x in m.group(1).split(',') if x.strip()]
+            break
+    if phase is None:
+        print("VIOL\tlean-step: no '% LEAN-STEP-PHASE:' line in content.tex")
+        print("STEP-SCAN-SUMMARY\t0 envs, 0 displays, 0 tags, 0 names")
+        return 1
+
+    # NB: joined with "\n" -- these code_lines have had their newline
+    # stripped, and a bare "".join would run `\leanok` into the next line's
+    # first word and defeat the \b in LEANOK_RE.
+    def body_text(s, e):
+        return "\n".join(code_lines[s:e + 1])
+
+    def label_of(s, e):
+        m = LABEL_RE.search(body_text(s, e))
+        return m.group(1) if m else "<no-label>"
+
+    # theorem-family env by \label, together with its paired proof env.
+    paired = {}
+    for pos, (k, s, e) in enumerate(envs):
+        if k not in THEOREM_FAMILY:
+            continue
+        nxt = envs[pos + 1] if pos + 1 < len(envs) else None
+        if nxt and nxt[0] == "proof":
+            paired[label_of(s, e)] = ((k, s, e), nxt)
+
+    n_disp = n_tags = 0
+    records = []
+    for lab in phase:
+        if lab not in paired:
+            violations.append(
+                f"lean-step: phase label '{lab}' names no theorem-family "
+                "environment with a paired proof")
+            continue
+        (k, s, e), (_pk, ps, pe) = paired[lab]
+        names = []
+        for m in LEAN_RE.finditer(body_text(s, e)):
+            names.extend(x.strip() for x in m.group(1).split(',') if x.strip())
+        if len(names) != 1:
+            violations.append(
+                f"lean-step: {lab} (line {s + 1}) carries {len(names)} "
+                "\\lean{} names, expected exactly one")
+            continue
+        if not LEANOK_RE.search(body_text(s, pe)):
+            violations.append(
+                f"lean-step: {lab} (line {s + 1}) is phase-covered but "
+                "carries no \\leanok")
+            continue
+        displays = _display_lines(raw_lines, ps, pe)
+        tags = []
+        for d in displays:
+            t = _tag_above(raw_lines, d, ps)
+            if not t:
+                violations.append(
+                    f"lean-step: {lab} display at line {d + 1} carries no "
+                    "adjacent '% lean-step:' tag")
+            else:
+                tags.append({"line": d + 1, "names": t})
+        if displays and not tags:
+            violations.append(
+                f"lean-step: {lab} (proof at line {ps + 1}) has "
+                f"{len(displays)} display(s) and no '% lean-step:' tag at all")
+        n_disp += len(displays)
+        n_tags += len(tags)
+        records.append({"label": lab, "name": names[0], "line": s + 1,
+                        "displays": len(displays), "tags": tags})
+
+    for r in records:
+        print("STEPENV\t" + json.dumps(r))
+    for v in violations:
+        print("VIOL\t" + v)
+    n_names = sum(len(t["names"]) for r in records for t in r["tags"])
+    print(f"STEP-SCAN-SUMMARY\t{len(records)} envs, {n_disp} displays, "
+          f"{n_tags} tags, {n_names} names")
+    return 1 if violations else 0
+
+
+def cmd_emit_step_lean(names):
+    print("import NeSyCat")
+    print("import Mathlib")
+    print()
+    print("open Lean Meta")
+    print()
+    print("/-- Used constants of a declaration's own proof term, closed")
+    print("transitively through `@[blueprint_internal]` companions only. -/")
+    print("partial def stepExpand (todo : List Name) (seen : NameSet) "
+          "(acc : NameSet) :")
+    print("    MetaM (NameSet × NameSet) := do")
+    print("  match todo with")
+    print("  | [] => return (seen, acc)")
+    print("  | n :: rest =>")
+    print("    if seen.contains n then")
+    print("      stepExpand rest seen acc")
+    print("    else")
+    print("      let env <- getEnv")
+    print("      let seen := seen.insert n")
+    print("      let body? : Option Expr :=")
+    print("        match env.find? n with")
+    print("        | some (.thmInfo v) => some v.value")
+    print("        | some (.defnInfo v) => some v.value")
+    print("        | _ => none")
+    print("      match body? with")
+    print("      | none => stepExpand rest seen acc")
+    print("      | some e =>")
+    print("        let mut acc := acc")
+    print("        let mut next := rest")
+    print("        for c in e.getUsedConstants do")
+    print("          acc := acc.insert c")
+    print("          if blueprintInternalAttr.hasTag env c then")
+    print("            next := c :: next")
+    print("        stepExpand next seen acc")
+    print()
+    quoted = ", ".join(f"`{nm}" for nm in names)
+    print(f"def stepRoots : List Name := [{quoted}]")
+    print()
+    print("#eval show MetaM Unit from do")
+    print("  let env <- getEnv")
+    print("  for root in stepRoots do")
+    print("    let (seen, acc) <- stepExpand [root] {} {}")
+    print("    IO.println (s!\"STEPCONST\\t{root}\\t\" ++ "
+          "String.intercalate \",\" (acc.toList.map toString))")
+    print("    for d in seen.toList do")
+    print("      match (<- Lean.findDeclarationRanges? d) with")
+    print("      | none => pure ()")
+    print("      | some r =>")
+    print("        match env.getModuleIdxFor? d with")
+    print("        | none => pure ()")
+    print("        | some idx =>")
+    print("          let m := env.header.moduleNames[idx]!")
+    print("          IO.println s!\"STEPRANGE\\t{root}\\t{d}\\t{m}\\t"
+          "{r.range.pos.line}\\t{r.range.endPos.line}\"")
+
+
+def cmd_step_check(steps_path, lean_out_path, repo_root):
+    records = []
+    with open(steps_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if line.startswith("STEPENV\t"):
+                records.append(json.loads(line[len("STEPENV\t"):]))
+
+    consts = {}
+    ranges = {}
+    with open(lean_out_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if line.startswith("STEPCONST\t"):
+                _, root, rest = line.split("\t", 2)
+                consts[root] = {c for c in rest.split(",") if c}
+            elif line.startswith("STEPRANGE\t"):
+                parts = line.split("\t")
+                if len(parts) != 6:
+                    continue
+                _, root, decl, mod, lo, hi = parts
+                ranges.setdefault(root, []).append((decl, mod, int(lo), int(hi)))
+
+    # Source labels: the `have`/`set`/case-alternative names Lean's own
+    # syntax introduces, read out of each declaration's source slice.
+    src_cache = {}
+
+    def labels_for(root):
+        out = set()
+        for _decl, mod, lo, hi in ranges.get(root, []):
+            rel = os.path.join(repo_root, *mod.split(".")) + ".lean"
+            if rel not in src_cache:
+                try:
+                    with open(rel, encoding="utf-8") as fh:
+                        src_cache[rel] = fh.read().split("\n")
+                except OSError:
+                    src_cache[rel] = []
+            lines = src_cache[rel]
+            slice_src = "\n".join(lines[max(lo - 1, 0):hi])
+            for sl in strip_lean_comments(slice_src).split("\n"):
+                for rx in (LEAN_HAVE_RE, LEAN_SET_RE, LEAN_ALT_RE):
+                    for m in rx.finditer(sl):
+                        out.add(m.group(1))
+        return out
+
+    violations = []
+    n_names = 0
+    for r in records:
+        root = r["name"]
+        cset = consts.get(root, set())
+        bare = {c.split(".")[-1] for c in cset}
+        lset = labels_for(root)
+        if not cset and not lset:
+            violations.append(
+                f"lean-step: {r['label']} (line {r['line']}): no proof "
+                f"body or source range resolved for '{root}'")
+            continue
+        for t in r["tags"]:
+            for nm in t["names"]:
+                n_names += 1
+                ok = (nm in cset or ("NeSyCat." + nm) in cset
+                      or nm in lset or nm in bare)
+                if not ok:
+                    violations.append(
+                        f"lean-step: {r['label']} display at line "
+                        f"{t['line']} names step '{nm}', which does not "
+                        f"occur in {root}'s proof (not a used constant of "
+                        "its proof term, its blueprint-internal closure, "
+                        "or a have/case label in their source)")
+        print(f"STEP\t{r['label']:32} {root:38} "
+              f"{r['displays']} display(s), {len(r['tags'])} tag(s), "
+              f"{len(cset)} const(s), {len(lset)} label(s)")
+
+    for v in violations:
+        print("VIOL\t" + v)
+    print(f"STEP-CHECK-SUMMARY\t{len(records)} envs, {n_names} names "
+          f"verified, {len(violations)} violation(s)")
+    return 1 if violations else 0
+
+
 # STRUCTURE-MIRROR (C2-E6, USER DECREE 2026-08-09): the blueprint's
 # \section/\subsection tree and the NeSyCat/ folder tree must mirror each
 # other exactly, computed and self-updating rather than hand-maintained.
@@ -1215,6 +1538,13 @@ def main():
         return 0
     if mode == "classify-report":
         return cmd_classify_report(sys.argv[2])
+    if mode == "lean-step-scan":
+        return cmd_lean_step_scan(sys.argv[2])
+    if mode == "emit-step-lean":
+        cmd_emit_step_lean(sys.argv[2:])
+        return 0
+    if mode == "step-check":
+        return cmd_step_check(sys.argv[2], sys.argv[3], sys.argv[4])
     if mode == "structure-mirror":
         return cmd_structure_mirror(sys.argv[2], sys.argv[3])
     print(f"unknown mode: {mode}", file=sys.stderr)
@@ -1378,6 +1708,82 @@ else
   fi
   echo "classification sentinel: OK ($CLASSIFY_ACTUAL)"
 fi
+
+echo "==> step correspondence (C3-ISAR, % lean-step: convention)"
+# PHASE-GATED. Only the labels on content.tex's `% LEAN-STEP-PHASE:` line
+# are checked, so the convention can land item by item without turning the
+# whole document RED; each later phase extends that line. The section is
+# NOT `|| true` -- the C3-EXEC classification gate shipped that way and
+# asserted nothing, which is the exact failure this one must not repeat.
+STEPS_JSONL="$SCRATCH_DIR/steps.jsonl"
+STEP_LEAN="$SCRATCH_DIR/steps.lean"
+STEP_LEAN_OUT="$SCRATCH_DIR/steps.out"
+
+SCAN_OUT="$(python3 "$CORR_PY" lean-step-scan blueprint/src/content.tex)" || true
+SCAN_STATUS=0
+printf '%s\n' "$SCAN_OUT" | grep -q "^VIOL${TAB}" && SCAN_STATUS=1
+printf '%s\n' "$SCAN_OUT" | grep "^STEPENV${TAB}" > "$STEPS_JSONL" || true
+printf '%s\n' "$SCAN_OUT" | grep "^STEP-SCAN-SUMMARY${TAB}" | sed -E "s/^STEP-SCAN-SUMMARY${TAB}/step-scan: /"
+if [ "$SCAN_STATUS" -ne 0 ]; then
+  echo "step correspondence (scan) violations:"
+  printf '%s\n' "$SCAN_OUT" | grep "^VIOL${TAB}" | sed -E "s/^VIOL${TAB}/  - /"
+  fail 1
+fi
+
+STEP_ROOTS=()
+while IFS= read -r line; do
+  [ -n "$line" ] && STEP_ROOTS+=("$line")
+done < <(
+  sed -E "s/^STEPENV${TAB}//" "$STEPS_JSONL" \
+    | python3 -c 'import json,sys
+for l in sys.stdin:
+    l = l.strip()
+    if l:
+        print(json.loads(l)["name"])'
+)
+
+if [ "${#STEP_ROOTS[@]}" -eq 0 ]; then
+  echo "step correspondence: no phase-covered items (vacuous)"
+  STEP_ACTUAL="envs=0 displays=0 tags=0 names=0"
+else
+  python3 "$CORR_PY" emit-step-lean "${STEP_ROOTS[@]}" > "$STEP_LEAN"
+  if ! lake env lean "$STEP_LEAN" > "$STEP_LEAN_OUT" 2>&1; then
+    echo "step correspondence: Lean elaboration failed:"
+    cat "$STEP_LEAN_OUT"
+    fail 1
+  fi
+  STEP_OUT="$(python3 "$CORR_PY" step-check "$STEPS_JSONL" "$STEP_LEAN_OUT" "$REPO_ROOT")" || true
+  STEP_STATUS=0
+  printf '%s\n' "$STEP_OUT" | grep -q "^VIOL${TAB}" && STEP_STATUS=1
+  printf '%s\n' "$STEP_OUT" | grep "^STEP${TAB}" | sed -E "s/^STEP${TAB}/  /"
+  if [ "$STEP_STATUS" -ne 0 ]; then
+    echo "step correspondence violations:"
+    printf '%s\n' "$STEP_OUT" | grep "^VIOL${TAB}" | sed -E "s/^VIOL${TAB}/  - /"
+    fail 1
+  fi
+  # SENTINEL ASSERTION, the same discipline as CLASSIFY-SENTINEL: the
+  # expectation lives in the DOCUMENT, not in this script, so a display
+  # silently losing its tag, or an item silently leaving the phase, stops
+  # the build instead of shrinking a number nobody reads.
+  STEP_ACTUAL="$(
+    printf '%s\n' "$SCAN_OUT" | grep "^STEP-SCAN-SUMMARY${TAB}" \
+      | sed -E "s/^STEP-SCAN-SUMMARY${TAB}([0-9]+) envs, ([0-9]+) displays, ([0-9]+) tags, ([0-9]+) names.*/envs=\\1 displays=\\2 tags=\\3 names=\\4/"
+  )"
+fi
+STEP_SENTINEL_LINE="$(grep -E '^% LEAN-STEP-SENTINEL:' blueprint/src/content.tex || true)"
+if [ -z "$STEP_SENTINEL_LINE" ]; then
+  echo "step correspondence sentinel: FAILED -- no '% LEAN-STEP-SENTINEL:' line in blueprint/src/content.tex"
+  echo "  computed: $STEP_ACTUAL"
+  fail 1
+fi
+STEP_EXPECT="$(printf '%s\n' "$STEP_SENTINEL_LINE" | sed -E 's/^% LEAN-STEP-SENTINEL:[[:space:]]*//')"
+if [ "$STEP_EXPECT" != "$STEP_ACTUAL" ]; then
+  echo "step correspondence sentinel: FAILED -- step tagging drifted from the recorded expectation"
+  echo "  expected (content.tex % LEAN-STEP-SENTINEL): $STEP_EXPECT"
+  echo "  computed (this run):                         $STEP_ACTUAL"
+  fail 1
+fi
+echo "step correspondence sentinel: OK ($STEP_ACTUAL)"
 
 echo "==> registry sync (macros.sty <-> NeSyCat/Notation.lean)"
 MACROS_STY="$REPO_ROOT/../NeSyCat.Logics/macros.sty"

@@ -3,3 +3,9 @@
 % version in macros/print.tex.
 % Typically the printed version could have more fancy decorations.
 % This will probably be a very short file.
+% Bibliography heading (C3-ISAR P1, rider R-A): SUPPLIED on this engine.
+% plasTeX's un-overridden Base bibliography module renders \bibitem list
+% markup with no heading of its own, so the web page needs this one.
+% macros/print.tex's twin is empty, because report's thebibliography emits
+% \chapter*{\bibname} there and two headings printed.
+\newcommand{\bibheading}{\section*{Bibliography}}

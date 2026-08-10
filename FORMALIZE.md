@@ -614,6 +614,87 @@ step below.
   lemma or a case split); a narrative sentence carrying mathematical
   content with no display backing it is a finding.
 
+- **The step-tag convention and the `have`-naming house rule (C3-ISAR,
+  USER DECREE 2026-08-10).** Five display-fidelity defects across four
+  tickets were caught by blind verifiers and none by policy. The
+  proof-substance law, the formability clause, and the transcribe-first
+  procedure were all already in this file and the class kept recurring.
+  This law replaces policy with a machine for the half of that class a
+  machine can decide.
+  1. **The convention.** Inside the `proof` env of a covered
+     theorem-family item, every displayed-math block carries an adjacent
+     `% lean-step: <name>[, <name>...]` comment naming the Lean step it
+     transcribes: a lemma the cited proof uses, or a labelled
+     `have`/`set`/case step in its source. Adjacent means the comment
+     sits in the contiguous run of `%` comment lines immediately above
+     the display's opening line. Several names are allowed where a
+     display legitimately fuses steps, and a fusion must be HONEST:
+     every name listed has to occur.
+  2. **The gate.** `scripts/blueprint.sh`'s STEP CORRESPONDENCE section
+     resolves each named step against the cited declaration's own proof
+     and goes RED on a name that does not occur, on a display with no
+     tag, and on a covered proof with displays and no tag at all. It is
+     PHASE-GATED by `content.tex`'s `% LEAN-STEP-PHASE:` line, so the
+     convention lands item by item; `% LEAN-STEP-SENTINEL:` records the
+     counts and is asserted every run, in the document rather than in the
+     script, exactly like `% CLASSIFY-SENTINEL:`. The resolution rule and
+     its transitive closure through `@[blueprint_internal]` companions
+     are documented in full at the script's `cmd_lean_step_scan`.
+  3. **What it catches, stated without overselling it.** CATCHES: a
+     display attributing a step to a lemma that does not occur in the
+     cited proof; a display naming a step that does not exist; a covered
+     proof with displays and no tags. DOES NOT CATCH: a display that
+     names a real step and states it WRONGLY, the unformable-object class
+     included. The formability clause and the human verifier stay
+     load-bearing for content. One further honest limit: the constant
+     side of the resolution set is the proof TERM's used constants, which
+     also contain the statement's own constants, so a tag naming a
+     definition the statement mentions passes while saying nothing.
+  4. **The `have`-naming house rule.** A `have` that a display can cite
+     is named after the MATHEMATICS it carries, never after the tactic
+     that discharges it: `tmon_reading`, `log_gap_upper`,
+     `fiber_sum_carries`, not `h1`/`hTm`/`hpt`. Mathlib has NO rule here
+     (its style guide governs layout, its naming guide governs
+     declarations), so this is ours, and its reason is specific: the
+     blueprint cites these names, so they are part of the document's
+     public surface, not private scratch. The side benefit is real too:
+     named intermediate steps localize breakage under Mathlib churn.
+  5. **`have` is the structuring primitive, not `calc`.** Mathlib's own
+     ratio in the vendored checkout is 37,378 `have` lines to 2,754
+     `calc` lines, with `calc` in roughly 15% of files; `calc` is a
+     SPECIALIST tool for genuine chained relations, and it carries
+     documented costs (uniform indentation mandatory since Lean 4.0.0;
+     Lean core deliberately does not use the expected type to elaborate a
+     step's LHS/RHS, an optimisation two contributors implemented and
+     REVERTED, so every intermediate expression is spelled out in full
+     and breaks under definitional refactors). Structure our proofs the
+     same way: named `have` steps as the backbone, `calc` only for a real
+     relation chain. Atomic closers (`rfl`, a single `simp`, `ring`,
+     `omega`, `norm_num`, `decide`) have no internal steps to name and
+     are NEVER decomposed for the sake of it. Leaf justifications stay
+     one-liners (`gcongr`/`positivity`/`rel` where they apply).
+  6. **Isar's shape, not Isar's scoping.** Isabelle's Isar is the model:
+     there the readable proof IS the checked proof, so an attribution
+     error is unrepresentable. We cannot merge the two artifacts, so we
+     mechanize the link. Lean has no fact scoping: a `have` enters the
+     local context and stays visible, and Isar's discipline (facts must
+     be explicitly chained in) is not available. We adopt the SHAPE, not
+     the scoping, and say so rather than implying otherwise.
+  7. **Prior art, since the gate is a narrow novel claim.**
+     leanblueprint's entire formal check is `env.contains name`, and
+     `\leanok` is a hand-set human boolean; Verso Blueprint already
+     INFERS dependency edges from compiled declarations and derives
+     `\leanok` from sorry-freeness, but its documented resolution rule
+     MERGES inferred and manual edges rather than diffing them, so it is
+     about one comparison away from this gate and worth evaluating for
+     adoption or upstreaming rather than duplicating. LeanArchitect
+     dissolves the problem instead, by putting prose in docstrings inside
+     the tactic branches; that does not fit a blueprint that is an
+     authored book rather than a projection of the source. Isabelle's
+     document antiquotations check terms, types, and theorem names in
+     prose, not proof structure. The novel claim is narrow and sharp:
+     STEP-LEVEL prose-to-proof correspondence is unclaimed.
+
 - **Sequential composition decree (C2-E10, USER DECREE 2026-08-09).**
   Composition is always written sequentially, with the fat semicolon:
   "first $f$, then $g$" is $f \seq g$. `\circ` is banned — never write

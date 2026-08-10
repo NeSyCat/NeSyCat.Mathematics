@@ -27,3 +27,9 @@
  {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
   \ignorespaces}
 \ExplSyntaxOff
+% Bibliography heading (C3-ISAR P1, rider R-A): EMPTY on this engine.
+% \documentclass{report}'s own thebibliography environment already emits
+% \chapter*{\bibname}, so a manual heading in content.tex printed
+% "Bibliography" twice. macros/web.tex's twin supplies the heading there,
+% where plasTeX's Base bibliography module emits none of its own.
+\newcommand{\bibheading}{}

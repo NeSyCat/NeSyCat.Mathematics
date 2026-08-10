@@ -2,6 +2,19 @@
 % It will be used both by the web and the print version.
 % It should *not* include the \begin{document}
 
+% STEP CORRESPONDENCE (C3-ISAR phase 1, USER DECREE 2026-08-10).
+% Every display inside a covered theorem-family proof carries an adjacent
+% `% lean-step: <name>[, <name>...]` comment naming the Lean step it
+% transcribes -- a lemma the cited proof uses, or a labelled have/case step
+% in its source. scripts/blueprint.sh checks each named step against the
+% cited declaration's own proof and goes RED on a name that does not occur.
+% PHASE list: only these labels are checked, so the convention lands item
+% by item rather than turning the whole document red at once; each later
+% phase appends to this line. SENTINEL: the counts, asserted every run, so
+% a display quietly losing its tag stops the build.
+% LEAN-STEP-PHASE: thm:semiring-monad-laws, lem:tilt, thm:pullout, thm:chain-bound-sandwich, thm:chain-bound
+% LEAN-STEP-SENTINEL: envs=5 displays=14 tags=14 names=55
+
 \section{Introduction}  % lean-dir: -
 
 % Apparatus (C2-E5): original opening sentence, moved verbatim.
@@ -615,18 +628,21 @@ $f \bind \Ret = f$, and associativity of $\bind$
 \leanok
 Three components, matching the theorem's own bundling. Left unit
 (Lemma~\ref{lem:bind-left-unit}):
+% lean-step: left_unit, NeSyCat.ret_bind
 \[
   (\Ret(x) \bind k)(y) = \bigoplus_{x'} \delta_x(x') \otimes k(x')(y)
     = 1 \otimes k(x)(y) = k(x)(y).
 \]
 Right unit, proved inline rather than as its own lemma (single-purpose,
 folded per the calibrated reuse principle):
+% lean-step: right_unit, smul_delta_eq_single, Finsupp.sum_single
 \[
   (f \bind \Ret)(y) = \bigoplus_x f(x) \otimes \delta_x(y) = f(y) \otimes 1 = f(y).
 \]
 Associativity (Lemma~\ref{lem:bind-assoc}):
 % bind_assoc, SemiringMonad.lean: Finsupp.sum_sum_index/sum_smul_index/
 % smul_sum reduced pointwise to mul_smul
+% lean-step: assoc, NeSyCat.bind_assoc
 \begin{align*}
   \bigl((f\bind k)\bind l\bigr)(z)
     &= \bigoplus_y\Bigl(\bigoplus_x f(x)\otimes k(x)(y)\Bigr)\otimes l(y)(z) \\
@@ -2851,15 +2867,25 @@ morphism. Three of those four identities hold for an arbitrary
 $\mathcal M$. The fourth, $\mathrm{lift}_{\Bmon}$'s bind identity, holds
 as soon as $\mathcal M$ satisfies the left unit law
 $\Ret_{\mathcal M}(x) \bind_{\mathcal M} g = g(x)$, which is the only
-monad law this theorem assumes. When $\mathcal M$ is moreover lawful (in
-particular for every $\mathcal M = \MS{S}$ of
-Definition~\ref{def:semiring-monad}, or $\mathcal M = \Idmon$),
-$\Bmon\mathcal M$ is again a monad and the two maps are monad morphisms
-between monads.
-% The final sentence's "is again a monad" half is the reader
-% transformer's own LawfulMonad instance, cited as background machinery
-% (see BatchTransformer.lean's module doc) and not a conjunct of
-% NeSyCat.batchTransformer's Lean statement; the four identities are.
+monad law this theorem assumes.
+% ADJUDICATED (C3-ISAR P1, rider R4). This env used to end with a
+% further conjunct: "When M is moreover lawful (in particular for every
+% M = MS S of def:semiring-monad, or M = Idmon), Bmon M is again a monad
+% and the two maps are monad morphisms between monads." That claim is
+% NOT in NeSyCat.batchTransformer's Lean statement -- the "again a
+% monad" half is Lean core's own ReaderT LawfulMonad instance, cited as
+% background machinery (BatchTransformer.lean's module doc) -- so it
+% violated total Lean-mirror purity and the same fidelity rule that
+% produced the false-structural defect. Option (b), promoting it to its
+% own \lean-cited theorem, was considered and declined: its only honest
+% Lean form is a one-line citation of core's instance, exactly the "bare
+% one-line exact <Mathlib lemma>" FORMALIZE.md forbids for a library
+% item, and reproving ReaderT's lawfulness would duplicate core. Option
+% (c), an in-env attribution, is barred by the purity law (no
+% provenance apparatus inside an env) and is the defect shape itself.
+% Option (a) taken: the conjunct moves to plain prose after the proof,
+% together with the proof's own opening paragraph about where the
+% composite's laws come from.
 % batchTransformer's binders after C3-EXEC-FIX2: {B : ℕ} {M : Type →
 % Type u} {X Y : Type} [Monad M] and the left unit law as an explicit
 % hypothesis -- no [LawfulMonad M].
@@ -2868,15 +2894,8 @@ between monads.
 
 \begin{proof}
 \leanok
-$\Bmon\mathcal M$'s own monad structure is the reader-monad
-transformer's (cited, not reproved by this theorem's own Lean
-declaration): unit and bind are Definition~\ref{def:batch-monad}'s
-taken pointwise in $\mathcal M X$, so its laws reduce, index by index,
-to the monad laws of $\mathcal M$ (Theorem~\ref{thm:semiring-monad-laws}).
-That citation is the one place lawfulness of $\mathcal M$ is used, and
-it buys the composite's own laws, not any of the four identities below.
-What this theorem's own proof supplies are those four morphism
-identities, one unit/bind pair per lift.
+The theorem supplies four morphism identities, one unit/bind pair per
+lift.
 $\mathrm{lift}_{\mathcal M}$'s pair, each an unfolding identity since a
 constant family trivially commutes with diagonal bind:
 % liftM_ret, liftM_bind, BatchTransformer.lean -- both rfl, both stated
@@ -2914,6 +2933,19 @@ $g := \bigl(x \mapsto \Ret_{\mathcal M}(f(x)(b))\bigr)$, rewrites the
 second to the first. Associativity of $\bind_{\mathcal M}$ is used
 nowhere in the four, and neither is the right unit law.
 \end{proof}
+
+$\Bmon\mathcal M$ also has a monad structure of its own, and that
+structure is the reader monad transformer's, taken over from Lean's
+core library rather than proved here. Unit and bind are
+Definition~\ref{def:batch-monad}'s taken pointwise in $\mathcal M X$,
+so the composite's laws reduce, index by index, to the monad laws of
+$\mathcal M$ (Theorem~\ref{thm:semiring-monad-laws}). Whenever
+$\mathcal M$ is lawful, therefore, and in particular for every
+$\mathcal M = \MS{S}$ of Definition~\ref{def:semiring-monad} and for
+$\mathcal M = \Idmon$, $\Bmon\mathcal M$ is again a monad and the two
+lifts are monad morphisms between monads. None of that is used by the
+four identities above: lawfulness of $\mathcal M$ buys the composite's
+own laws and nothing else.
 
 $\mathrm{lift}_{\mathcal M}$ embeds a batch-constant effect.
 $\mathrm{lift}_{\Bmon}$ embeds a batched but \emph{certain} value: an
@@ -3096,8 +3128,9 @@ formalized statements themselves rather than assigned by hand.
    the ambient monad at most the left unit law\par} &
   {\raggedright the identity holds exactly, in any implementation,
    whatever the values are and however they are computed, provided the
-   implementation's $\bind$ satisfies the left unit law; five of the six
-   identities not even that\par} \\
+   implementation's $\bind$ satisfies the left unit law; five of
+   Theorem~\ref{thm:batch-exactness}'s six identities do not need even
+   that\par} \\
 {\raggedright carrier-algebraic ($56$ of $59$)\par} &
   {\raggedright a semiring, a lattice or an order, a monoidal or
    braided category, or a fixed carrier ($\MassS$, $\MassSInf$,
@@ -3360,6 +3393,7 @@ sides agree trivially, with no positivity hypothesis needed here.
 the claimed identity there. Unfolding $\dec$ and $\bind$ on the left,
 and $\bind$, $\tilt$, $\dec$
 on the right,
+% lean-step: lhs_ratio, rhs_sum, NeSyCat.dec_apply, NeSyCat.bind_apply
 \begin{align*}
   \dec(a \bind k)_y
     &= \frac{e^{\lse_x(a_x+k(x)_y)}}{Z(a \bind k)}
@@ -3373,6 +3407,7 @@ Unfold $\dec(a)_x = e^{a_x}/Z(a)$ in the second line. Its $Z(k(x))$
 factor cancels in every term of the numerator, leaving
 $e^{a_x}e^{k(x)_y}/Z(a)$, and the same substitution turns the
 denominator into
+% lean-step: reweighted_sum, tilt_mass, NeSyCat.dec_mul_Z
 \[
   \sum_{x'} Z(k(x'))\,\frac{e^{a_{x'}}}{Z(a)}
     = \frac{1}{Z(a)}\sum_{x'} e^{a_{x'}}\,Z(k(x'))
@@ -3451,6 +3486,7 @@ Structural induction on $\Phi$, five cases, one per factor kind.
 \dec(L) = \Phi_{\Dmon}$ directly, no induction hypothesis needed.
 
 \emph{Pure map} $\Phi = \Tmon(h)(\Psi)$: by Lemma~\ref{lem:pure-maps},
+% lean-step: pureMap, pure_map_decodes, NeSyCat.pure_maps
 \[
   \dec(\Phi_{\Tmon}) = \dec\bigl(\Tmon(h)(\Psi_{\Tmon})\bigr)
     = \Dmon(h)\bigl(\dec(\Psi_{\Tmon})\bigr)
@@ -3460,6 +3496,7 @@ the middle step the induction hypothesis on $\Psi$.
 
 \emph{Unit insertion} $\Phi = \Psi \otimes \Ret_{\Tmon}(c)$: by
 Lemmas~\ref{lem:tensor}, \ref{lem:units},
+% lean-step: unitIns, tensor_decodes, unit_decodes, NeSyCat.dec_dstL, NeSyCat.dec_ret
 \[
   \dec(\Phi_{\Tmon}) = \dec(\Psi_{\Tmon}) \otimes \dec\bigl(\Ret_{\Tmon}(c)\bigr)
     = \Psi_{\Dmon} \otimes \Ret_{\Dmon}(c) = \Phi_{\Dmon},
@@ -3468,6 +3505,7 @@ again the induction hypothesis in the middle step.
 
 \emph{Strength} $\Phi = \Psi \otimes a$ for a fixed leaf $a$: the same
 computation, this time by Lemma~\ref{lem:tensor} alone,
+% lean-step: strengthStep, tensor_decodes, NeSyCat.dec_dstL
 \[
   \dec(\Phi_{\Tmon}) = \dec(\Psi_{\Tmon}) \otimes \dec(a)
     = \Psi_{\Dmon} \otimes \dec(a) = \Phi_{\Dmon}.
@@ -3475,6 +3513,7 @@ computation, this time by Lemma~\ref{lem:tensor} alone,
 
 \emph{Bind} $\Phi = \Psi \bind k_i$, with $k_i$ mass preserving:
 Lemma~\ref{lem:tilt} gives
+% lean-step: bindStep, bind_decodes, NeSyCat.dec_bind_of_massPreserving, NeSyCat.tilt_bind'
 \[
   \dec(\Phi_{\Tmon}) = \dec(\Psi_{\Tmon} \bind k_i)
     = \tilt_{k_i \seq Z}\bigl(\dec(\Psi_{\Tmon})\bigr) \bind (k_i \seq \dec).
@@ -3552,9 +3591,10 @@ rewrite, by Lemma~\ref{lem:pure-maps}, as a sum over the fiber
 $h^{-1}(y)$ of the induction hypothesis's own two quantities, so
 summing the sandwich termwise over the fiber carries it forward with
 \emph{no} common factor:
-% pureMap branch, ChainBound.lean ~710-737: Finset.mul_sum against
+% pureMap branch, ChainBound.lean: Finset.mul_sum against
 % Finset.sum_le_sum, a by_cases split on h x = y with both if-branches
 % collapsing (the x with h x \ne y contribute 0 to both sides)
+% lean-step: pureMap, tmon_reading, dmon_reading, fiber_sum_carries, NeSyCat.mapDomain_apply_sum
 \[
   \dec(\Phi_{\Tmon})(y) = \sum_{x \in h^{-1}(y)} \dec(\Psi_{\Tmon})(x),
   \qquad
@@ -3568,9 +3608,9 @@ inequality at $y$.
 multiplies both sandwiched quantities by one common tensor factor $r$
 (Lemmas~\ref{lem:tensor}, \ref{lem:units}), so the induction
 hypothesis scales directly:
-% unitIns/strengthStep branches, ChainBound.lean ~738-762, both closed
-% by sandwich_mul_right (ChainBound.lean ~162): L*(p*r) = L*p*r <=
-% U*q*r = U*(q*r)
+% unitIns/strengthStep branches, ChainBound.lean, both closed
+% by sandwich_mul_right: L*(p*r) = L*p*r <= U*q*r = U*(q*r)
+% lean-step: unitIns, strengthStep, tmon_reading, dmon_reading, NeSyCat.sandwich_mul_right
 \[
   L \cdot p \le U \cdot q \;\implies\; L \cdot (p \cdot r) \le U \cdot (q \cdot r).
 \]
@@ -3584,6 +3624,7 @@ for every $x$. Lemma~\ref{lem:bind-matrix-mult}'s matrix form of
 $\bind$ writes the numerator and mass of $a \bind k$ at $y$ as finite
 sums over a common finite set $s$ containing both supports. Then
 $\dec(a\bind k)(y) = N/Z_b$, with
+% lean-step: bindStep, NeSyCat.bind_layer_sandwich, NeSyCat.bind_num_eq_sum, NeSyCat.Z_bind_eq_sum
 \[
   N := \sum_{x \in s} a(x)\bigl(\dec(k(x))(y) \cdot Z(k(x))\bigr),
   \qquad
@@ -3591,6 +3632,7 @@ $\dec(a\bind k)(y) = N/Z_b$, with
 \]
 Bounding $Z(k(x))$ termwise by $m$ or $M$ and summing gives the two
 aggregate estimates
+% lean-step: hterm1, hterm1', est1, est1', est3, est3'
 \[
   m \sum_{x \in s} a(x)\dec(k(x))(y) \;\le\; N \;\le\;
   M \sum_{x \in s} a(x)\dec(k(x))(y),
@@ -3630,6 +3672,7 @@ sandwich gives $\pi_m\, t_{\Tmon} \le \pi_M\, t_{\Dmon}$ and
 $\pi_m\, t_{\Dmon} \le \pi_M\, t_{\Tmon}$; the second inequality, with
 $t_{\Dmon} > 0$ and $\pi_m > 0$, forces $t_{\Tmon} > 0$ too. Taking
 logarithms of both (all four quantities now positive) gives
+% lean-step: sandwich, tmon_pos, log_gap_upper, log_gap_lower, abs_log_gap_bound, NeSyCat.log_ratio_sum
 \[
   \log t_{\Tmon} - \log t_{\Dmon} \;\le\; \log\pi_M - \log\pi_m,
   \qquad
@@ -3918,7 +3961,16 @@ transporting $\mathrm{QRow}$'s own arithmetic directly.
 % where a key already exists there (coumansJacobsScalars2013, verbatim
 % match); girardLinearLogic1987 and maeneKLay2025 are this
 % document's own first use of those two sources, named the same way.
-\section*{Bibliography}
+% HEADING, engine-conditional (C3-ISAR P1, rider R-A). This used to be a
+% literal \section*{Bibliography}, which printed the heading TWICE in the
+% pdf: report's own thebibliography emits \chapter*{\bibname} as well.
+% plasTeX's un-overridden Base bibliography module emits NO heading (the
+% web build's only "Bibliography" heading was this manual one, checked
+% directly in the built index.html), so simply deleting it would have left
+% the web page headingless. Same disclosed split as web.tex's \citep
+% fallback: macros/print.tex makes \bibheading empty (report supplies the
+% heading), macros/web.tex makes it the \section*.
+\bibheading
 \begin{thebibliography}{9}
 \bibitem[Girard(1987)]{girardLinearLogic1987} Jean-Yves Girard. Linear logic. \textit{Theoretical Computer Science}, 50(1), pages 1 to 101, 1987.
 \bibitem[Coumans and Jacobs(2013)]{coumansJacobsScalars2013} Dion Coumans and Bart Jacobs. Scalars, monads, and categories. In Chris Heunen, Mehrnoosh Sadrzadeh, and Edward Grefenstette, editors, \textit{Quantum Physics and Linguistics: A Compositional, Diagrammatic Discourse}. Oxford University Press, 2013. arXiv:1003.0585.

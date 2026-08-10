@@ -54,5 +54,12 @@
 
 \begin{document}
 \maketitle
+% Table of contents (C3-ISAR P1, rider R-B): print engine only. The web
+% build is a single plasTeX index.html with no sidebar or nav element of
+% its own (checked in the built output), and web.tex does not \input this
+% file, so nothing here reaches it. report's default tocdepth is 2, which
+% is exactly \section + \subsection -- the only two levels this document
+% uses -- so no explicit \setcounter{tocdepth} is needed.
+\tableofcontents
 \input{content}
 \end{document}

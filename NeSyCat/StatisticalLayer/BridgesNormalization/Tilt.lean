@@ -191,70 +191,83 @@ def MassPreserving (k : X → LogTens Y) : Prop := ∃ c : ℝ≥0, ∀ x, Z (k 
 /-- Blueprint `lem:tilt`, proved without the positivity hypothesis: `dec(a
 \bind k) = \tilt_{k \seq Z}(\dec(a)) \bind (k \seq \dec)`, for every `a`,
 `k` unconditionally. See the module doc comment for why the blueprint's
-positivity side condition is not needed by this proof route. -/
+positivity side condition is not needed by this proof route.
+
+This is where `lem:tilt`'s mathematics actually lives: the cited principal
+`tilt_bind` below only reinstates the blueprint's positivity hypothesis and
+delegates here. Proof steps are therefore named after the mathematics and
+cited by `content.tex`'s `lem:tilt` proof through its `% lean-step:` tags
+(FORMALIZE.md's step-tag convention): `weights_vanish`, `dec_a_zero`,
+`mass_bind_zero`, `dec_bind_zero`, `tilt_zero` in the degenerate branch;
+`lhs_ratio`, `rhs_sum`, `dec_scaled`, `reweighted_sum`, `tilt_mass`,
+`factor_out_tilt_mass` in the positive branch. -/
 -- (C2-E4a/A2 completeness census: pre-existing internal helper, not itself
 -- blueprint-cited)
 @[blueprint_internal]
 theorem tilt_bind' (a : LogTens X) (k : X → LogTens Y) :
     dec (bind a k) = bind (tilt (fun x => Z (k x)) (dec a)) (fun x => dec (k x)) := by
   by_cases hZa : Z a = 0
-  · have ha0 : ofLogTens a = 0 := by
+  · have weights_vanish : ofLogTens a = 0 := by
       apply Finsupp.ext; intro x; exact ofLogTens_eq_zero_of_Z_eq_zero hZa x
-    have hda0 : dec a = 0 := by
-      unfold dec; rw [ha0, smul_zero]
-    have hZbind : Z (bind a k) = 0 := by rw [Z_bind, ha0]; exact Finsupp.sum_zero_index
-    have hdecbind : dec (bind a k) = 0 := by unfold dec; rw [hZbind, inv_zero, zero_smul]
-    have htilt0 : tilt (fun x => Z (k x)) (dec a) = 0 := by
-      rw [hda0]
-      have hrw0 : reweight (fun x => Z (k x)) (0 : Tens X) = 0 := by
+    have dec_a_zero : dec a = 0 := by
+      unfold dec; rw [weights_vanish, smul_zero]
+    have mass_bind_zero : Z (bind a k) = 0 := by
+      rw [Z_bind, weights_vanish]; exact Finsupp.sum_zero_index
+    have dec_bind_zero : dec (bind a k) = 0 := by
+      unfold dec; rw [mass_bind_zero, inv_zero, zero_smul]
+    have tilt_zero : tilt (fun x => Z (k x)) (dec a) = 0 := by
+      rw [dec_a_zero]
+      have reweight_zero : reweight (fun x => Z (k x)) (0 : Tens X) = 0 := by
         apply Finsupp.ext
         intro x
         rw [reweight_apply, Finsupp.zero_apply, mul_zero]
       unfold tilt
-      rw [hrw0, smul_zero]
-    rw [hdecbind, htilt0]
+      rw [reweight_zero, smul_zero]
+    rw [dec_bind_zero, tilt_zero]
     unfold bind
     rw [Finsupp.sum_zero_index]
   · apply Finsupp.ext
     intro y
-    have hL : dec (bind a k) y
+    have lhs_ratio : dec (bind a k) y
         = (ofLogTens a).sum (fun x c => c * ofLogTens (k x) y) / Z (bind a k) := by
       rw [dec_apply, ofLogTens_bind, bind_apply]
-    have hR : bind (tilt (fun x => Z (k x)) (dec a)) (fun x => dec (k x)) y
+    have rhs_sum : bind (tilt (fun x => Z (k x)) (dec a)) (fun x => dec (k x)) y
         = (tilt (fun x => Z (k x)) (dec a)).sum (fun x c => c * dec (k x) y) := bind_apply _ _ y
-    rw [hL, hR]
+    rw [lhs_ratio, rhs_sum]
     set Nsum : ℝ≥0 := (ofLogTens a).sum (fun x c => c * ofLogTens (k x) y) with hNsum
     set Dsum : ℝ≥0 := (ofLogTens a).sum (fun x c => c * Z (k x)) with hDsum
-    have hZbind : Z (bind a k) = Dsum := by rw [Z_bind]
-    have hda : dec a = (Z a)⁻¹ • ofLogTens a := rfl
-    have hdecSum : (dec a).sum (fun x c => Z (k x) * c * dec (k x) y) = (Z a)⁻¹ * Nsum := by
-      rw [hda, Finsupp.sum_smul_index (fun x => by rw [mul_zero, zero_mul])]
-      have hpt : (fun x c => Z (k x) * ((Z a)⁻¹ * c) * dec (k x) y)
+    have mass_bind_eq : Z (bind a k) = Dsum := by rw [Z_bind]
+    have dec_scaled : dec a = (Z a)⁻¹ • ofLogTens a := rfl
+    have reweighted_sum : (dec a).sum (fun x c => Z (k x) * c * dec (k x) y)
+        = (Z a)⁻¹ * Nsum := by
+      rw [dec_scaled, Finsupp.sum_smul_index (fun x => by rw [mul_zero, zero_mul])]
+      have cancel_mass : (fun x c => Z (k x) * ((Z a)⁻¹ * c) * dec (k x) y)
           = (fun x c => (Z a)⁻¹ * (c * ofLogTens (k x) y)) := by
         funext x c
         rw [show Z (k x) * ((Z a)⁻¹ * c) * dec (k x) y
             = (Z a)⁻¹ * c * (dec (k x) y * Z (k x)) by ring, dec_mul_Z]
         ring
-      rw [hpt, ← Finsupp.mul_sum, hNsum]
-    have htiltMass : tiltMass (fun x => Z (k x)) (dec a) = (Z a)⁻¹ * Dsum := by
+      rw [cancel_mass, ← Finsupp.mul_sum, hNsum]
+    have tilt_mass : tiltMass (fun x => Z (k x)) (dec a) = (Z a)⁻¹ * Dsum := by
       unfold tiltMass
-      rw [hda, Finsupp.sum_smul_index (fun x => by rw [mul_zero])]
-      have hpt : (fun x c => Z (k x) * ((Z a)⁻¹ * c)) = (fun x c => (Z a)⁻¹ * (c * Z (k x))) := by
+      rw [dec_scaled, Finsupp.sum_smul_index (fun x => by rw [mul_zero])]
+      have pull_out_scale : (fun x c => Z (k x) * ((Z a)⁻¹ * c))
+          = (fun x c => (Z a)⁻¹ * (c * Z (k x))) := by
         funext x c; ring
-      rw [hpt, ← Finsupp.mul_sum, hDsum]
-    rw [hZbind]
+      rw [pull_out_scale, ← Finsupp.mul_sum, hDsum]
+    rw [mass_bind_eq]
     change Nsum / Dsum = (tilt (fun x => Z (k x)) (dec a)).sum (fun x c => c * dec (k x) y)
     unfold tilt
     rw [Finsupp.sum_smul_index (fun x => by rw [zero_mul])]
-    have hstep1 : (reweight (fun x => Z (k x)) (dec a)).sum
+    have factor_out_tilt_mass : (reweight (fun x => Z (k x)) (dec a)).sum
         (fun x c => (tiltMass (fun x => Z (k x)) (dec a))⁻¹ * c * dec (k x) y)
         = (tiltMass (fun x => Z (k x)) (dec a))⁻¹ *
             (dec a).sum (fun x c => Z (k x) * c * dec (k x) y) := by
-      have hre : (fun x c => (tiltMass (fun x => Z (k x)) (dec a))⁻¹ * c * dec (k x) y)
+      have regroup : (fun x c => (tiltMass (fun x => Z (k x)) (dec a))⁻¹ * c * dec (k x) y)
           = (fun x c => (tiltMass (fun x => Z (k x)) (dec a))⁻¹ * (c * dec (k x) y)) := by
         funext x c; ring
-      rw [hre, ← Finsupp.mul_sum, sum_reweight]
-    rw [hstep1, hdecSum, htiltMass, mul_inv, inv_inv, div_eq_mul_inv]
+      rw [regroup, ← Finsupp.mul_sum, sum_reweight]
+    rw [factor_out_tilt_mass, reweighted_sum, tilt_mass, mul_inv, inv_inv, div_eq_mul_inv]
     rw [show (Z a) * Dsum⁻¹ * ((Z a)⁻¹ * Nsum) = (Z a * (Z a)⁻¹) * (Nsum * Dsum⁻¹) by ring,
       mul_inv_cancel₀ hZa, one_mul]
 
@@ -455,7 +468,13 @@ structural induction on the chain (the blueprint's own "induction on `r`"):
 each non-bind factor commutes with `\dec` by `lem:pure-maps` / `lem:tensor`
 / `lem:units`, and a bind factor commutes with `\dec` exactly when its
 continuation is mass preserving (`dec_bind_of_massPreserving`, built from
-`lem:tilt`). -/
+`lem:tilt`).
+
+One named step per factor kind carries the mathematics of that case, and
+`content.tex`'s `thm:pullout` proof cites those names, together with the
+induction's own case labels (`base`, `pureMap`, `unitIns`, `strengthStep`,
+`bindStep`), in its `% lean-step:` tags (FORMALIZE.md's step-tag
+convention). -/
 theorem pullout : ∀ {W : Type} (c : PulloutChain W),
     c.AllMassPreserving → dec c.toTmon = c.toDmon := by
   intro W c
@@ -463,20 +482,30 @@ theorem pullout : ∀ {W : Type} (c : PulloutChain W),
   | base a => intro _; rfl
   | pureMap h rest ih =>
       intro hm
+      have pure_map_decodes : dec (Finsupp.mapDomain h rest.toTmon)
+          = Finsupp.mapDomain h (dec rest.toTmon) := (pure_maps h rest.toTmon).2
       change dec (Finsupp.mapDomain h rest.toTmon) = Finsupp.mapDomain h rest.toDmon
-      rw [(pure_maps h rest.toTmon).2, ih hm]
+      rw [pure_map_decodes, ih hm]
   | unitIns c' rest ih =>
       intro hm
+      have tensor_decodes : dec (dstL rest.toTmon (ret c' : LogTens _))
+          = dstL (dec rest.toTmon) (dec (ret c' : LogTens _)) := dec_dstL _ _
+      have unit_decodes : dec (ret c' : LogTens _) = (ret c' : Tens _) := dec_ret c'
       change dec (dstL rest.toTmon (ret c')) = dstL rest.toDmon (ret c')
-      rw [dec_dstL, dec_ret, ih hm]
+      rw [tensor_decodes, unit_decodes, ih hm]
   | strengthStep leaf rest ih =>
       intro hm
+      have tensor_decodes : dec (dstL rest.toTmon leaf)
+          = dstL (dec rest.toTmon) (dec leaf) := dec_dstL _ _
       change dec (dstL rest.toTmon leaf) = dstL rest.toDmon (dec leaf)
-      rw [dec_dstL, ih hm]
+      rw [tensor_decodes, ih hm]
   | bindStep k rest ih =>
       intro hm
       obtain ⟨hk, hrest⟩ := hm
+      have bind_decodes : dec (bind rest.toTmon k)
+          = bind (dec rest.toTmon) (fun x => dec (k x)) :=
+        dec_bind_of_massPreserving hk
       change dec (bind rest.toTmon k) = bind rest.toDmon (fun x => dec (k x))
-      rw [dec_bind_of_massPreserving hk, ih hrest]
+      rw [bind_decodes, ih hrest]
 
 end NeSyCat
