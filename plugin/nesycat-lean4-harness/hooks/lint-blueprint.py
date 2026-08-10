@@ -268,6 +268,32 @@ STRUCTURE_MIRROR_SECTION_RE = re.compile(
 # showing it. Tuned to zero false positives against the swept
 # document (the CB-RESTRUCT exemplar and its successors all carry
 # displayed chains).
+#
+# R3 fix (V-C3E13 blind-spot rider): the word count MUST run BEFORE
+# math-stripping. The original count reused density_clean, which collapses
+# every inline math span ($...$) to one literal "MATH" token -- so a proof
+# that is mostly narration wrapped around a single long inline equation
+# (the equation itself carrying the calculation this law wants displayed)
+# had that equation counted as ONE word instead of the many symbols it
+# actually spells out, silently pulling the count under the 60-word gate.
+# Two theorems already in the document were caught exactly this way --
+# thm:batch-transformer (the disclosed specimen: one ~96-char inline
+# equation) and thm:semiring-monad-commutative (a genuine second instance
+# this fix newly exposes, swept alongside it) -- both zero-display, both
+# narrating a real calculation inline, both invisible to the old count (55
+# and 56 words respectively) while running 74-78 words once math is left
+# in. proof_substance_clean below is density_clean with exactly the two
+# math-collapsing substitutions (DENSITY_DISPLAY_MATH_RE/
+# DENSITY_INLINE_MATH_RE) removed -- citation-apparatus commands
+# (\label/\uses/\lean/\leanok/\ref/\eqref/\cite) are still dropped and
+# \textbf/\emph/\texttt/\textit/\mathrm still unwrapped to their argument,
+# since those are typesetting, not content; math symbols and relation
+# operators are left as literal tokens and counted like any other word.
+# The threshold stays PROOF_SUBSTANCE_WORD_LIMIT = 60 unchanged -- every
+# other zero-display theorem proof in the document still clears it by a
+# wide margin under this counting (the highest is 41 words) after the two
+# caught proofs are swept, so no threshold retuning was needed, only the
+# counting method.
 PROOF_SUBSTANCE_WORD_LIMIT = 60
 PROOF_SUBSTANCE_THEOREM_BEGIN_RE = re.compile(r'\\begin\{theorem\}')
 PROOF_SUBSTANCE_THEOREM_END_RE = re.compile(r'\\end\{theorem\}')
@@ -276,6 +302,19 @@ PROOF_SUBSTANCE_DISPLAY_RE = re.compile(
     r'\\\[|\\begin\{(align\*?|gather\*?|multline\*?)\}')
 PROOF_SUBSTANCE_STRIP_RE = re.compile(
     r'\\begin\{proof\}|\\end\{proof\}|\\leanok')
+
+
+def proof_substance_clean(text):
+    """R3 fix: density_clean WITHOUT the math-collapsing substitutions --
+    see the module comment above PROOF_SUBSTANCE_WORD_LIMIT for why. Still
+    drops citation-apparatus commands and unwraps typesetting commands to
+    their argument, the same as density_clean; math is left as literal
+    text and counted."""
+    text = DENSITY_DROP_CMD_RE.sub(' ', text)
+    for _ in range(2):
+        text = DENSITY_UNWRAP_CMD_RE.sub(r'\2', text)
+    text = DENSITY_ENV_MARKER_RE.sub(' ', text)
+    return text
 
 
 def proof_substance_scan(raw_lines, rel_posix):
@@ -311,8 +350,8 @@ def proof_substance_scan(raw_lines, rel_posix):
                 break
         body = "\n".join(code_lines[proof_start:proof_end + 1])
         has_display = bool(PROOF_SUBSTANCE_DISPLAY_RE.search(body))
-        cleaned = density_clean(PROOF_SUBSTANCE_STRIP_RE.sub(' ', body))
-        words = [w for w in re.split(r'\s+', cleaned) if w and w != 'MATH']
+        cleaned = proof_substance_clean(PROOF_SUBSTANCE_STRIP_RE.sub(' ', body))
+        words = [w for w in re.split(r'\s+', cleaned) if w]
         wc = len(words)
         if not has_display and wc > PROOF_SUBSTANCE_WORD_LIMIT:
             out.append(

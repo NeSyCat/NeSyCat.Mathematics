@@ -486,7 +486,8 @@ $\GodelS := ([0,1], \max, \min)$ (Instance~\ref{inst:tnorm-row}).
 \lean{NeSyCat.viterbiTNorm}
 \leanok
 The product t-norm $p \otimes q := pq$, giving the row
-$\ViterbiS := ([0,1], \max, \cdot)$ (Instance~\ref{inst:tnorm-row}).
+$\ViterbiS := ([0,1], \max, \cdot)$ (Instance~\ref{inst:tnorm-row}),
+named for the Viterbi algorithm's own max-times decoding recurrence.
 \uses{inst:tnorm-row}
 \end{definition}
 
@@ -593,12 +594,31 @@ $f \bind \Ret = f$, and associativity of $\bind$
 
 \begin{proof}
 \leanok
-Left unit and associativity are Lemmas~\ref{lem:bind-left-unit} and
-\ref{lem:bind-assoc}. For the right unit law: unfolding $\bind$ from
-Definition~\ref{def:semiring-monad}, the sum
-$\bigoplus_x f(x)\otimes\delta_x(y)$ collapses to $f(y)$ by the unit
-laws of $S$ (a distributivity-free identity, same shape as the left
-unit law).
+Three components, matching the theorem's own bundling. Left unit
+(Lemma~\ref{lem:bind-left-unit}):
+\[
+  (\Ret(x) \bind k)(y) = \bigoplus_{x'} \delta_x(x') \otimes k(x')(y)
+    = 1 \otimes k(x)(y) = k(x)(y).
+\]
+Right unit, proved inline rather than as its own lemma (single-purpose,
+folded per the calibrated reuse principle):
+\[
+  (f \bind \Ret)(y) = \bigoplus_x f(x) \otimes \delta_x(y) = f(y) \otimes 1 = f(y).
+\]
+Associativity (Lemma~\ref{lem:bind-assoc}):
+% bind_assoc, SemiringMonad.lean: Finsupp.sum_sum_index/sum_smul_index/
+% smul_sum reduced pointwise to mul_smul
+\begin{align*}
+  \bigl((f\bind k)\bind l\bigr)(z)
+    &= \bigoplus_y\Bigl(\bigoplus_x f(x)\otimes k(x)(y)\Bigr)\otimes l(y)(z) \\
+    &= \bigoplus_x f(x) \otimes \Bigl(\bigoplus_y k(x)(y)\otimes l(y)(z)\Bigr) \\
+    &= \bigl(f\bind(\lambda x.\, k(x) \bind l)\bigr)(z),
+\end{align*}
+the middle step rearranging the double sum by associativity and
+commutativity of $\oplus$ together with associativity of $\otimes$ and
+distributivity of $\otimes$ over $\oplus$; $\otimes$-commutativity is
+never invoked, so this holds for a general (possibly noncommutative)
+$S$.
 \end{proof}
 
 \textbf{Mechanism.} Commutativity and associativity of $\oplus$ give
@@ -649,14 +669,25 @@ $S$ itself is commutative.
 
 \begin{proof}
 \leanok
-Forward: $\otimes$ commuting makes the two pointwise
-formulas $f(x)\otimes g(y)$ and $g(y)\otimes f(x)$ agree directly.
+Forward: assuming $\otimes$ commutes, the two pointwise formulas of the
+statement agree directly, for every $x,y$,
+% dstL_apply/dstR_apply against hcomm, SemiringMonad.lean dst_comm_iff
+% forward branch
+\[
+  \dstL(f,g)(x,y) = f(x)\otimes g(y) = g(y)\otimes f(x) = \dstR(f,g)(x,y).
+\]
+
 Converse: testing $\dstL=\dstR$ at $X=Y=\{*\}$ (a one-point set) against
 the two point masses $\delta_a,\delta_b$ ($a,b\in S$) evaluates both
-sides at $(*,*)$ to $a\otimes b$, resp.\ $b\otimes a$, recovering
-$a\otimes b = b\otimes a$ for arbitrary $a,b$, so no weaker hypothesis
-than full commutativity of $\otimes$ suffices; even the single instance
-of $\dstL=\dstR$ at this one-point set already forces it.
+sides at $(*,*)$,
+% dst_comm_iff converse branch, SemiringMonad.lean: PUnit witness
+\[
+  a\otimes b = \dstL(\delta_a,\delta_b)(*,*) = \dstR(\delta_a,\delta_b)(*,*) = b\otimes a,
+\]
+recovering $a\otimes b = b\otimes a$ for arbitrary $a,b$, so no weaker
+hypothesis than full commutativity of $\otimes$ suffices; even the
+single instance of $\dstL=\dstR$ at this one-point set already forces
+it.
 \end{proof}
 
 % Apparatus (C2-E5): provenance credit, moved verbatim.
@@ -776,11 +807,43 @@ b=0$) and has no zero divisors ($ab=0 \implies a=0 \vee b=0$).
 \begin{proof}
 \leanok
 $\mathrm{supp}$ always preserves $0$, and preserves $1$ since $S$ is
-nontrivial. In every semiring, $a=0$ and $b=0$ already imply $a+b=0$,
-and $a=0$ or $b=0$ already imply $ab=0$, so each preservation
-biconditional holds in one direction unconditionally. Zerosumfreeness
-and the absence of zero divisors are exactly the converse directions,
-so $\mathrm{supp}$ preserves $+$ and $\times$ precisely when both hold.
+nontrivial; both directions share these two unconditionally.
+
+\emph{Forward}: assume $\mathrm{supp}$ preserves $+$ and $\times$.
+Zerosumfreeness: given $a+b=0$, suppose toward a contradiction $a\ne0$
+(the case $b\ne0$ is symmetric); then
+% support_hom_iff forward, additive branch: Support.lean ~63-73,
+% by_contra + boolw_add_left_one/boolw_zero_ne_one
+\[
+  0 = \mathrm{supp}(0) = \mathrm{supp}(a+b) = \mathrm{supp}(a)+\mathrm{supp}(b)
+    = 1 + \mathrm{supp}(b) = 1,
+\]
+contradiction, so $a=0 \wedge b=0$. No zero divisors: given $ab=0$,
+suppose toward a contradiction $a\ne0$ and $b\ne0$; then
+% support_hom_iff forward, multiplicative branch: Support.lean ~74-79
+\[
+  0 = \mathrm{supp}(0) = \mathrm{supp}(ab) = \mathrm{supp}(a)\,\mathrm{supp}(b)
+    = 1 \cdot 1 = 1,
+\]
+contradiction, so $a=0 \vee b=0$.
+
+\emph{Converse}: assume $S$ is zerosumfree with no zero divisors. For
+$+$: if $a=0$, $\mathrm{supp}(a+b)=\mathrm{supp}(b)=\mathrm{supp}(a)+\mathrm{supp}(b)$
+trivially; if $a\ne0$, zerosumfreeness gives the witness $a+b\ne0$
+(else $a=0$), so
+% support_hom_iff converse, additive branch: Support.lean ~83-87,
+% case split eq_or_ne a 0
+\[
+  \mathrm{supp}(a+b) = 1 = 1+\mathrm{supp}(b) = \mathrm{supp}(a)+\mathrm{supp}(b).
+\]
+For $\times$: if $a=0$ or $b=0$, both sides vanish trivially; if
+$a,b\ne0$, the absence of zero divisors gives the witness $ab\ne0$
+(else $a=0$ or $b=0$), so
+% support_hom_iff converse, multiplicative branch: Support.lean ~88-94,
+% nested case split eq_or_ne a 0 / eq_or_ne b 0
+\[
+  \mathrm{supp}(ab) = 1 = 1\cdot1 = \mathrm{supp}(a)\,\mathrm{supp}(b).
+\]
 \end{proof}
 
 \begin{lemma}[Support fails on a ring]
@@ -893,9 +956,17 @@ $R$ against the value directly: $(RE^\top)(Ev) = Rv$.
 \begin{proof}
 \leanok
 Both identities follow from associativity of matrix multiplication
-together with $E^\top E = 1$. For retrieval, $E^\top(Ev) =
-(E^\top E)v = v$. For chaining, $(RE^\top)(Ev) = R(E^\top(Ev)) =
-R((E^\top E)v) = Rv$.
+together with $E^\top E = 1$. Retrieval:
+% embedding_exact, retrieval branch: mulVec_mulVec, hE, one_mulVec
+\[
+  E^\top(Ev) = (E^\top E)v = 1 \cdot v = v.
+\]
+Chaining, feeding the retrieval identity's own middle step in as its
+last:
+% embedding_exact, chaining branch: mulVec_mulVec, mul_assoc, hE, mul_one
+\[
+  (RE^\top)(Ev) = R\bigl(E^\top(Ev)\bigr) = R\bigl((E^\top E)v\bigr) = Rv.
+\]
 \end{proof}
 
 The hypothesis $E^\top E = 1$ needs the embedding to be exactly
@@ -1902,9 +1973,39 @@ normalized, mass-one rows.
 
 \begin{proof}
 \leanok
-(i) is Lemma~\ref{lem:pointwise}; (ii) is
-Lemmas~\ref{lem:linear-lift} and \ref{lem:copying-fails}; (iii) is the
-construction of Definition~\ref{def:order-family}.
+A witness cluster, not a joint derivation: each clause is independently
+witnessed.
+
+(i) the three squares $S \in \{\BoolS,\MassS,\LogS\}$ each resolve a
+lattice-semiring instance directly from Lemma~\ref{lem:pointwise}'s
+product construction; $\ProbS$ is excluded by
+Lemma~\ref{lem:prob-not-semiring}, already marked.
+
+(ii) no further Lean beyond Lemmas~\ref{lem:linear-lift} and
+\ref{lem:copying-fails}, already marked; a lemma-free clause of this
+theorem.
+
+(iii) Definition~\ref{def:order-family} supplies $\wedge,\vee,\bot,\top$
+directly; three boundary witnesses close the clause. Order-generation,
+on any lattice:
+% order_iff_inf_eq_left, ThreeLayers.lean
+\[
+  u \le v \iff u \wedge v = u.
+\]
+The coincidence on $\BoolS$ itself is Lemma~\ref{lem:bool-truth-structure}'s
+own $\oplus=\vee$, $\otimes=\wedge$ (cited, not reproved: a fact about
+$\BoolS$'s bounded-lattice structure, not a claim that $\MS{\BoolS}\BoolS$'s
+lifted $\oplus,\otimes$ agree with $\wedge,\vee$ in general, which
+fails on inspection). Units-vs-bounds splits by sign: positive on the
+normalized row (Class~\ref{def:unit-bounds}, cited), negative at
+$S=\MassS$, where $\Ret(0)=(1,0)$ in the two-slot coordinates of
+Definition~\ref{def:order-family} but
+% not_isBot_orderedTwoSlot_ret_zero, ThreeLayers.lean: witness v=(2,0)
+\[
+  \bot = (\top_{\MassS},\bot_{\MassS}) \quad\text{tested against}\quad
+  v = (2,0) \ \text{forces}\ 1 \ge 2,
+\]
+false, so $\Ret(0)$ is not $\bot$.
 \end{proof}
 
 % ------------------------------------------------------------
@@ -2485,15 +2586,34 @@ $\mathcal M$), and there are two canonical monad morphisms into it:
 
 \begin{proof}
 \leanok
-$\Bmon\mathcal M$'s unit and bind are the reader-monad
-ones of Definition~\ref{def:batch-monad} taken pointwise in
-$\mathcal M X$; the monad laws for $\Bmon\mathcal M$ reduce, index by
-index, to the monad laws of $\mathcal M$
-(Theorem~\ref{thm:semiring-monad-laws}). $\mathrm{lift}_{\mathcal M}$
-is a monad morphism since a constant family trivially commutes with
-diagonal bind; $\mathrm{lift}_{\Bmon}$ is a monad morphism since
-$\Ret_{\mathcal M}$ is natural and $\Ret_{\mathcal M}(m(b)) \bind_{\mathcal M} f\seq\Ret_{\mathcal M} = \Ret_{\mathcal M}(f(m(b)))$
-by the unit laws of $\mathcal M$.
+$\Bmon\mathcal M$'s own monad structure is the reader-monad
+transformer's (cited, not reproved by this theorem's own Lean
+declaration): unit and bind are Definition~\ref{def:batch-monad}'s
+taken pointwise in $\mathcal M X$, so its laws reduce, index by index,
+to the monad laws of $\mathcal M$ (Theorem~\ref{thm:semiring-monad-laws}).
+What this theorem's own proof supplies are the four morphism
+identities, one unit/bind pair per lift.
+$\mathrm{lift}_{\mathcal M}$'s pair, each an unfolding identity since a
+constant family trivially commutes with diagonal bind:
+% liftM_ret, liftM_bind, BatchTransformer.lean -- both rfl
+\[
+  \mathrm{lift}_{\mathcal M}\bigl(\Ret_{\mathcal M}(x)\bigr) = \Ret_{\Bmon\mathcal M}(x),
+  \qquad
+  \mathrm{lift}_{\mathcal M}(m \bind_{\mathcal M} k) =
+  \mathrm{lift}_{\mathcal M}(m) \bind \bigl(x \mapsto \mathrm{lift}_{\mathcal M}(k(x))\bigr).
+\]
+$\mathrm{lift}_{\Bmon}$'s pair, the unit clause again an unfolding
+identity and the bind clause from $\Ret_{\mathcal M}$'s naturality
+together with the left unit law of $\mathcal M$
+(Theorem~\ref{thm:semiring-monad-laws}):
+% liftBmon_ret (rfl), liftBmon_bind (Ret_M naturality + pure_bind),
+% BatchTransformer.lean
+\[
+  \mathrm{lift}_{\Bmon}\bigl(\Ret_{\Bmon}(x)\bigr) = \Ret_{\Bmon\mathcal M}(x),
+  \qquad
+  \mathrm{lift}_{\Bmon}(m \bind_{\Bmon} f) =
+  \mathrm{lift}_{\Bmon}(m) \bind \bigl(x \mapsto \mathrm{lift}_{\Bmon}(f(x))\bigr).
+\]
 \end{proof}
 
 $\mathrm{lift}_{\mathcal M}$ embeds a batch-constant effect.
@@ -2711,8 +2831,18 @@ and hence for $\mathrm{tilt}$ to be well-defined. Then
 
 \begin{proof}
 \leanok
-Fix $y \in Y$ and expand each side of the claimed identity there.
-Unfolding $\dec$ and $\bind$ on the left, and $\bind$, $\tilt$, $\dec$
+\emph{Degenerate case}, $Z(a) = 0$: the ambient $0^{-1}=0$ convention
+(Definition~\ref{def:dec-enc-mass}) forces $a$'s own weights to vanish,
+so $\dec(a) = 0$; the mass of $a \bind k$ is then also $0$ (it sums the
+vanishing weights of $a$), so $\dec(a \bind k) = 0$ by the same
+convention, and $\tilt_{k \seq Z}(\dec(a)) = 0$ since $\tilt$
+reweights the zero function. Binding either side of the claimed
+identity against the zero function returns the zero function, so both
+sides agree trivially, with no positivity hypothesis needed here.
+
+\emph{Positive case}, $Z(a) > 0$: fix $y \in Y$ and expand each side of
+the claimed identity there. Unfolding $\dec$ and $\bind$ on the left,
+and $\bind$, $\tilt$, $\dec$
 on the right,
 \begin{align*}
   \dec(a \bind k)_y
@@ -2794,7 +2924,7 @@ bound continuation $k_i$ is mass preserving
   \bigl(B_1^{\Dmon} \seq \cdots \seq B_r^{\Dmon}\bigr),
 \]
 the same chain read in $\Dmon$, with one $\dec$ per leaf.
-\uses{lem:pure-maps, lem:tensor, lem:units, lem:strengths, lem:tilt, def:mass-preserving, def:feed-forward}
+\uses{lem:pure-maps, lem:tensor, lem:units, lem:tilt, def:mass-preserving, def:feed-forward}
 \end{theorem}
 
 \begin{proof}
@@ -2888,11 +3018,30 @@ and $\Phi_{\Tmon}$, $\Phi_{\Dmon}$ read the same leaf value, so both
 inequalities are the trivial
 $\dec(\Phi_{\Tmon})(y) \le \Phi_{\Dmon}(y) \le \dec(\Phi_{\Tmon})(y)$.
 
-\emph{Pure map, unit, and strength steps}: each multiplies both
-sandwiched quantities by one common factor $r$, a fiber reindexing for
-a pure map (Lemma~\ref{lem:pure-maps}), a tensor factor for a unit
-insertion or a strength (Lemmas~\ref{lem:tensor}, \ref{lem:units},
-\ref{lem:strengths}), so the induction hypothesis scales directly:
+\emph{Pure map step}: $\dec(\Phi_{\Tmon})$ and $\Phi_{\Dmon}$ both
+rewrite, by Lemma~\ref{lem:pure-maps}, as a sum over the fiber
+$h^{-1}(y)$ of the induction hypothesis's own two quantities, so
+summing the sandwich termwise over the fiber carries it forward with
+\emph{no} common factor:
+% pureMap branch, ChainBound.lean ~710-737: Finset.mul_sum against
+% Finset.sum_le_sum, a by_cases split on h x = y with both if-branches
+% collapsing (the x with h x \ne y contribute 0 to both sides)
+\[
+  \dec(\Phi_{\Tmon})(y) = \sum_{x \in h^{-1}(y)} \dec(\Psi_{\Tmon})(x),
+  \qquad
+  \Phi_{\Dmon}(y) = \sum_{x \in h^{-1}(y)} \Psi_{\Dmon}(x),
+\]
+and $L\cdot\dec(\Psi_{\Tmon})(x) \le U\cdot\Psi_{\Dmon}(x)$ (the
+induction hypothesis) at every $x$ in the fiber sums to the same
+inequality at $y$.
+
+\emph{Unit and strength steps}: a unit insertion or a strength
+multiplies both sandwiched quantities by one common tensor factor $r$
+(Lemmas~\ref{lem:tensor}, \ref{lem:units}), so the induction
+hypothesis scales directly:
+% unitIns/strengthStep branches, ChainBound.lean ~738-762, both closed
+% by sandwich_mul_right (ChainBound.lean ~162): L*(p*r) = L*p*r <=
+% U*q*r = U*(q*r)
 \[
   L \cdot p \le U \cdot q \;\implies\; L \cdot (p \cdot r) \le U \cdot (q \cdot r).
 \]
