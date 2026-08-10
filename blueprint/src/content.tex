@@ -1789,8 +1789,7 @@ $\lse$):
 \]
 \begin{gather*}
   a \wedge b = (\max(a_0,b_0), \min(a_1,b_1)), \qquad
-  a \vee b = (\min(a_0,b_0), \max(a_1,b_1)), \\
-  \bot=(\infty,-\infty),\ \top=(-\infty,\infty).
+  a \vee b = (\min(a_0,b_0), \max(a_1,b_1)).
 \end{gather*}
 \uses{lem:lifted-mass, lem:log-iso}
 \end{lemma}
@@ -1802,6 +1801,11 @@ Lemma~\ref{lem:lifted-mass}: $\log$ of a product is a sum, $\log$ of a
 sum is $\lse$ of the logs, and $\log$ is order-preserving so
 $\max,\min$ pass through unchanged.
 \end{proof}
+
+The carrier $\LogS$ has a bottom, $-\infty$, and no top, so $\LogS^2$
+has no order-family bounds of its own. Adjoining $\infty$ supplies them:
+$\bot=(\infty,-\infty)$ and $\top=(-\infty,\infty)$, made concrete by
+Lemma~\ref{lem:log-completion-bounds} (Section~\ref{sec:completions}).
 
 \begin{lemma}[Lifted connectives, the {$[0,1]$} readout is derived]
 \label{lem:lifted-prob-readout}
@@ -1971,9 +1975,11 @@ At $p = q = 3$:
 \[
   p \otimes q = 3 \cdot 3 = 9, \qquad p \oplus q = 3 + 3 = 6,
 \]
-and $9 \le 6$ is false: the same witness that refutes
-Theorem~\ref{thm:mass-submeet-fails} refutes MIX, since MIX factors
-through the sub-meet inequality (Lemma~\ref{lem:mix}'s chain).
+and $9 \le 6$ is false. The witness $p = q = 3$ serves here and in
+Theorem~\ref{thm:mass-submeet-fails}, but each failure is its own
+computation: Lemma~\ref{lem:mix}'s chain runs
+$p \otimes q \le p \wedge q \le p \vee q \le p \oplus q$, so a broken
+left inequality says nothing about the outer one.
 \end{proof}
 
 Theorems~\ref{thm:mass-submeet-fails} and~\ref{thm:mass-mix-fails} are
@@ -2005,8 +2011,8 @@ and its order is self-dual: the reciprocal $p \mapsto 1/p$
 ($0 \mapsto \infty$, $\infty \mapsto 0$) is an antitone involution of
 the order alone. Suppose $\neg$ is an antitone involution satisfying
 the De Morgan law for $(\cdot,+)$. Two facts hold for any such map on
-any BLat2Mon (Class~\ref{def:blat2mon}), needing no UnitBounds: the
-lattice De Morgan law forces $\neg\bot = \top$
+any BLat2Mon (Class~\ref{def:blat2mon}), needing no UnitBounds:
+antitonicity and involution force $\neg\bot = \top$
 (Lemma~\ref{lem:dm-lattice-laws}), and the unit swap forces
 $\neg\dzero = \done$ (Lemma~\ref{lem:dm-unit-swap}). Here
 $\dzero = 0 = \bot$ (ZeroBot,

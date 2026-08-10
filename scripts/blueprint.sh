@@ -134,6 +134,16 @@ echo "==> leanblueprint pdf"
 echo "==> leanblueprint web"
 "$LEANBLUEPRINT" web || fail $?
 
+# Every scratch file this run makes lives in ONE per-run directory.
+# BSD `mktemp` substitutes only a TRAILING run of X's, so the old
+# templates ("$TMPDIR/blueprint-decl-check.XXXXXX.lean" and friends,
+# X's in the middle) created that LITERAL filename and a second
+# concurrent run died with "mkstemp failed: File exists" — which is
+# what broke parallel worktree runs. `mktemp -d` with trailing X's is
+# unique per run, and the files inside it can keep plain readable names.
+SCRATCH_DIR="$(mktemp -d "${TMPDIR:-/tmp}/blueprint-scratch.XXXXXX")"
+trap 'rm -rf "$SCRATCH_DIR"' EXIT
+
 echo "==> declaration check (grep-based, no lakefile change)"
 # Portable array-fill (avoids `mapfile`, which macOS's stock bash 3.2 lacks).
 DECL_NAMES=()
@@ -151,8 +161,7 @@ done < <(
 if [ "${#DECL_NAMES[@]}" -eq 0 ]; then
   echo "No \\lean{...} declarations found in blueprint/src — vacuous pass."
 else
-  SCRATCH="$(mktemp "${TMPDIR:-/tmp}/blueprint-decl-check.XXXXXX.lean")"
-  trap 'rm -f "$SCRATCH"' EXIT
+  SCRATCH="$SCRATCH_DIR/decl-check.lean"
 
   {
     echo "import NeSyCat"
@@ -169,13 +178,12 @@ fi
 
 echo "==> CORRESPONDENCE: structure + kind-check"
 
-CORR_PY="$(mktemp "${TMPDIR:-/tmp}/blueprint-correspondence.XXXXXX.py")"
-GROUPS_JSONL="$(mktemp "${TMPDIR:-/tmp}/blueprint-groups.XXXXXX.jsonl")"
-KIND_LEAN="$(mktemp "${TMPDIR:-/tmp}/blueprint-kindcheck.XXXXXX.lean")"
-KIND_OUT="$(mktemp "${TMPDIR:-/tmp}/blueprint-kindcheck.XXXXXX.out")"
-CENSUS_LEAN="$(mktemp "${TMPDIR:-/tmp}/blueprint-census.XXXXXX.lean")"
-CENSUS_LEAN_OUT="$(mktemp "${TMPDIR:-/tmp}/blueprint-census.XXXXXX.out")"
-trap 'rm -f "$SCRATCH" "$CORR_PY" "$GROUPS_JSONL" "$KIND_LEAN" "$KIND_OUT" "$CENSUS_LEAN" "$CENSUS_LEAN_OUT"' EXIT
+CORR_PY="$SCRATCH_DIR/correspondence.py"
+GROUPS_JSONL="$SCRATCH_DIR/groups.jsonl"
+KIND_LEAN="$SCRATCH_DIR/kindcheck.lean"
+KIND_OUT="$SCRATCH_DIR/kindcheck.out"
+CENSUS_LEAN="$SCRATCH_DIR/census.lean"
+CENSUS_LEAN_OUT="$SCRATCH_DIR/census.out"
 
 cat > "$CORR_PY" << 'CORRESPONDENCE_PY_EOF'
 #!/usr/bin/env python3
@@ -1060,9 +1068,8 @@ echo "==> kernel-truth axiom audit (C2-H2 item 3)"
 if [ "${#DECL_NAMES[@]}" -eq 0 ]; then
   echo "kernel-truth: OK (0 names, vacuous -- no \\lean{...} names to audit)"
 else
-  AXIOM_LEAN="$(mktemp "${TMPDIR:-/tmp}/blueprint-axioms.XXXXXX.lean")"
-  AXIOM_OUT="$(mktemp "${TMPDIR:-/tmp}/blueprint-axioms.XXXXXX.out")"
-  trap 'rm -f "$SCRATCH" "$CORR_PY" "$GROUPS_JSONL" "$KIND_LEAN" "$KIND_OUT" "$CENSUS_LEAN" "$CENSUS_LEAN_OUT" "$AXIOM_LEAN" "$AXIOM_OUT"' EXIT
+  AXIOM_LEAN="$SCRATCH_DIR/axioms.lean"
+  AXIOM_OUT="$SCRATCH_DIR/axioms.out"
 
   python3 "$CORR_PY" emit-axiom-lean "${DECL_NAMES[@]}" > "$AXIOM_LEAN"
   if ! lake env lean "$AXIOM_LEAN" > "$AXIOM_OUT" 2>&1; then

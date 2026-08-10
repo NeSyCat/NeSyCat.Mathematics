@@ -535,6 +535,40 @@ step below.
      computation stays fine. No bureaucracy where a line suffices —
      this law does not ask every one-line `rfl`/`ring` proof to grow
      a display.
+  3. **Formability clause (C2-E14+FIX, 2026-08-10; a defect class with
+     four recorded offences).** Before a statement or a display NAMES an
+     object — `⊥`, `⊤`, an inverse, a quotient, any other
+     instance-dependent element — the author checks that the object is
+     CONSTRUCTIBLE under the hypotheses actually in force on that
+     carrier. Lean's typeclass requirements are the test, and they are
+     the whole test: if the Lean side would need `[BoundedOrder S]`,
+     `[Inv S]`, a `Setoid`, or any instance the carrier does not carry,
+     the object does not exist there and the display must not write it.
+     The Lean counterpart is also the EVIDENCE, readable without
+     re-deriving anything: a statement whose Lean form avoids the object
+     (`¬ IsBot x` where the page wrote `x \ne \bot`; an `orderBot`
+     available only under `[BoundedOrder S]`) is saying plainly that the
+     object is unavailable on that carrier, and a display that writes it
+     anyway is a defect, not a convenience. The repair is never to
+     delete the mathematics: the unbounded carrier keeps what is true of
+     it, and the bounded statement moves to the carrier where the
+     hypotheses do hold (typically the completion), reached by a forward
+     pointer in plain prose after the environment. The four offences to
+     date, kept here as calibration: `\bot` written on an unbounded
+     carrier; `(\top_{\MassS}, \bot_{\MassS})` written where
+     `BoundedOrder ℝ≥0` does not exist; the mass twin of the lifted
+     bounds line; and `lem:lifted-log`'s bounds line, which wrote
+     $\infty$ on `LogS = WithBot ℝ`, a carrier with a bottom and no top.
+     Procedure, TRANSCRIBE-FIRST — this is the order that caught the
+     fourth one, and reversing it is how all four were authored: locate
+     the Lean step, write the `%` comment naming the lemma it cites,
+     DERIVE the display from that lemma's statement, then run the
+     formability check over every object the display names. Writing the
+     display from memory and hunting for a Lean step afterwards is the
+     defect's cause, not merely its occasion. A blind verifier reads
+     each display in a swept environment against the carrier's actual
+     instances and reports every named object the carrier cannot
+     construct.
   The flat-register and connective-flow laws above apply to this
   law's own glue prose unchanged; this law is about mathematical
   CONTENT (does the proof show its work?), not about sentence style.
