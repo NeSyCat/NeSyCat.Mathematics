@@ -29,6 +29,9 @@ import NeSyCat.LogicalLayer.TruthSpaces.TruthSpaces
 import NeSyCat.LogicalLayer.TruthSpaces.TruthSpace
 import NeSyCat.LogicalLayer.TruthSpaces.Lifted
 import NeSyCat.LogicalLayer.ThreeLayers.ThreeLayers
+import NeSyCat.LogicalLayer.Completions.Completions
+import NeSyCat.LogicalLayer.Completions.MassCompletion
+import NeSyCat.LogicalLayer.Completions.LogCompletion
 import NeSyCat.LogicalLayer.LogicalSignatures.LogicalSignatures
 
 -- Domain layer (blueprint §4)

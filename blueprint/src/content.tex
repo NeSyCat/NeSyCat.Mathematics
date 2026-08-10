@@ -353,8 +353,8 @@ $\otimes{=}{+}$.
 
 The log row contains $-\infty$: it is both the bottom $\bot$ and the
 unit $0$, since $0 = \log 0$. The mass and log rows have no top
-element. Their completions $[0,\infty]$ and $[-\infty,\infty]$ do; we
-treat those in a later section. The probability row
+element. Their completions $\MassSInf$ and $\LogSInf$ do
+(Section~\ref{sec:completions}). The probability row
 $(\ProbS,\, p+q-pq,\, \cdot)$, with $\max,\min$ as its lattice, is a
 different case: by Lemma~\ref{lem:prob-not-semiring} it is not a
 semiring at all.
@@ -1517,11 +1517,13 @@ element.
 
 Theorems~\ref{thm:no-dm-mass} and \ref{thm:no-dm-log} rule out a
 negation on the mass and log rows because each order has a bottom but
-no top. Adding $\infty$ removes that reason: on $[0,\infty]$ and
-$[-\infty,\infty]$ the order looks the same upside down, so the
-argument no longer applies. That does not mean a negation exists
-there. We come back to the question in a later section, where these
-two carriers get their own treatment.
+no top. Adding $\infty$ removes that reason: on $\MassSInf$ and
+$\LogSInf$ the order looks the same upside down, so the argument no
+longer applies. That does not mean a negation exists there.
+Theorem~\ref{thm:no-dm-mass-completion} (Section~\ref{sec:completions})
+answers the question for the mass completion: even with the order
+self-dual, no De Morgan structure exists for $\MassSInf$'s own
+$\otimes,\oplus$.
 
 \begin{theorem}[The mass square is not linear]
 \label{thm:square-not-lin}
@@ -1617,7 +1619,7 @@ four laws of Class~\ref{def:lin-blat2mon} survive. Lemma~\ref{lem:prob-not-semir
 is the concrete probability-row instance of that failure. Linear
 logic's exponentials $!/?$ are mirrored here by the exp/log bridge
 between the mass and log rows. Definition~\ref{lem:log-iso} is the
-first ingredient; we come back to the rest in a later section, with
+first ingredient; Section~\ref{sec:completions} carries the bridge to
 the completion instances.
 % Apparatus (C2-E5): provenance credit, moved verbatim.
 % ... deferred to the residuation section [Girard 1987].
@@ -1754,9 +1756,9 @@ $e\oplus w = w$, resp.\ $e\otimes w = w$, for all $w$.
 \end{proof}
 
 On the carrier $\MassS$ itself (unbounded), $\MassS^2$ acquires bounds
-$\bot=(\infty,0)$, $\top=(0,\infty)$ only after adjoining $\infty$. We
-treat the bounded completion in a later section, with the completion
-instances.
+$\bot=(\infty,0)$, $\top=(0,\infty)$ only after adjoining $\infty$.
+Lemma~\ref{lem:mass-completion-bounds} (Section~\ref{sec:completions})
+makes this concrete, once the completion instances land.
 
 % Apparatus (C2-E5): erratum account, moved verbatim (see PROGRESS.md /
 % the campaign ledger for the honesty record).
@@ -1853,6 +1855,227 @@ for a general lattice-semiring $S$; Lemmas~\ref{lem:lifted-mass} and
 % Apparatus (C2-E5): provenance note, moved verbatim.
 % [NeSy26, App.~A] works the order out concretely only for
 % $S \in \{\MassS, \LogS\}$.
+
+% ------------------------------------------------------------
+\subsection{Completions}  % lean-dir: LogicalLayer/Completions
+\label{sec:completions}
+
+Adjoining $\infty$ to $\MassS$ gives $\MassSInf$; adjoining both
+$\infty$ and $-\infty$ to $\LogS$ gives $\LogSInf$. Both completions
+give the order a top, closing Definition~\ref{def:order-family}'s
+bounds clause for these two rows. Adjoining a top changes more than
+the order, though: it changes which laws the connectives satisfy. The
+rest of this section makes that change precise.
+
+\begin{instance}[Mass completion, semiring row]
+\label{inst:mass-completion-latcsrng}
+\lean{NeSyCat.instBLatCSRngENNReal}
+\leanok
+Carrier $\MassSInf$, $\bot{=}0$, $\top{=}\infty$, $\vee{=}\max$,
+$\wedge{=}\min$, $0{=}0$, $1{=}1$, $\oplus{=}{+}$, $\otimes{=}\cdot$: a
+bounded commutative lattice-semiring (Class~\ref{def:bounded-comm-lattice-semiring}).
+\uses{def:bounded-comm-lattice-semiring, inst:massS-latcsrng}
+\end{instance}
+
+$0 \cdot \infty = \infty \cdot 0 = 0$ on $\MassSInf$: annihilation by
+$0$ beats absorption by $\infty$. This is not forced by the order; it
+is a choice about how $\cdot$ extends to the new top element, and it
+is the choice this row makes throughout.
+
+\begin{instance}[Mass completion, truth structure]
+\label{inst:mass-completion-linblat2cmon}
+\lean{NeSyCat.instLinBLat2CMonENNReal}
+\leanok
+$\MassSInf$ with $\otimes := \cdot$, $\done := 1$, $\oplus := {+}$,
+$\dzero := 0$ is a LinBLat2CMon (Class~\ref{def:lin-blat2cmon}), and
+ZeroBot holds: $\dzero = 0 = \bot$.
+\uses{def:lin-blat2cmon, def:zero-bot, thm:chain-lin, inst:mass-completion-latcsrng}
+\end{instance}
+
+\begin{proof}
+\leanok
+Monoid and commutativity laws are the semiring laws of
+Instance~\ref{inst:mass-completion-latcsrng}. The four linear laws come
+from Theorem~\ref{thm:chain-lin}: $\MassSInf$ is a chain, and $\cdot$,
+$+$ are each monotone in both arguments, so both preserve finite
+joins/meets as that theorem's raw form requires, with no boundedness
+or UnitBounds hypothesis needed for this part. The nullary laws
+(annihilation, absorption) do not go through
+Definition~\ref{def:chain-lin-unitbounds}'s UnitBounds route either:
+they are $\MassSInf$'s own arithmetic, $0 \cdot p = p \cdot 0 = 0$ and
+$p + \infty = \infty + p = \infty$, true unconditionally. ZeroBot is
+$0 = \bot$ by construction.
+\end{proof}
+
+\begin{theorem}[The mass completion is not UnitBounds]
+\label{thm:mass-completion-not-unitbounds}
+\lean{NeSyCat.not_oneTop_ennreal}
+\leanok
+OneTop (Class~\ref{def:one-top}) fails for
+Instance~\ref{inst:mass-completion-linblat2cmon}: $\done \ne \top$.
+\uses{def:one-top, inst:mass-completion-linblat2cmon}
+\end{theorem}
+
+\begin{proof}
+\leanok
+$\done = 1$ and $\top = \infty$ in $\MassSInf$, and $1 \ne \infty$.
+\end{proof}
+
+Instance~\ref{inst:mass-completion-linblat2cmon} and
+Theorem~\ref{thm:mass-completion-not-unitbounds} together locate
+UnitBounds (Class~\ref{def:unit-bounds}) precisely: it is a boundary
+between REGIMES, not between having linear-logic structure at all and
+not having it. $\MassSInf$ carries a full LinBLat2CMon, all four
+linear distributions of linear logic~\citep{girardLinearLogic1987},
+with ZeroBot holding and OneTop failing. The probability row
+$\ProbS$ (Lemma~\ref{lem:unit-interval-truth-structure}) carries the
+same linear laws with UnitBounds also holding. Both are linear logic
+in the LinBLat2Mon sense; only one of them bounds its units.
+
+\begin{theorem}[$\otimes$-amplification kills the sub-meet law]
+\label{thm:mass-submeet-fails}
+\lean{NeSyCat.otimes_not_le_inf_ennreal}
+\leanok
+On $\MassSInf$, $\otimes$ is not everywhere below the meet: it is not
+the case that $p \otimes q \le p \wedge q$ for all $p, q$.
+\uses{lem:mix, inst:mass-completion-linblat2cmon,
+thm:mass-completion-not-unitbounds}
+\end{theorem}
+
+\begin{proof}
+\leanok
+Lemma~\ref{lem:mix}'s left inequality needs OneTop
+(Definition~\ref{def:one-top}, via
+Lemma~\ref{lem:dualabsorb-decomposition}(i)), which
+Theorem~\ref{thm:mass-completion-not-unitbounds} refutes here. At
+$p = q = 3$:
+\[
+  p \otimes q = 3 \cdot 3 = 9, \qquad p \wedge q = \min(3,3) = 3,
+\]
+and $9 \le 3$ is false.
+\end{proof}
+
+\begin{theorem}[MIX fails on the mass completion]
+\label{thm:mass-mix-fails}
+\lean{NeSyCat.otimes_not_le_oplus_ennreal}
+\leanok
+On $\MassSInf$, MIX fails: it is not the case that
+$p \otimes q \le p \oplus q$ for all $p, q$.
+\uses{lem:mix, inst:mass-completion-linblat2cmon,
+thm:mass-completion-not-unitbounds}
+\end{theorem}
+
+\begin{proof}
+\leanok
+At $p = q = 3$:
+\[
+  p \otimes q = 3 \cdot 3 = 9, \qquad p \oplus q = 3 + 3 = 6,
+\]
+and $9 \le 6$ is false: the same witness that refutes
+Theorem~\ref{thm:mass-submeet-fails} refutes MIX, since MIX factors
+through the sub-meet inequality (Lemma~\ref{lem:mix}'s chain).
+\end{proof}
+
+Theorems~\ref{thm:mass-submeet-fails} and~\ref{thm:mass-mix-fails} are
+the two counterexamples that separate the mass regime from the
+probability regime. On $\ProbS$, UnitBounds holds and $\otimes$
+attenuates: multiplying two values in $[0,1]$ never exceeds either
+factor. On $\MassSInf$, UnitBounds fails at OneTop and $\otimes$
+amplifies: multiplying two values above $1$ exceeds both factors. The
+same connective, $\otimes = \cdot$, is attenuating on one carrier and
+amplifying on the other, and Lemma~\ref{lem:mix}'s own hypothesis is
+exactly what tracks the difference.
+
+\begin{theorem}[No De Morgan structure on the mass completion]
+\label{thm:no-dm-mass-completion}
+\lean{NeSyCat.no_dm_ennreal}
+\leanok
+No antitone involution on $\MassSInf$ satisfies the De Morgan law
+(Class~\ref{def:dm-structure}, axiom (iii)) for
+Instance~\ref{inst:mass-completion-linblat2cmon}'s
+$(\otimes,\oplus) = (\cdot,+)$.
+\uses{def:dm-structure, inst:mass-completion-linblat2cmon,
+thm:mass-completion-not-unitbounds}
+\end{theorem}
+
+\begin{proof}
+\leanok
+Unlike Theorem~\ref{thm:no-dm-mass}, $\MassSInf$ genuinely has bounds,
+and its order is self-dual: the reciprocal $p \mapsto 1/p$
+($0 \mapsto \infty$, $\infty \mapsto 0$) is an antitone involution of
+the order alone. Suppose $\neg$ is an antitone involution satisfying
+the De Morgan law for $(\cdot,+)$. Two facts hold for any such map on
+any BLat2Mon (Class~\ref{def:blat2mon}), needing no UnitBounds: the
+lattice De Morgan law forces $\neg\bot = \top$
+(Lemma~\ref{lem:dm-lattice-laws}), and the unit swap forces
+$\neg\dzero = \done$ (Lemma~\ref{lem:dm-unit-swap}). Here
+$\dzero = 0 = \bot$ (ZeroBot,
+Instance~\ref{inst:mass-completion-linblat2cmon}), so both facts apply
+at the same point:
+\[
+  \neg 0 = \neg\bot = \top = \infty, \qquad \neg 0 = \neg\dzero = \done = 1.
+\]
+Hence $\infty = 1$, which is false. So the reciprocal's own failure of
+axiom (iii) ($1/(1 \cdot 1) = 1 \ne 2 = 1/1 + 1/1$) is not a
+correctable defect of one candidate map: no map compatible with
+$(\cdot,+)$ can satisfy the De Morgan law here, for the same reason
+Theorem~\ref{thm:mass-completion-not-unitbounds} gives ZeroBot without
+OneTop.
+\end{proof}
+
+\begin{lemma}[The mass completion's order-family bounds]
+\label{lem:mass-completion-bounds}
+\lean{NeSyCat.lifted_mass_bounds}
+\leanok
+On $\Tmon\,\BoolS$ at the completed carrier $\MassSInf$,
+Definition~\ref{def:order-family}'s bounds are concrete:
+$\bot = (\infty,0)$, $\top = (0,\infty)$.
+\uses{def:order-family, inst:mass-completion-latcsrng}
+\end{lemma}
+
+\begin{proof}
+\leanok
+Definition~\ref{def:order-family}'s bounds, $\bot = (\top_S,\bot_S)$
+and $\top = (\bot_S,\top_S)$, are stated for any bounded lattice-semiring
+$S$; $\MassSInf$ (Instance~\ref{inst:mass-completion-latcsrng}) is one,
+with $\bot_S = 0$, $\top_S = \infty$.
+\end{proof}
+
+\begin{instance}[Log completion]
+\label{inst:log-completion-latcsrng}
+\lean{NeSyCat.instBLatCSRngLogSInf}
+\leanok
+Carrier $\LogSInf$, $\bot{=}{-\infty}$, $\top{=}\infty$, $\vee{=}\max$,
+$\wedge{=}\min$, $0{=}{-\infty}$, $1{=}0$, $\oplus{=}\lse$,
+$\otimes{=}{+}$: a bounded commutative lattice-semiring, transported
+from Instance~\ref{inst:mass-completion-latcsrng} along the
+exponential-logarithm bijection of Definition~\ref{lem:log-iso},
+exactly as Instance~\ref{inst:logS-latcsrng} transports from
+Instance~\ref{inst:massS-latcsrng}.
+\uses{def:bounded-comm-lattice-semiring, inst:mass-completion-latcsrng,
+inst:logS-latcsrng}
+\end{instance}
+
+$\infty + (-\infty) = -\infty$ on $\LogSInf$: the log-space image of
+$0 \cdot \infty = 0$, forced once the mass completion's convention is
+fixed.
+
+\begin{lemma}[The log completion's order-family bounds]
+\label{lem:log-completion-bounds}
+\lean{NeSyCat.lifted_log_bounds}
+\leanok
+On $\LTmon\,\BoolS$ at the completed carrier $\LogSInf$,
+Definition~\ref{def:order-family}'s bounds are concrete:
+$\bot = (\infty,-\infty)$, $\top = (-\infty,\infty)$.
+\uses{def:order-family, inst:log-completion-latcsrng}
+\end{lemma}
+
+\begin{proof}
+\leanok
+As Lemma~\ref{lem:mass-completion-bounds}, at
+$S = \LogSInf$ (Instance~\ref{inst:log-completion-latcsrng}),
+$\bot_S = -\infty$, $\top_S = \infty$.
+\end{proof}
 
 % ------------------------------------------------------------
 \subsection{Three layers}  % lean-dir: LogicalLayer/ThreeLayers
@@ -2490,20 +2713,26 @@ Lemma~\ref{lem:quantifier-columns-nestable} below.
 
 \begin{lemma}[Quantifier columns are nestable]
 \label{lem:quantifier-columns-nestable}
+\lean{NeSyCat.quantifier_columns_nestable}
+\leanok
 The four running interpretation families (max, min, the $\Sigma$-$\Pi$
 pair, and their log twins) are symmetric and nestable in the sense of
 the hypotheses of Lemma~\ref{lem:quantifier-nestable}.
-\uses{lem:quantifier-nestable, lem:log-iso}
+\uses{lem:quantifier-nestable, lem:log-iso, inst:mass-completion-latcsrng}
 \end{lemma}
 
 \begin{proof}
+\leanok
 Symmetry: each family reduces its inputs by an operation that is
 commutative and associative (max, min, $+$, $\cdot$), so the reduction is
 invariant under any permutation of its inputs. Nestability: a reduction
 over $mn$ inputs decomposes into $m$ block reductions of size $n$,
 followed by a reduction over the $m$ block results (for max and min by
 associativity, for $\Sigma$ and $\Pi$ by the block decomposition of
-finite sums and products). The log twins inherit both properties along
+finite sums and products). Max, min, $\Sigma$, and $\Pi$ all instantiate
+on the mass completion $\MassSInf$ (Instance~\ref{inst:mass-completion-latcsrng}):
+min needs a top element for its seed, which the unbounded mass row lacks
+and the completion supplies. The log twins inherit both properties along
 the log isomorphism of Lemma~\ref{lem:log-iso}, since $\mathrm{lse}$ and
 $+$ are the images of $+$ and $\cdot$, and both laws transport
 pointwise.

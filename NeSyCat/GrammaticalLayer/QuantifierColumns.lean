@@ -9,36 +9,39 @@ import NeSyCat.GrammaticalLayer.QuantifierNestable
 import NeSyCat.CategoricalLayer.SemiringMonads.LogIso
 
 /-!
-# Quantifier columns are nestable (C3-B4b)
+# Quantifier columns are nestable (C3-B4b, marked at C3-CMP)
 
-Toward blueprint item `lem:quantifier-columns-nestable`
+Blueprint item `lem:quantifier-columns-nestable`
 (`blueprint/src/content.tex`, §"Grammatical layer"): the four running
 interpretation families (max, min, the Σ-Π pair, and their log twins)
 are symmetric and nestable in the sense of the hypotheses of
 `lem:quantifier-nestable`.
 
-**Honest scope (disclosed, C3-B4b).** The predicates are EXACTLY
-`QuantifierNestable.lean`'s `Nestable`/`SymmetricFamily` (the Lean
-form of `lem:quantifier-nestable`'s hypotheses), instantiated at the
-category of sets — the base category of the running interpretations —
-where an `n`-ary reduction family is the fold `foldFam op e` of a
-binary operation over the tensor power. `foldFam_nestable` and
+**Scope.** The predicates are EXACTLY `QuantifierNestable.lean`'s
+`Nestable`/`SymmetricFamily` (the Lean form of
+`lem:quantifier-nestable`'s hypotheses), instantiated at the category
+of sets — the base category of the running interpretations — where an
+`n`-ary reduction family is the fold `foldFam op e` of a binary
+operation over the tensor power. `foldFam_nestable` and
 `foldFam_symmetric` prove the env's proof sentence generically:
 nestability from associativity (with the fold's own seed-unit laws),
-symmetry from commutativity (adjacent transpositions). The six
-concrete columns instantiate them: max, Σ, Π on `ℝ≥0` (the mass
-carrier), min on `unitInterval` (min needs the top element the
-unbounded mass carrier lacks; the probability carrier supplies it),
-and the log twins `lse`/`+` on `LogS` — `lem:log-iso`'s transported
-`CommSemiring` makes `lse`/`logMul` literally `LogS`'s own `+`/`*`, so
-the twins inherit both properties from the transported semiring laws,
-the env's own "along the log isomorphism" argument. The env carries NO
-`\lean`/`\leanok` mark: its phrase "the four running interpretation
-families" denotes `𝓘(Q)ₙ` data of `def:logical-interpretation`, and no
-concrete `LogInterpretation` witnessing the running columns exists in
-Lean yet — the families here are their scalar reductions, the level
-the env's own proof argues at; the marking decision is deferred to
-LEAD (see `.foreman/scratch/C3-B4b-report.md`).
+symmetry from commutativity (adjacent transpositions).
+
+**C3-ADJ (user ruling): one carrier for all four.** At C3-B4b, `min`
+needed a top element the unbounded mass carrier `ℝ≥0` lacks, so it was
+instantiated on `unitInterval` while `max`/`Σ`/`Π` stayed on `ℝ≥0` — a
+disclosed mixed-carrier proof, kept unmarked. The mass completion
+`ℝ≥0∞` (`NeSyCat/LogicalLayer/Completions/MassCompletion.lean`, C3-CMP)
+supplies exactly the missing top (`⊤ = ∞`, `min`'s own seed unit), so
+all FOUR running families now instantiate on the SAME carrier `ℝ≥0∞`:
+`min`'s seed is `⊤` in place of `unitInterval`'s `1`, everything else
+unchanged. The log twins `lse`/`+` on `LogS` are untouched (they never
+needed a top; their own seeds `0`/`1` were always in-carrier) --
+`lem:log-iso`'s transported `CommSemiring` makes `lse`/`logMul`
+literally `LogS`'s own `+`/`*`, so the twins inherit both properties
+from the transported semiring laws, the env's own "along the log
+isomorphism" argument, matching the blueprint's own two-clause shape
+(the four running families on one carrier; the log twins by transport).
 -/
 
 open CategoryTheory MonoidalCategory
@@ -118,28 +121,26 @@ theorem foldFam_symmetric (hassoc : ∀ x y z, op (op x y) z = op x (op y z))
       op (foldFam op e ((a + 2) + b) t.1) t.2
     exact congrArg (fun x => op x t.2) (ih t.1)
 
-open scoped NNReal unitInterval in
-/-- Toward `lem:quantifier-columns-nestable` (C3-B4b), the six
-concrete columns: max, Σ (`+`), Π (`·`) on `ℝ≥0` (the mass carrier);
-min on `unitInterval` (the probability carrier, whose top element is
-min's seed unit — the unbounded mass carrier has none); the log twins
-on `LogS`, whose transported semiring operations ARE `lse` and
-`logMul` (`lem:log-iso`, `logS_add_eq_lse`/`logS_mul_eq_logMul`), so
-the twins inherit both properties along the log isomorphism, the
-env's own argument. Every seed is the operation's genuine unit, so
-each fold family is the intended `n`-ary reduction. -/
-@[blueprint_internal] -- toward lem:quantifier-columns-nestable: the
--- six running columns are symmetric and nestable, env unmarked
--- pending LEAD's carrier-level adjudication
+open scoped NNReal ENNReal in
+/-- Blueprint `lem:quantifier-columns-nestable`, the six concrete
+columns: max, min, Σ (`+`), Π (`·`) ALL on the mass completion `ℝ≥0∞`
+(C3-ADJ: `min`'s seed `⊤` is exactly the top element the completion
+supplies, matching `max`/`Σ`/`Π`'s own carrier — one carrier for all
+four running families); the log twins on `LogS`, whose transported
+semiring operations ARE `lse` and `logMul` (`lem:log-iso`,
+`logS_add_eq_lse`/`logS_mul_eq_logMul`), so the twins inherit both
+properties along the log isomorphism, the env's own argument. Every
+seed is the operation's genuine unit, so each fold family is the
+intended `n`-ary reduction. -/
 theorem quantifier_columns_nestable :
-    (Nestable (foldFam max (0 : ℝ≥0)) ∧
-        SymmetricFamily (foldFam max (0 : ℝ≥0))) ∧
-      (Nestable (foldFam min (1 : unitInterval)) ∧
-        SymmetricFamily (foldFam min (1 : unitInterval))) ∧
-      (Nestable (foldFam (· + ·) (0 : ℝ≥0)) ∧
-        SymmetricFamily (foldFam (· + ·) (0 : ℝ≥0))) ∧
-      (Nestable (foldFam (· * ·) (1 : ℝ≥0)) ∧
-        SymmetricFamily (foldFam (· * ·) (1 : ℝ≥0))) ∧
+    (Nestable (foldFam max (0 : ℝ≥0∞)) ∧
+        SymmetricFamily (foldFam max (0 : ℝ≥0∞))) ∧
+      (Nestable (foldFam min (⊤ : ℝ≥0∞)) ∧
+        SymmetricFamily (foldFam min (⊤ : ℝ≥0∞))) ∧
+      (Nestable (foldFam (· + ·) (0 : ℝ≥0∞)) ∧
+        SymmetricFamily (foldFam (· + ·) (0 : ℝ≥0∞))) ∧
+      (Nestable (foldFam (· * ·) (1 : ℝ≥0∞)) ∧
+        SymmetricFamily (foldFam (· * ·) (1 : ℝ≥0∞))) ∧
       (Nestable (foldFam (· + ·) (0 : LogS)) ∧
         SymmetricFamily (foldFam (· + ·) (0 : LogS))) ∧
       (Nestable (foldFam (· * ·) (1 : LogS)) ∧
@@ -150,7 +151,7 @@ theorem quantifier_columns_nestable :
   · exact foldFam_symmetric (fun x y z => max_assoc x y z)
       (fun x y => max_comm x y)
   · exact foldFam_nestable (fun x y z => min_assoc x y z)
-      (fun x => min_eq_left unitInterval.le_one')
+      (fun _ => min_eq_left le_top)
   · exact foldFam_symmetric (fun x y z => min_assoc x y z)
       (fun x y => min_comm x y)
   · exact foldFam_nestable (fun x y z => add_assoc x y z)
