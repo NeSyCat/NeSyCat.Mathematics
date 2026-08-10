@@ -397,6 +397,8 @@ $f(x)\otimes k(x)(y)$ throughout. No step needs $\otimes$ to commute.
 
 \begin{lemma}[Bind is matrix multiplication]
 \label{lem:bind-matrix-mult}
+\lean{NeSyCat.bind_apply}
+\leanok
 $\bind$ of Definition~\ref{def:semiring-monad} is matrix multiplication
 over $S$: $f \colon X \to S$ and $k \colon X \to \MS{S}Y$ correspond to
 a row vector and an $X \times Y$ matrix over $S$, and $(f \bind k)(y) =
@@ -406,6 +408,7 @@ product.
 \end{lemma}
 
 \begin{proof}
+\leanok
 Immediate from unfolding the $\bind$ formula of
 Definition~\ref{def:semiring-monad} against the matrix-product formula
 $(fK)(y) = \bigoplus_x f(x)\otimes K(x,y)$ at $K(x,y) := k(x)(y)$.
@@ -2093,6 +2096,8 @@ $\tfrac16\cdot\tfrac12=\tfrac1{12}$. The substituted formula copies the
 
 \begin{definition}[Batch monad]
 \label{def:batch-monad}
+\lean{NeSyCat.Bmon.bind}
+\leanok
 Let $\Bidx = \{1,\ldots,B\}$ index a mini-batch of $B$ samples
 evaluated together in one run ($B=N$ for the full sample). The
 \textbf{batch monad} $\Bmon$ is the reader monad on $\Bidx$: for a set
@@ -2111,6 +2116,8 @@ the continuation at index $b$ sees only index $b$'s value.
 
 \begin{theorem}[Batch transformer]
 \label{thm:batch-transformer}
+\lean{NeSyCat.batchTransformer}
+\leanok
 For every strong monad $\mathcal M$ (in particular for every
 $\mathcal M = \MS{S}$ of Definition~\ref{def:semiring-monad}, or
 $\mathcal M = \Idmon$), the composite
@@ -2130,6 +2137,7 @@ $\mathcal M$), and there are two canonical monad morphisms into it:
 \end{theorem}
 
 \begin{proof}
+\leanok
 $\Bmon\mathcal M$'s unit and bind are the reader-monad
 ones of Definition~\ref{def:batch-monad} taken pointwise in
 $\mathcal M X$; the monad laws for $\Bmon\mathcal M$ reduce, index by
@@ -2147,41 +2155,57 @@ observation.
 
 \begin{theorem}[Pointwise evaluation]
 \label{thm:pointwise-eval}
+\lean{NeSyCat.ev_isMonadMorphism}
+\leanok
 For each $i \in \Bidx$, evaluation
 $\mathrm{ev}_i \colon \Bmon\mathcal M X \to \mathcal M X$,
-$m \mapsto m(i)$, is a monad morphism. Assuming in addition that every
-symbol and quantifier interpretation of
+$m \mapsto m(i)$, is a monad morphism.
+\uses{thm:batch-transformer}
+\end{theorem}
+
+\begin{proof}
+\leanok
+$\mathrm{ev}_i(\Ret_{\Bmon\mathcal M}(a)) = \mathrm{const}(a)(i) = a =
+\Ret_{\mathcal M}(a)$. $\mathrm{ev}_i(m \bind f) = f(m(i))(i) = m(i)
+\bind_{\mathcal M} (\lambda x.\, f(x)(i)) = \mathrm{ev}_i(m) \bind
+(f \seq \mathrm{ev}_i)$, unfolding the diagonal bind of
+Definition~\ref{def:batch-monad}.
+\end{proof}
+
+\begin{theorem}[Pointwise evaluation commutes with the Kleisli interpretation]
+\label{thm:pointwise-eval-kleisli}
+Assume every symbol and quantifier interpretation of
 Definition~\ref{def:domain-interpretation} used in the batched reading
-is \emph{batch-natural}, i.e.\ defined pointwise across the batch
-($\mathcal I^{\Bmon\mathcal M}(f) = \mathcal I^{\mathcal M}(f) \seq
+is \emph{batch-natural}: it is defined pointwise across the batch,
+$\mathcal I^{\Bmon\mathcal M}(f) = \mathcal I^{\mathcal M}(f) \seq
 \mathrm{lift}_{\mathcal M}$ applied index by index, for every symbol
-$f$), $\mathrm{ev}_i$ commutes with the Kleisli interpretation of
-feed-forward composites (grammar interpretation,
-Definition~\ref{def:kleisli-interpretation}): for a batch $s \colon
-\Bidx \to \mathcal I(S)$,
+$f$. Then, for a batch $s \colon \Bidx \to \mathcal I(S)$,
 \[
   \sem{\varphi}^{\Bmon\mathcal M}(s)(i) \;=\; \sem{\varphi}^{\mathcal M}(s_i)
   \qquad (i \in \Bidx).
 \]
-\uses{thm:batch-transformer, def:kleisli-interpretation}
+Evaluation $\mathrm{ev}_i$ (Theorem~\ref{thm:pointwise-eval}) commutes
+with the Kleisli interpretation of feed-forward composites (grammar
+interpretation, Definition~\ref{def:kleisli-interpretation}) under
+this hypothesis.
+\uses{thm:pointwise-eval, def:kleisli-interpretation}
 \end{theorem}
 
 \begin{proof}
-$\mathrm{ev}_i$ is a monad morphism because
-$\mathrm{ev}_i(\Ret_{\Bmon\mathcal M}(a)) = \mathrm{const}(a)(i) = a =
-\Ret_{\mathcal M}(a)$ and $\mathrm{ev}_i(m \bind f) = f(m(i))(i) =
-m(i) \bind_{?}\!\ldots$ unfolds, under the batch-naturality hypothesis
-on every symbol occurring in $f$, to $\mathrm{ev}_i(m) \bind
-f \seq \mathrm{ev}_i$; induction on the grammar of
-Definition~\ref{def:grammatical-signature} then transports this through
-every clause of Definition~\ref{def:kleisli-interpretation}.
+Induction on the grammar of
+Definition~\ref{def:grammatical-signature}. Theorem~\ref{thm:pointwise-eval}
+gives the base case: $\mathrm{ev}_i$ commutes with $\Ret$ and $\bind$
+unconditionally. The batch-naturality hypothesis extends this through
+every symbol clause of Definition~\ref{def:kleisli-interpretation}, one
+grammar rule at a time.
 \end{proof}
 
-Theorem~\ref{thm:pointwise-eval} really needs the batch-naturality
-hypothesis. Without it, only part of the claim survives:
-$\mathrm{ev}_i$ still commutes with $\Ret$ and $\bind$, because
-$\mathrm{ev}_i$ is a monad morphism. But if a symbol were interpreted
-differently at each batch index, the equation would fail.
+Theorem~\ref{thm:pointwise-eval-kleisli} really needs the
+batch-naturality hypothesis. Without it, only
+Theorem~\ref{thm:pointwise-eval}'s claim survives: $\mathrm{ev}_i$
+still commutes with $\Ret$ and $\bind$, because it is a monad morphism.
+But if a symbol were interpreted differently at each batch index, the
+equation would fail.
 
 % ------------------------------------------------------------
 \subsection{Bridges and normalization}  % lean-dir: StatisticalLayer/BridgesNormalization

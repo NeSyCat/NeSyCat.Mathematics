@@ -6,9 +6,9 @@ Authors: Daniel Romero Schellhorn
 /-!
 # Batching
 
-Blueprint §6.1 Batching. No Lean content yet; see blueprint §6.1.
-This file is the folder's structure-mirror anchor (STRUCTURE-MIRROR
-ENFORCEMENT, C2-E6): it exists purely so the `NeSyCat/` tree carries a
-folder for every blueprint section/subsection, even before that
-section has any formalized content.
+Blueprint §6.1 Batching. Root module for the `Batching`-mirroring
+folder (STRUCTURE-MIRROR ENFORCEMENT, C2-E6): the batch-monad content
+lives in `BatchMonad.lean` and `BatchTransformer.lean` alongside this
+file. No declarations live here -- this file is a pure module-doc
+anchor so `NeSyCat.lean` can import one name per mirrored folder.
 -/

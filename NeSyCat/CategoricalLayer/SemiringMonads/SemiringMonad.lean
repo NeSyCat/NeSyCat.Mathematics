@@ -85,12 +85,13 @@ formula, matrix multiplication over `S`. -/
 noncomputable def bind (f : MS S X) (k : X → MS S Y) : MS S Y :=
   f.sum fun x w => w • k x
 
-/-- Blueprint `def:semiring-monad` (bind_apply): `bind` unfolds pointwise to
-the blueprint's matrix-multiplication formula `(f bind k)(y) = Σ_x f(x) ⊗
-k(x)(y)` (a finite sum over `f`'s support, `⊗` being `S`'s multiplication,
-in this left-to-right order — no step needs `⊗` to commute). -/
--- (A1 bijection-law companion of `bind`, content.tex def:semiring-monad)
-@[blueprint_internal]
+/-- Blueprint `lem:bind-matrix-mult` (Bind is matrix multiplication):
+`bind` unfolds pointwise to the blueprint's matrix-multiplication
+formula `(f bind k)(y) = Σ_x f(x) ⊗ k(x)(y)` (a finite sum over `f`'s
+support, `⊗` being `S`'s multiplication, in this left-to-right order —
+no step needs `⊗` to commute). Reading `f : X → S` as a row vector and
+`k : X → MS S Y` as the `X × Y` matrix `(x, y) ↦ k(x)(y)`, this is
+exactly the `y`-th entry of their product. -/
 theorem bind_apply (f : MS S X) (k : X → MS S Y) (y : Y) :
     bind f k y = f.sum fun x w => w * k x y := by
   simp [bind, Finsupp.sum_apply, Finsupp.smul_apply, smul_eq_mul]

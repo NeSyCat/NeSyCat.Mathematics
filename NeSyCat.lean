@@ -39,5 +39,7 @@ import NeSyCat.GrammaticalLayer.Kleisli
 -- Statistical layer (blueprint §6)
 import NeSyCat.StatisticalLayer.StatisticalLayer
 import NeSyCat.StatisticalLayer.Batching.Batching
+import NeSyCat.StatisticalLayer.Batching.BatchMonad
+import NeSyCat.StatisticalLayer.Batching.BatchTransformer
 import NeSyCat.StatisticalLayer.BridgesNormalization.BridgesNormalization
 import NeSyCat.StatisticalLayer.Examples.Examples
