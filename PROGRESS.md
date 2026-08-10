@@ -48,6 +48,76 @@ Fine-grained per-item status (labels, `\lean`/`\leanok` marks) lives in
 
 ## Notes
 
+- **C2-E11 (dep-graph proved-status collapse for definition-like kinds,
+  2026-08-10):** web-only, no `.tex` content or Lean touched. Symptom:
+  `class`/`abbreviation` envs never got a background fill on `\leanok`
+  (border only), so every theorem/lemma depending on one was denied
+  the dark-green fully-proved fill even once genuinely formalized.
+  Traced the cause in the venv's
+  `leanblueprint/Packages/blueprint.py:make_lean_data` (postParse-150):
+  a node's `proved` flag comes only from `proof =
+  node.userdata.get('proved_by')` (set by a separate `\proof` env via
+  `\proves`) — `class`/`abbreviation` never carry one (nothing is
+  asserted separately from the declaration), so `proved` stayed
+  hardwired `False` forever, and `fully_proved`'s ancestor scan
+  (`all(n.userdata.get('proved', False) or item_kind(n) ==
+  'definition' for n in ...)`) auto-passes only `definition`-kind
+  ancestors, never `class`/`abbreviation`. Doctrine (LEAD-ruled): for
+  definition-like kinds the statement/proof distinction collapses —
+  kernel acceptance IS the discharge, so `\leanok ⇒ proved`; `instance`
+  stays two-event (real proof obligations) and is untouched. Extended
+  `blueprint/src/nesycatshapes.py` (the E9 local plastex package) with
+  a postParse-160 callback (after leanblueprint's own postParse-150
+  `make_lean_data`, confirmed via `plasTeX/TeX.py`'s ascending-order
+  callback dispatch) that patches `node.userdata['proved'] =
+  bool(leanok)` for `class`/`abbreviation` nodes only, then re-runs
+  `fully_proved`'s own ancestor-scan formula VERBATIM (not forked) so
+  the correction propagates to dependents — leanblueprint's own
+  unmodified `fillcolorizer`/`colorizer` then do the right thing with
+  no override needed at all. Mirrored byte-identical into
+  `plugin/nesycat-lean4-harness/blueprint-scaffold/nesycatshapes.py`.
+  Verified with a stashed-vs-fixed before/after rebuild of
+  `dep_graph_document.html`'s dot: BEFORE, `def:lin-blat2mon` (a class)
+  was `[color=green, label="lin-blat2mon", shape=box]` (no fill) and
+  its dependent `thm:chain-lin` was capped at the medium-green
+  `proved` fill (`fillcolor="#9CEC8B"`, not fully-proved); AFTER, both
+  are `fillcolor="#1CAC78"` (dark green, `style=filled`) — the
+  fully-proved fill now propagates through a leanok'd class exactly as
+  it already did through a leanok'd definition. `def:bounded-comm-
+  lattice-semiring` (the ticket's own class example) went from
+  border-only to `fillcolor="#1CAC78"` too. `inst:massS-latcsrng`
+  (instance) is byte-identical before and after
+  (`[color=green, label="massS-latcsrng", shape=ellipse]`, no fill,
+  since instance envs carry no separate `\proof` in this blueprint's
+  convention and were never touched by the patch) — (c) confirmed
+  unchanged. Legend wording (extended by E9) already reads truthfully
+  for the new fills ("Green/Dark green background — the proof of this
+  result [and all its ancestors] is formalized") and needed no
+  further edit. `thm:semiring-monad-laws`, the ticket's other named
+  example, turned out on inspection to have no class in its ancestor
+  chain at all (`def:semiring-monad` plus two already-proved lemmas)
+  — it was already dark-green before this ticket; `thm:chain-lin` (the
+  ticket's own alternative) is the one genuinely gated by a class
+  ancestor and is used above as the primary evidence instead.
+  Worktree-only environment note: this worktree's nested location
+  under `.claude/worktrees/` breaks `blueprint/src/macros/common.tex`'s
+  hardcoded `\input{../../../NeSyCat.Logics/macros.sty}` (three levels
+  up lands in `.claude/worktrees/`, not the sibling-repo parent);
+  worked around with an untracked symlink
+  `.claude/worktrees/NeSyCat.Logics -> .../NeSyCat/NeSyCat.Logics`
+  placed OUTSIDE this worktree's own git tree (sibling of the worktree
+  dir itself), not a repo change and not part of this commit. Gates:
+  `scripts/check.sh`-equivalent `lake build` clean (8697 jobs, only
+  pre-existing `checkUnivs` linter warnings in `Signatures.lean`,
+  untouched by this ticket), `scripts/blueprint.sh` GREEN twice in a
+  row with every sentinel unchanged (structure 89 environments/85
+  names kind-checked, kernel-truth OK 85, census 542/85/457/0,
+  registry sync 9 twins, structure-mirror 15/0) — unaffected by
+  construction, since `nesycatshapes.py` is `\usepackage`'d only by
+  `web.tex` (confirmed by grep) while structure/kind-check/census read
+  `content.tex`/Lean directly, and pdf/web both rebuilt clean (print
+  build untouched: `nesycatshapes` is never loaded by `print.tex`).
+
 - **C2-E10 (sequential composition decree, USER DECREE 2026-08-09):**
   every `\circ` composite in `blueprint/src/content.tex` becomes
   `f \seq g` ("first `f`, then `g`"), order flipped at every site,
