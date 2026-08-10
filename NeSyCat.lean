@@ -52,4 +52,5 @@ import NeSyCat.StatisticalLayer.BridgesNormalization.BridgesNormalization
 import NeSyCat.StatisticalLayer.BridgesNormalization.DecEncMass
 import NeSyCat.StatisticalLayer.BridgesNormalization.Tilt
 import NeSyCat.StatisticalLayer.BridgesNormalization.Normalizer
+import NeSyCat.StatisticalLayer.BridgesNormalization.ChainBound
 import NeSyCat.StatisticalLayer.Examples.Examples

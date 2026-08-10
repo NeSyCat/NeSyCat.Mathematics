@@ -2659,36 +2659,60 @@ If some $k_i$ is not mass preserving, the two sides differ in general, and
 Lemma~\ref{lem:tilt} gives the exact discrepancy: one
 $\tilt_{k_i \seq Z}$ per offending bind.
 
-% OPEN: one-bind case provable from lem:tilt; the chain version has no
-% known proof -- a standing research target of this library. The
-% open-theorem convention (proof env body exactly "Open.", never
-% \leanok) says this without ad-hoc "-- OPEN"/"Status: open" phrasing
-% in the title or body.
+% Resolved (C3-CB, 2026-08-10): formerly the library's standing open
+% problem, recorded under the open-theorem convention (proof env body
+% exactly "Open.", never \leanok) with the note "one-bind case provable
+% from lem:tilt; the chain version has no known proof -- a standing
+% research target of this library". Proved by the division-free
+% multiplicative sandwich in NeSyCat/StatisticalLayer/
+% BridgesNormalization/ChainBound.lean; the open-theorem convention
+% currently has no live instance.
 \begin{theorem}[How wrong can it get]
 \label{thm:chain-bound}
-If $m_i \le Z(k_i(x)) \le M_i$ for all $x$ and
-every bind $k_i$ in the chain $\Phi$ of Theorem~\ref{thm:pullout}, then
-the two log-truth values satisfy
+\lean{NeSyCat.chain_bound}
+\leanok
+Let every bind $k_i$ in the chain $\Phi$ of Theorem~\ref{thm:pullout}
+carry mass bounds $m_i \le Z(k_i(x)) \le M_i$ for all $x$, with
+$0 < m_i \le M_i$. Fix an outcome $y$ at which the two truth values are
+$t_{\Tmon} := \dec(\Phi_{\Tmon})(y)$ and $t_{\Dmon} := \Phi_{\Dmon}(y)$,
+with $t_{\Dmon} > 0$. Then
 \[
   \bigl|\log t_{\Tmon} - \log t_{\Dmon}\bigr| \;\le\; \sum_i \log(M_i/m_i),
 \]
 with equality (the identity) exactly when every $M_i = m_i$.
-\uses{lem:tilt, thm:pullout}
+\uses{def:dec-enc-mass, def:mass-preserving, lem:bind-matrix-mult, lem:pure-maps, lem:tensor, lem:units, lem:tilt, thm:pullout}
 \end{theorem}
 
 \begin{proof}
-Open.
+\leanok
+Write $\pi_m = \prod_i m_i$ and $\pi_M = \prod_i M_i$. Induction on the
+chain gives the division-free sandwich
+$\pi_m\, t_{\Tmon} \le \pi_M\, t_{\Dmon}$ and
+$\pi_m\, t_{\Dmon} \le \pi_M\, t_{\Tmon}$ at every outcome, with no
+positivity assumed. A pure map reindexes the fiber sums
+(Lemma~\ref{lem:pure-maps}). A tensor factor multiplies both members by
+one common factor (Lemmas~\ref{lem:tensor}, \ref{lem:units}). A bind
+factor widens the sandwich by exactly $[m_i, M_i]$: written as matrix
+multiplication (Lemma~\ref{lem:bind-matrix-mult}), its numerator and
+its normalizing mass are $Z(k_i)$-weighted sums, and replacing each
+weight by $m_i$ or $M_i$ bounds both against the unweighted sums the
+induction hypothesis controls. Taking logarithms turns the sandwich
+into the stated bound, and positivity of $t_{\Tmon}$ follows from the
+sandwich itself. If every $M_i = m_i$, each bind is mass preserving
+(Definition~\ref{def:mass-preserving}), so Theorem~\ref{thm:pullout}
+makes the two truth values equal and both sides zero. Conversely, an
+attained bound forces every inequality of the sandwich chain to be an
+equality. Termwise comparison of the sums then pins $Z(k_i) = m_i$ and
+$Z(k_i) = M_i$ simultaneously at a witness index of positive weight,
+so every $M_i = m_i$.
 \end{proof}
 
-The \emph{one-bind} case of this bound is provable directly from
-Lemma~\ref{lem:tilt}. Both sides average the same values under
-densities that differ pointwise by at most a factor $M/m$; this gives
-the single-term bound
-$\bigl|\log t_{\Tmon} - \log t_{\Dmon}\bigr| \le \log(M/m)$. The
-\emph{chain} (multi-bind) version stated above has no known proof. We
-record it here as a standing research target of this library. No proof
-or proof sketch elsewhere in this document may cite it as proved for
-$r > 1$ binds.
+The one-bind case is the single-term instance
+$\bigl|\log t_{\Tmon} - \log t_{\Dmon}\bigr| \le \log(M/m)$: both sides
+average the same decoded values under densities that differ pointwise
+by at most a factor $M/m$. Coinciding bounds $M_i = m_i$ witness the
+equality case and recover the exact agreement of
+Theorem~\ref{thm:pullout}.
 
 % Claim source: Domingos, Tensor Logic (arXiv:2510.12269), Sec. 4.4:
 % the table entry "P(Query|Evidence) = Prog(Q,E)/Prog(E)" and the running
