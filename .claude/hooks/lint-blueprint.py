@@ -258,6 +258,72 @@ STRUCTURE_MIRROR_SECTION_RE = re.compile(
     r'(?:\s*%\s*lean-dir:\s*(\S+))?\s*$')
 
 
+# PROOF-SUBSTANCE LAW (C3-E12, USER DECREE 2026-08-10): a rendered proof
+# mirrors the FORMAL proof's skeleton, not a narration of it. Scoped to
+# THEOREM envs only (never lemma -- small lemmas are exempt by design,
+# a sentence citing the computation stays fine there): a proof env
+# immediately following a theorem env whose rendered prose exceeds
+# ~60 words while containing zero displayed-math blocks
+# (\[..\]/align*/gather*/multline*) is narrating the proof instead of
+# showing it. Tuned to zero false positives against the swept
+# document (the CB-RESTRUCT exemplar and its successors all carry
+# displayed chains).
+PROOF_SUBSTANCE_WORD_LIMIT = 60
+PROOF_SUBSTANCE_THEOREM_BEGIN_RE = re.compile(r'\\begin\{theorem\}')
+PROOF_SUBSTANCE_THEOREM_END_RE = re.compile(r'\\end\{theorem\}')
+PROOF_SUBSTANCE_PROOF_END_RE = re.compile(r'\\end\{proof\}')
+PROOF_SUBSTANCE_DISPLAY_RE = re.compile(
+    r'\\\[|\\begin\{(align\*?|gather\*?|multline\*?)\}')
+PROOF_SUBSTANCE_STRIP_RE = re.compile(
+    r'\\begin\{proof\}|\\end\{proof\}|\\leanok')
+
+
+def proof_substance_scan(raw_lines, rel_posix):
+    """PROOF-SUBSTANCE LAW: advisory on a prose-only theorem proof --
+    see the module comment above PROOF_SUBSTANCE_WORD_LIMIT."""
+    out = []
+    code_lines = [strip_comment(l) for l in raw_lines]
+    n = len(code_lines)
+    idx = 0
+    while idx < n:
+        if not PROOF_SUBSTANCE_THEOREM_BEGIN_RE.search(code_lines[idx]):
+            idx += 1
+            continue
+        thm_start = idx
+        thm_end = idx
+        for j in range(idx, n):
+            if PROOF_SUBSTANCE_THEOREM_END_RE.search(code_lines[j]):
+                thm_end = j
+                break
+        label_m = LABEL_RE.search("\n".join(code_lines[thm_start:thm_end + 1]))
+        label = label_m.group(1) if label_m else "<no-label>"
+        j = thm_end + 1
+        while j < n and code_lines[j].strip() == "":
+            j += 1
+        if j >= n or not BEGIN_PROOF_RE.search(code_lines[j]):
+            idx = thm_end + 1
+            continue
+        proof_start = j
+        proof_end = j
+        for k in range(j, n):
+            if PROOF_SUBSTANCE_PROOF_END_RE.search(code_lines[k]):
+                proof_end = k
+                break
+        body = "\n".join(code_lines[proof_start:proof_end + 1])
+        has_display = bool(PROOF_SUBSTANCE_DISPLAY_RE.search(body))
+        cleaned = density_clean(PROOF_SUBSTANCE_STRIP_RE.sub(' ', body))
+        words = [w for w in re.split(r'\s+', cleaned) if w and w != 'MATH']
+        wc = len(words)
+        if not has_display and wc > PROOF_SUBSTANCE_WORD_LIMIT:
+            out.append(
+                f"{rel_posix}:{proof_start + 1}: PROOF-SUBSTANCE -- "
+                f"theorem {label}'s proof has {wc} rendered words and zero "
+                "displayed-math blocks -- prose-only theorem proof; show "
+                "the calculation (proof-substance law)")
+        idx = proof_end + 1
+    return out
+
+
 def strip_comment(line):
     i, n = 0, len(line)
     while i < n:
@@ -618,6 +684,10 @@ def main():
     # SEQUENTIAL COMPOSITION DECREE (C2-E10, USER DECREE 2026-08-09):
     # see circ_scan's docstring. Whole-document, comment-stripped scan.
     warnings.extend(circ_scan(code_lines, rel_posix))
+
+    # PROOF-SUBSTANCE LAW (C3-E12, USER DECREE 2026-08-10): see
+    # proof_substance_scan's docstring. Whole-document, theorem-scoped.
+    warnings.extend(proof_substance_scan(raw_lines, rel_posix))
 
     # STRUCTURE-MIRROR advisory (C2-E6, USER DECREE 2026-08-09): a
     # \section/\subsection introduced or left without a trailing

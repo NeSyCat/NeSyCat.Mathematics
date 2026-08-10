@@ -12,7 +12,7 @@ import NeSyCat.LogicalLayer.TruthStructures.Chain
 # The t-norm family: `TNorm`, `TRow`, and the Gödel/Viterbi/Łukasiewicz rows
 
 Blueprint items `def:tnorm`, `inst:tnorm-row`, `lem:godel-unique-idempotent`,
-`lem:tconorm-forces-max`, `inst:godel-latcsrng`, `inst:viterbi-latcsrng`,
+`lem:product-not-distrib-psum`, `inst:godel-latcsrng`, `inst:viterbi-latcsrng`,
 `inst:luk-latcsrng` (`blueprint/src/content.tex`, §"Semiring weight
 monads", the t-norm family placed after the three running rows). Source:
 the user's own `new.tex` §"Parameterized Monads" table, generalized
@@ -48,7 +48,7 @@ Idempotence (`op a a = a`) pins a t-norm down to `min` in two lines:
 monotonicity (`min a b ≤ a` and `≤ b` applied to each slot of the
 idempotent instance) and the outer step by `op ≤ min` itself.
 
-## `lem:tconorm-forces-max`
+## `lem:product-not-distrib-psum`
 
 The literature question ("does *every* t-norm distribute over *every*
 t-conorm other than `max`?") is false in general: the drastic t-norm
@@ -56,7 +56,10 @@ distributes over the probabilistic sum `pSum` everywhere (checked by hand,
 not formalized here — out of scope), so no blanket `∀ τ` statement holds
 at this generality. What is proved here is the concrete instance the
 library needs: the product t-norm does **not** distribute over `pSum`,
-reusing `NeSyCat.prob_not_semiring`'s own witness. Every t-norm *does*
+stated genuinely in t-norm/t-conorm vocabulary (`viterbiTNorm.op` against
+the `unitInterval`-wrapped `pSumU`, not a bare restatement of
+`NeSyCat.prob_not_semiring`'s own type), and derived from that lemma's
+witness by unwrapping both sides' coordinates. Every t-norm *does*
 distribute over `max` (`inst:tnorm-row` below), so `max` is at least a
 safe choice where the product t-norm is not.
 -/
@@ -381,14 +384,48 @@ lukTNorm`, `⊕ = max`, `⊗ = max(0,a+b-1)`; `BLatCSRng LukS` follows from
 @[blueprint_internal]
 abbrev LukS := TRow lukTNorm
 
-/-- Blueprint `lem:tconorm-forces-max` (the product t-norm does not
-distribute over the probabilistic sum): reusing `prob_not_semiring`'s own
-witness, restated in t-norm/t-conorm language. Every t-norm distributes
+/-- `viterbiTNorm.op` unfolds to ordinary multiplication (its own
+definition), bridging `product_not_distrib_pSum`'s t-norm-vocabulary
+statement to `prob_not_semiring`'s real-number witness. -/
+-- (A1 bijection-law companion of `product_not_distrib_pSum`,
+-- content.tex lem:product-not-distrib-psum)
+@[blueprint_internal]
+theorem viterbiTNorm_op (p q : unitInterval) : viterbiTNorm.op p q = p * q := rfl
+
+/-- The probabilistic sum `pSum` stays in `[0,1]` given inputs in `[0,1]`:
+`pSum p q = 1-(1-p)(1-q)`, a product of two `[0,1]`-valued factors
+subtracted from `1`. -/
+-- (A1 bijection-law companion of `product_not_distrib_pSum`,
+-- content.tex lem:product-not-distrib-psum)
+@[blueprint_internal]
+theorem pSum_mem (p q : unitInterval) : pSum (p : ℝ) (q : ℝ) ∈ Set.Icc (0 : ℝ) 1 := by
+  unfold pSum
+  constructor
+  · nlinarith [p.2.1, p.2.2, q.2.1, q.2.2]
+  · nlinarith [p.2.1, p.2.2, q.2.1, q.2.2]
+
+/-- `pSum`, wrapped to `unitInterval → unitInterval → unitInterval`
+(`pSum_mem` supplies the membership proof), the `unitInterval`-native
+t-conorm `lem:product-not-distrib-psum` states the product t-norm against. -/
+-- (A1 bijection-law companion of `product_not_distrib_pSum`,
+-- content.tex lem:product-not-distrib-psum)
+@[blueprint_internal]
+def pSumU (p q : unitInterval) : unitInterval := ⟨pSum p q, pSum_mem p q⟩
+
+/-- Blueprint `lem:product-not-distrib-psum` (the product t-norm does not
+distribute over the probabilistic sum): stated genuinely in t-norm/t-conorm
+vocabulary, about `viterbiTNorm.op` and the `unitInterval`-wrapped `pSumU`,
+not a bare restatement of `prob_not_semiring`'s own type. Derived from
+`prob_not_semiring`'s witness by transporting it into `unitInterval` and
+unwrapping both sides' coordinates back down. Every t-norm distributes
 over `max` (`TRow.instBLatCSRng`); this shows `max` is not replaceable by
 just any t-conorm, at least not by `pSum`, for the product t-norm. -/
 theorem product_not_distrib_pSum :
-    ∃ p ∈ Set.Icc (0 : ℝ) 1, ∃ q ∈ Set.Icc (0 : ℝ) 1, ∃ r ∈ Set.Icc (0 : ℝ) 1,
-      p * pSum q r ≠ pSum (p * q) (p * r) :=
-  prob_not_semiring
+    ∃ p q r : unitInterval,
+      viterbiTNorm.op p (pSumU q r) ≠ pSumU (viterbiTNorm.op p q) (viterbiTNorm.op p r) := by
+  obtain ⟨p, hp, q, hq, r, hr, hne⟩ := prob_not_semiring
+  refine ⟨⟨p, hp⟩, ⟨q, hq⟩, ⟨r, hr⟩, fun heq => hne ?_⟩
+  have hval := congrArg Subtype.val heq
+  simpa [viterbiTNorm_op, pSumU] using hval
 
 end NeSyCat

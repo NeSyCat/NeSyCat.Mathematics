@@ -10,13 +10,21 @@ import NeSyCat.StatisticalLayer.BridgesNormalization.Tilt
 /-!
 # The chain bound: how wrong can it get
 
-Blueprint item `thm:chain-bound` (`blueprint/src/content.tex`, §"Bridges and
-normalization"), the library's former standing open problem, resolved here
-(C3-CB): if every bind `k_i` of a pull-out chain `Φ` (`PulloutChain`,
-`thm:pullout`) has its per-index mass sandwiched, `m_i ≤ Z(k_i(x)) ≤ M_i`
-for all `x` (`HasMassBounds`), then at every outcome `y` the two truth
-values satisfy `|log t_Tmon − log t_Dmon| ≤ Σ_i log(M_i/m_i)`, with
-equality exactly when every `M_i = m_i`.
+Blueprint items `thm:chain-bound-sandwich` and `thm:chain-bound`
+(`blueprint/src/content.tex`, §"Bridges and normalization"), the library's
+former standing open problem, resolved here (C3-CB): if every bind `k_i` of
+a pull-out chain `Φ` (`PulloutChain`, `thm:pullout`) has its per-index mass
+sandwiched, `m_i ≤ Z(k_i(x)) ≤ M_i` for all `x` (`HasMassBounds`), then at
+every outcome `y` the two truth values satisfy `|log t_Tmon − log t_Dmon| ≤
+Σ_i log(M_i/m_i)`, with equality exactly when every `M_i = m_i`.
+
+Split into two blueprint theorems at C3-E12's CB-RESTRUCT (USER DECREE
+2026-08-10): `thm:chain-bound-sandwich` (`chain_bound_sandwich`) is the
+hypothesis-free multiplicative sandwich promoted to its own cited
+principal, and `thm:chain-bound` (`chain_bound`) is the log form below it,
+citing the sandwich by `\uses`. No Lean change from the restructure: both
+declarations already existed (`chain_bound_sandwich` was previously an
+unmarked internal companion of `chain_bound`).
 
 The proof route is a division-free multiplicative sandwich pushed through
 the chain by structural induction (`chain_bound_sandwich`): writing
@@ -677,15 +685,15 @@ end BindLayer
 
 /-! ### The chain sandwich -/
 
-/-- The division-free multiplicative sandwich behind `thm:chain-bound`,
-by structural induction on the chain: under the per-bind mass bounds
-(`HasMassBounds`), at every outcome `y`,
-`Π m_i · dec(Φ_Tmon)(y) ≤ Π M_i · Φ_Dmon(y)` and
-`Π m_i · Φ_Dmon(y) ≤ Π M_i · dec(Φ_Tmon)(y)`. No positivity hypotheses:
-degenerate cases collapse under the `0⁻¹ = 0` convention. -/
--- (A1 bijection-law companion of `chain_bound`, content.tex
--- thm:chain-bound)
-@[blueprint_internal]
+/-- Blueprint `thm:chain-bound-sandwich` (The chain sandwich): the
+division-free multiplicative sandwich, by structural induction on the
+chain: under the per-bind mass bounds (`HasMassBounds`), at every
+outcome `y`, `Π m_i · dec(Φ_Tmon)(y) ≤ Π M_i · Φ_Dmon(y)` and
+`Π m_i · Φ_Dmon(y) ≤ Π M_i · dec(Φ_Tmon)(y)`. No positivity
+hypotheses: degenerate cases collapse under the `0⁻¹ = 0` convention.
+Promoted from an unmarked internal companion of `chain_bound` to its
+own cited principal at C3-E12's CB-RESTRUCT (USER DECREE 2026-08-10);
+`chain_bound` (the log form below) now `\uses` this theorem. -/
 theorem chain_bound_sandwich :
     ∀ {W : Type} (c : PulloutChain W) (bs : List (ℝ≥0 × ℝ≥0)),
       c.HasMassBounds bs → ∀ y : W,

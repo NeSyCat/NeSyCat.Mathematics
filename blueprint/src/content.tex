@@ -411,7 +411,7 @@ argument preserves finite joins.
 For every t-norm $\otimes$, $([0,1], \max, \otimes)$ is a bounded
 commutative lattice-semiring, with $\oplus := \max$, unit $0 = \bot$,
 and $\otimes$'s own unit $1 = \top$.
-\uses{def:tnorm, def:bounded-comm-lattice-semiring}
+\uses{def:tnorm, def:bounded-comm-lattice-semiring, thm:chain-lin}
 \end{instance}
 
 \begin{proof}
@@ -445,8 +445,7 @@ $\min(p,q) \le q$ in each argument, the outer steps by idempotence and
 $\otimes \le \min$.
 \end{proof}
 
-This is why the Gödel t-norm is canonical among idempotent rows
-(Section~\ref{sec:truth-spaces} onward, the $\ell^\infty$ family): it is
+This is why the Gödel t-norm is canonical among idempotent rows: it is
 the only one there is.
 
 Not every t-norm distributes over every t-conorm besides $\max$. The
@@ -455,7 +454,7 @@ product t-norm fails against the probabilistic sum $\mathrm{pSum}$
 witness is exactly this failure, restated in t-norm/t-conorm language.
 
 \begin{lemma}[A t-norm that does not distribute over $\mathrm{pSum}$]
-\label{lem:tconorm-forces-max}
+\label{lem:product-not-distrib-psum}
 \lean{NeSyCat.product_not_distrib_pSum}
 \leanok
 The product t-norm $p \otimes q := pq$ does not distribute over
@@ -487,9 +486,7 @@ $\GodelS := ([0,1], \max, \min)$ (Instance~\ref{inst:tnorm-row}).
 \lean{NeSyCat.viterbiTNorm}
 \leanok
 The product t-norm $p \otimes q := pq$, giving the row
-$\ViterbiS := ([0,1], \max, \cdot)$ (Instance~\ref{inst:tnorm-row}):
-the MPE (max-times) semiring, Viterbi-style most-probable-explanation
-evaluation \citep{maeneKLay2025}.
+$\ViterbiS := ([0,1], \max, \cdot)$ (Instance~\ref{inst:tnorm-row}).
 \uses{inst:tnorm-row}
 \end{definition}
 
@@ -1333,11 +1330,16 @@ Class~\ref{def:lin-blat2mon} hold.
 
 \begin{proof}
 \leanok
-On a chain, $q \vee r \in \{q, r\}$; say $q \le r$, so
-$q \vee r = r$. Then $p \otimes (q \vee r) = p \otimes r$, while
-monotonicity gives $p \otimes q \le p \otimes r$, so
-$(p \otimes q) \vee (p \otimes r) = p \otimes r$ as well; the other argument
-and the $\oplus/\wedge$ laws are dual.
+It suffices to show $\otimes$ preserves $\vee$ in its right argument;
+the left argument and the $\oplus/\wedge$ laws follow the same route
+(monotonicity swaps the argument or the join for a meet). On a chain,
+$q$ and $r$ are comparable: total order gives $q \le r$ or $r \le q$.
+Take $q \le r$ (the other case is symmetric), so $q \vee r = r$.
+Monotonicity of $\otimes$ in its right argument at $q \le r$ gives
+$p \otimes q \le p \otimes r$, so
+\[
+  p \otimes (q \vee r) = p \otimes r = (p \otimes q) \vee (p \otimes r).
+\]
 \end{proof}
 
 \begin{definition}[Chain construction of a LinBLat2Mon]
@@ -1463,27 +1465,41 @@ but $\otimes$ is not monotone; hence, by Lemma~\ref{lem:lin-monotone},
 the linear laws fail: the square rows are BLat2CMon-with-DM territory,
 not Lin.
 \uses{def:order-family, lem:lifted-mass, def:blat2cmon, def:dm-structure,
-lem:lin-monotone}
+lem:lin-monotone, lem:dm-dual-law}
 \end{theorem}
 
 \begin{proof}
 \leanok
-DM: the swap is involutive; it is antitone for the slot-0-reversed
-order; and $\neg(w \otimes v) = (w_1v_1,\ w_0v_0 + w_0v_1 + w_1v_0) =
-\neg w \oplus \neg v$ by the formulas of Lemma~\ref{lem:lifted-mass}.
-Non-monotonicity: take $p = (1,0)$, $r = (5,0)$, $q = (0,10)$. Then
-$r \le q$ (slot 1: $0 \le 10$; slot 0 reversed: $5 \ge 0$), but
-$p \otimes r = (5, 0)$ and $p \otimes q = (10, 0)$, and
-$(5,0) \le (10,0)$ fails in the reversed slot ($5 \ge 10$ is false).
-The mechanism is the cross term $w_0v_1$ in slot 0 of $\otimes$: raising
-the \emph{for}-weight $v_1$ raises the \emph{against}-slot of the
-output. Neither operation is monotone: $\oplus$ fails dually, via the
-cross term $w_1v_0$ in its slot 1, as it must, since an antitone
-involution exchanging the two operations
-(Lemma~\ref{lem:dm-dual-law}) makes $\oplus$ monotone if and only if
-$\otimes$ is. The counterexample persists unchanged in the bounded
-completion $[0,\infty]^2$, so no bounded extension of this order
-family is Lin either.
+\emph{DM structure}: the swap is its own inverse by construction, and
+it reverses each coordinate of the product order (slot $0$ reversed),
+so it is antitone. Unfolding both operations' formulas from
+Lemma~\ref{lem:lifted-mass}, it exchanges $\otimes$ and $\oplus$:
+\[
+  \neg(w \otimes v) = (w_1v_1,\ w_0v_0+w_0v_1+w_1v_0) = \neg w \oplus \neg v.
+\]
+
+\emph{Non-monotonicity, hence non-distributivity}: distributing over
+$\vee$ in the right argument would make $\otimes$ monotone there, by
+Lemma~\ref{lem:lin-monotone}'s contrapositive, so it suffices to refute
+monotonicity directly. Take $p = (1,0)$, $r = (5,0)$, $q = (0,10)$. In
+the order family, $r \le q$: slot $1$ gives $0 \le 10$, and slot $0$,
+reversed, gives $5 \ge 0$. Yet
+\[
+  p \otimes r = (5,0), \qquad p \otimes q = (10,0),
+\]
+and in the reversed slot this reads $5 \ge 10$, which fails, so
+$(5,0) \not\le (10,0)$: $\otimes$ is not monotone in its right
+argument at $p$. The cross term $w_0v_1$ in slot $0$ of $\otimes$ is
+the mechanism, since raising the \emph{for}-weight $v_1$ raises the
+\emph{against}-slot of the output.
+
+The same DM exchange refutes $\oplus$'s own monotonicity through its
+symmetric cross term $w_1v_0$ in slot $1$: Lemma~\ref{lem:dm-dual-law}
+makes an antitone involution exchanging $\otimes$ and $\oplus$, so one
+is monotone exactly when the other is. Neither operation extends the
+order family to Lin, by Lemma~\ref{lem:lin-monotone}, and the same
+formula with the same witness persists verbatim in the bounded
+completion $[0,\infty]^2$.
 \end{proof}
 
 Our $\vee$ and $\wedge$ are linear logic's own \emph{additive}
@@ -2695,15 +2711,29 @@ and hence for $\mathrm{tilt}$ to be well-defined. Then
 
 \begin{proof}
 \leanok
-Expand both sides at $y \in Y$: the left side is
-$e^{\lse_x(a_x+k(x)_y)}/Z(a\bind k) = \sum_x e^{a_x}e^{k(x)_y} /
-\sum_{x,y'}e^{a_x+k(x)_{y'}}$; the right side is
-$\sum_x \tilt_{k\seq Z}(\dec(a))(x)\,\dec(k(x))_y = \sum_x
-\frac{Z(k(x))\dec(a)_x}{\sum_{x'}Z(k(x'))\dec(a)_{x'}} \cdot
-\frac{e^{k(x)_y}}{Z(k(x))}$. The numerators agree termwise once
-$\dec(a)_x = e^{a_x}/Z(a)$ is unfolded and the $Z(k(x))$ factors
-cancel, and the two denominators both equal
-$\sum_x e^{a_x}Z(k(x))/Z(a) = \sum_{x,y'}e^{a_x+k(x)_{y'}}/Z(a)$.
+Fix $y \in Y$ and expand each side of the claimed identity there.
+Unfolding $\dec$ and $\bind$ on the left, and $\bind$, $\tilt$, $\dec$
+on the right,
+\begin{align*}
+  \dec(a \bind k)_y
+    &= \frac{e^{\lse_x(a_x+k(x)_y)}}{Z(a \bind k)}
+     = \frac{\sum_x e^{a_x}e^{k(x)_y}}{\sum_{x,y'}e^{a_x+k(x)_{y'}}}, \\
+  \Bigl(\tilt_{k\seq Z}\bigl(\dec(a)\bigr) \bind (k \seq \dec)\Bigr)_y
+    &= \sum_x \tilt_{k\seq Z}\bigl(\dec(a)\bigr)(x)\,\dec(k(x))_y \\
+    &= \sum_x \frac{Z(k(x))\dec(a)_x}{\sum_{x'} Z(k(x'))\dec(a)_{x'}}
+       \cdot \frac{e^{k(x)_y}}{Z(k(x))}.
+\end{align*}
+Unfold $\dec(a)_x = e^{a_x}/Z(a)$ in the second line. Its $Z(k(x))$
+factor cancels in every term of the numerator, leaving
+$e^{a_x}e^{k(x)_y}/Z(a)$, and the same substitution turns the
+denominator into
+\[
+  \sum_{x'} Z(k(x'))\,\frac{e^{a_{x'}}}{Z(a)}
+    = \frac{1}{Z(a)}\sum_{x'} e^{a_{x'}}\,Z(k(x'))
+    = \frac{1}{Z(a)}\sum_{x',y''} e^{a_{x'}+k(x')_{y''}}.
+\]
+The remaining $Z(a)$ factor cancels between the second line's
+numerator and denominator, leaving exactly the first line's ratio.
 \end{proof}
 
 \begin{definition}[Mass preserving]
@@ -2769,14 +2799,45 @@ the same chain read in $\Dmon$, with one $\dec$ per leaf.
 
 \begin{proof}
 \leanok
-Induction on $r$: each non-bind factor commutes with
-$\dec$ by Lemmas~\ref{lem:pure-maps}, \ref{lem:tensor},
-\ref{lem:units}, \ref{lem:strengths}; a bind factor commutes with
-$\dec$ exactly when $\tilt_{k_i\seq Z} = \mathrm{id}$, which by
-Lemma~\ref{lem:tilt} holds precisely when $k_i\seq Z$ is constant,
-i.e.\ $k_i$ is mass preserving; the converse direction (some $k_i$ not
-mass preserving forces a genuine discrepancy) is witnessed by the
-tilt-failure example below.
+Structural induction on $\Phi$, five cases, one per factor kind.
+
+\emph{Base}: $\Phi = L$ is a bare leaf, so $\dec(\Phi_{\Tmon}) =
+\dec(L) = \Phi_{\Dmon}$ directly, no induction hypothesis needed.
+
+\emph{Pure map} $\Phi = \Tmon(h)(\Psi)$: by Lemma~\ref{lem:pure-maps},
+\[
+  \dec(\Phi_{\Tmon}) = \dec\bigl(\Tmon(h)(\Psi_{\Tmon})\bigr)
+    = \Dmon(h)\bigl(\dec(\Psi_{\Tmon})\bigr)
+    = \Dmon(h)(\Psi_{\Dmon}) = \Phi_{\Dmon},
+\]
+the middle step the induction hypothesis on $\Psi$.
+
+\emph{Unit insertion} $\Phi = \Psi \otimes \Ret_{\Tmon}(c)$: by
+Lemmas~\ref{lem:tensor}, \ref{lem:units},
+\[
+  \dec(\Phi_{\Tmon}) = \dec(\Psi_{\Tmon}) \otimes \dec\bigl(\Ret_{\Tmon}(c)\bigr)
+    = \Psi_{\Dmon} \otimes \Ret_{\Dmon}(c) = \Phi_{\Dmon},
+\]
+again the induction hypothesis in the middle step.
+
+\emph{Strength} $\Phi = \Psi \otimes a$ for a fixed leaf $a$: the same
+computation, this time by Lemma~\ref{lem:tensor} alone,
+\[
+  \dec(\Phi_{\Tmon}) = \dec(\Psi_{\Tmon}) \otimes \dec(a)
+    = \Psi_{\Dmon} \otimes \dec(a) = \Phi_{\Dmon}.
+\]
+
+\emph{Bind} $\Phi = \Psi \bind k_i$, with $k_i$ mass preserving:
+Lemma~\ref{lem:tilt} gives
+\[
+  \dec(\Phi_{\Tmon}) = \dec(\Psi_{\Tmon} \bind k_i)
+    = \tilt_{k_i \seq Z}\bigl(\dec(\Psi_{\Tmon})\bigr) \bind (k_i \seq \dec).
+\]
+Mass preservation makes $x \mapsto Z(k_i(x))$ constant, so its
+reweighting leaves $\tilt_{k_i \seq Z}$ the identity, reducing the
+right side to $\dec(\Psi_{\Tmon}) \bind (k_i \seq \dec) = \Psi_{\Dmon}
+\bind (k_i \seq \dec) = \Phi_{\Dmon}$, the middle equality again the
+induction hypothesis.
 \end{proof}
 
 If some $k_i$ is not mass preserving, the two sides differ in general, and
@@ -2791,44 +2852,127 @@ $\tilt_{k_i \seq Z}$ per offending bind.
 % multiplicative sandwich in NeSyCat/StatisticalLayer/
 % BridgesNormalization/ChainBound.lean; the open-theorem convention
 % currently has no live instance.
+% Restructured (C3-E12, CB-RESTRUCT, USER DECREE 2026-08-10): the single
+% combined theorem is split in two, the hypothesis-free multiplicative
+% sandwich promoted to its own primary theorem (the Lean declaration
+% chain_bound_sandwich already existed as an internal companion of
+% chain_bound; it is now the cited principal of its own env), with the
+% log bound below it as a follow-up theorem citing the sandwich by
+% \uses. No Lean changes: both declarations already existed.
+\begin{theorem}[The chain sandwich]
+\label{thm:chain-bound-sandwich}
+\lean{NeSyCat.chain_bound_sandwich}
+\leanok
+Let $\Phi = L \seq B_1 \seq \cdots \seq B_r$ be a pull-out chain
+(Theorem~\ref{thm:pullout}) whose binds carry mass bounds $m_i \le
+Z(k_i(x)) \le M_i$ for all $x$, with no positivity assumed on any
+$m_i$ or $M_i$. Write $\pi_m := \prod_i m_i$, $\pi_M := \prod_i M_i$.
+Then at every outcome $y$,
+\[
+  \pi_m \cdot \dec(\Phi_{\Tmon})(y) \;\le\; \pi_M \cdot \Phi_{\Dmon}(y)
+  \qquad\text{and}\qquad
+  \pi_m \cdot \Phi_{\Dmon}(y) \;\le\; \pi_M \cdot \dec(\Phi_{\Tmon})(y).
+\]
+\uses{def:dec-enc-mass, lem:pure-maps, lem:tensor, lem:units, lem:strengths, lem:bind-matrix-mult, thm:pullout}
+\end{theorem}
+
+\begin{proof}
+\leanok
+No case below needs $m_i > 0$: $\dec$'s own $0^{-1} = 0$ convention
+(Definition~\ref{def:dec-enc-mass}) already disposes of every
+degenerate ratio, so the induction on $\Phi$'s structure proceeds
+unconditionally.
+
+\emph{Base case} ($r = 0$): $\pi_m = \pi_M = 1$, the empty products,
+and $\Phi_{\Tmon}$, $\Phi_{\Dmon}$ read the same leaf value, so both
+inequalities are the trivial
+$\dec(\Phi_{\Tmon})(y) \le \Phi_{\Dmon}(y) \le \dec(\Phi_{\Tmon})(y)$.
+
+\emph{Pure map, unit, and strength steps}: each multiplies both
+sandwiched quantities by one common factor $r$, a fiber reindexing for
+a pure map (Lemma~\ref{lem:pure-maps}), a tensor factor for a unit
+insertion or a strength (Lemmas~\ref{lem:tensor}, \ref{lem:units},
+\ref{lem:strengths}), so the induction hypothesis scales directly:
+\[
+  L \cdot p \le U \cdot q \;\implies\; L \cdot (p \cdot r) \le U \cdot (q \cdot r).
+\]
+
+\emph{Bind step}, the substantive case: write $a$ for $\Phi_{\Tmon}$
+before the bind, $q$ for $\Phi_{\Dmon}$ before it, $k$ for the bind's
+continuation with $m \le Z(k(x)) \le M$ for all $x$, and $L, U$ for the
+accumulated products over the remaining chain, so the induction
+hypothesis gives $L \cdot \dec(a)(x) \le U \cdot q(x)$ and its mirror
+for every $x$. Lemma~\ref{lem:bind-matrix-mult}'s matrix form of
+$\bind$ writes the numerator and mass of $a \bind k$ at $y$ as finite
+sums over a common finite set $s$ containing both supports. Then
+$\dec(a\bind k)(y) = N/Z_b$, with
+\[
+  N := \sum_{x \in s} a(x)\bigl(\dec(k(x))(y) \cdot Z(k(x))\bigr),
+  \qquad
+  Z_b := \sum_{x \in s} a(x) \cdot Z(k(x)).
+\]
+Bounding $Z(k(x))$ termwise by $m$ or $M$ and summing gives the two
+aggregate estimates
+\[
+  m \sum_{x \in s} a(x)\dec(k(x))(y) \;\le\; N \;\le\;
+  M \sum_{x \in s} a(x)\dec(k(x))(y),
+  \qquad
+  m \cdot Z_R \;\le\; Z_b \;\le\; M \cdot Z_R,
+\]
+with $Z_R := \sum_{x\in s} a(x)$; combining these with the induction
+hypothesis, applied under the sum to $\dec(a)(x) = a(x)/Z_R$ and
+$q(x)$, yields the widened sandwich
+$mL \cdot \dec(a \bind k)(y) \le MU \cdot \bigl(q \bind (k \seq \dec)\bigr)(y)$
+and its mirror, exactly $\Phi$'s two readouts one bind layer further
+in, with $(m,M)$ folded into the running products $(\pi_m,\pi_M)$.
+\end{proof}
+
 \begin{theorem}[How wrong can it get]
 \label{thm:chain-bound}
 \lean{NeSyCat.chain_bound}
 \leanok
-Let every bind $k_i$ in the chain $\Phi$ of Theorem~\ref{thm:pullout}
-carry mass bounds $m_i \le Z(k_i(x)) \le M_i$ for all $x$, with
-$0 < m_i \le M_i$. Fix an outcome $y$ at which the two truth values are
+Let every bind $k_i$ in the pull-out chain $\Phi$ of
+Theorem~\ref{thm:chain-bound-sandwich} carry mass bounds $m_i \le
+Z(k_i(x)) \le M_i$ for all $x$, now with $0 < m_i \le M_i$. Fix an
+outcome $y$ at which the two truth values are
 $t_{\Tmon} := \dec(\Phi_{\Tmon})(y)$ and $t_{\Dmon} := \Phi_{\Dmon}(y)$,
 with $t_{\Dmon} > 0$. Then
 \[
   \bigl|\log t_{\Tmon} - \log t_{\Dmon}\bigr| \;\le\; \sum_i \log(M_i/m_i),
 \]
-with equality (the identity) exactly when every $M_i = m_i$.
-\uses{def:dec-enc-mass, def:mass-preserving, lem:bind-matrix-mult, lem:pure-maps, lem:tensor, lem:units, lem:tilt, thm:pullout}
+with equality exactly when every $M_i = m_i$.
+\uses{thm:chain-bound-sandwich, def:mass-preserving, thm:pullout}
 \end{theorem}
 
 \begin{proof}
 \leanok
-Write $\pi_m = \prod_i m_i$ and $\pi_M = \prod_i M_i$. Induction on the
-chain gives the division-free sandwich
-$\pi_m\, t_{\Tmon} \le \pi_M\, t_{\Dmon}$ and
-$\pi_m\, t_{\Dmon} \le \pi_M\, t_{\Tmon}$ at every outcome, with no
-positivity assumed. A pure map reindexes the fiber sums
-(Lemma~\ref{lem:pure-maps}). A tensor factor multiplies both members by
-one common factor (Lemmas~\ref{lem:tensor}, \ref{lem:units}). A bind
-factor widens the sandwich by exactly $[m_i, M_i]$: written as matrix
-multiplication (Lemma~\ref{lem:bind-matrix-mult}), its numerator and
-its normalizing mass are $Z(k_i)$-weighted sums, and replacing each
-weight by $m_i$ or $M_i$ bounds both against the unweighted sums the
-induction hypothesis controls. Taking logarithms turns the sandwich
-into the stated bound, and positivity of $t_{\Tmon}$ follows from the
-sandwich itself. If every $M_i = m_i$, each bind is mass preserving
+Write $\pi_m = \prod_i m_i > 0$ and $\pi_M = \prod_i M_i > 0$
+(Theorem~\ref{thm:chain-bound-sandwich}'s bounds are now positive). The
+sandwich gives $\pi_m\, t_{\Tmon} \le \pi_M\, t_{\Dmon}$ and
+$\pi_m\, t_{\Dmon} \le \pi_M\, t_{\Tmon}$; the second inequality, with
+$t_{\Dmon} > 0$ and $\pi_m > 0$, forces $t_{\Tmon} > 0$ too. Taking
+logarithms of both (all four quantities now positive) gives
+\[
+  \log t_{\Tmon} - \log t_{\Dmon} \;\le\; \log\pi_M - \log\pi_m,
+  \qquad
+  \log t_{\Dmon} - \log t_{\Tmon} \;\le\; \log\pi_M - \log\pi_m,
+\]
+and $\log\pi_M - \log\pi_m = \sum_i \log(M_i/m_i)$, the logarithm of a
+product being the sum of logarithms; together these two inequalities
+are exactly $\bigl|\log t_{\Tmon} - \log t_{\Dmon}\bigr| \le \sum_i
+\log(M_i/m_i)$.
+
+If every $M_i = m_i$, each $k_i$ is mass preserving
 (Definition~\ref{def:mass-preserving}), so Theorem~\ref{thm:pullout}
-makes the two truth values equal and both sides zero. Conversely, an
-attained bound forces every inequality of the sandwich chain to be an
-equality. Termwise comparison of the sums then pins $Z(k_i) = m_i$ and
-$Z(k_i) = M_i$ simultaneously at a witness index of positive weight,
-so every $M_i = m_i$.
+makes $t_{\Tmon} = t_{\Dmon}$ and both sides of the bound $0$.
+Conversely, if the bound is attained, exponentiating the equality case
+back out of the logarithm forces one of the sandwich's two
+multiplicative inequalities to be an equality at $y$. Termwise
+comparison of the finite sums making up that inequality, traced back
+through Theorem~\ref{thm:chain-bound-sandwich}'s own bind-layer
+estimate, then pins $Z(k_i) = m_i$ and $Z(k_i) = M_i$ simultaneously at
+a witness index of positive weight, for every $i$, so every
+$M_i = m_i$.
 \end{proof}
 
 The one-bind case is the single-term instance

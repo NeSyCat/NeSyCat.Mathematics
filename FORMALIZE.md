@@ -515,6 +515,55 @@ step below.
      confirms every prose attribution names a real source its
      adjacent `%` comment substantiates.
 
+- **The proof-substance law (C3-E12, USER DECREE 2026-08-10).** A
+  rendered proof mirrors the FORMAL proof's skeleton, not a narration
+  of it. The user's own words, calibrating this law: "this proof and
+  other proofs use way too much natural language just vaguely
+  describing the proof. why not use calculations and equations and
+  logical structuring? that should be more enforced especially for
+  the important theorems; for small lemmas it is not so important."
+  1. **Theorem envs** (and `lemma` envs whose Lean proof exceeds ~40
+     lines): the proof shows the actual mathematics — displayed
+     equation/inequality chains (`align*`/`gather*`/`\[...\]`) for
+     calculations, explicit enumerated case analyses where the Lean
+     proof case-splits, the induction structure named with its base
+     case and step shown as displays, each display traceable to a
+     named Lean lemma (a `%` comment where the correspondence is not
+     obvious from the surrounding prose). Connective prose glues the
+     steps together; it never replaces them.
+  2. **Small lemmas** (short Lean proofs): a sentence citing the
+     computation stays fine. No bureaucracy where a line suffices —
+     this law does not ask every one-line `rfl`/`ring` proof to grow
+     a display.
+  The flat-register and connective-flow laws above apply to this
+  law's own glue prose unchanged; this law is about mathematical
+  CONTENT (does the proof show its work?), not about sentence style.
+  Two books are the standing proof-style models a worker reads before
+  sweeping a proof (style references, like `new.tex`, never
+  mathematical sources — the source-priority rule is untouched):
+  Awodey, *Category Theory* (2010) for the TECHNICAL/FORMAL register
+  (important theorems: displayed chains, precise case structure,
+  formal economy — e.g. the free-monoid universal-mapping-property
+  proof's equational chain), and Spivak, *Category Theory for the
+  Sciences* (2014) for the NATURAL/INTUITIVE register (expository
+  passages, examples, and proofs where an intuition-first reading
+  serves the reader — e.g. the bijective-iff-isomorphism proof's
+  witness-construction-then-discursive-verification shape). Usage
+  rule: Awodey's register for proving a property OF a known structure
+  (a theorem sweep's default), Spivak's register for INTRODUCING a
+  structure or justifying a non-obvious step (definitions, examples,
+  first-contact passages); one document may use both, the choice
+  following the passage's job. Enforced by `lint-blueprint.py` (both
+  copies): an advisory when a `proof` env paired with a `theorem`
+  statement contains zero displayed-math blocks
+  (`\[...\]`/`align*`/`gather*`/`multline*`) while its rendered prose
+  exceeds ~60 words — "prose-only theorem proof; show the
+  calculation" — tuned to zero false positives against the swept
+  document. A blind verifier reads each swept proof against its Lean
+  counterpart: every display must correspond to a real step (a named
+  lemma or a case split); a narrative sentence carrying mathematical
+  content with no display backing it is a finding.
+
 - **Sequential composition decree (C2-E10, USER DECREE 2026-08-09).**
   Composition is always written sequentially, with the fat semicolon:
   "first $f$, then $g$" is $f \seq g$. `\circ` is banned — never write
