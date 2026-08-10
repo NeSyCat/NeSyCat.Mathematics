@@ -72,7 +72,7 @@ what triggers planning.
 |-----------------|-------------------------------------------------------------------------------------------------|
 | `haiku`         | Read-only scouting: target-vs-`PROGRESS.md` gap inventory, duplicate greps, sorry census, dependency mapping. Never edits. |
 | `sonnet`        | Default proving seat: stating items, standard proofs, exercises. Dispatch as `lean-prover`.    |
-| `opus` or `fable` | Escalation seat: a proof that survived two serious sonnet attempts, encoding adjudication, or statement-faithfulness disputes. |
+| `opus` | Escalation seat (USER RULING 2026-08-10): a proof that survived two serious sonnet attempts, encoding adjudication, or statement-faithfulness disputes. Opus 5 does the hard proving; `fable` is the MANAGER seat (orchestration), not the default grinder escalation. |
 | `lean-checker`  | Blind verification of every accepted batch. Reports verdict-first: `PASS` / `FAIL` / `PASS_WITH_NOTES`. |
 
 Use these aliases stably across a campaign — do not invent new seat
