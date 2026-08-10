@@ -375,8 +375,132 @@ module, using $\lse$ in place of the sum, is the log row.
 % src/klay/jax/semiring/godel.py (max_layer/min_layer) and
 % src/klay/jax/semiring/__init__.py's get_semiring (the 'mpe' case,
 % max_layer/prod_layer, reusing godel.py's own max_layer).
-It also ships an MPE (max-times) option and a Gödel (max-min) module
-that restricts to the Boolean row on $\{0,1\}$.
+Its Gödel (max-min) module is the Gödel row below
+(Definition~\ref{inst:godel-latcsrng}), and on $\{0,1\}$ that module
+restricts to the Boolean row. Its MPE (max-times) option is the
+product row (Definition~\ref{inst:viterbi-latcsrng}), reusing the Gödel
+module's max in place of a fresh sum.
+
+Every t-norm gives $[0,1]$ a third such row, with $\vee=\max$ playing
+the part of $\oplus$. A \textbf{t-norm} is a binary operation $\otimes$
+on $[0,1]$, commutative, associative, monotone in each argument, with
+two-sided unit $1$: the standard building block of fuzzy logic's
+semantics \citep{hajekMetamathematicsFuzzyLogic1998}.
+
+\begin{definition}[T-norm]
+\label{def:tnorm}
+\lean{NeSyCat.TNorm}
+\leanok
+A \textbf{t-norm} is a binary operation $\otimes$ on $[0,1]$ that is
+commutative, associative, monotone in each argument, and has two-sided
+unit $1$.
+\end{definition}
+
+Monotonicity and the unit law alone pin $\otimes$ down tightly: $p
+\otimes q \le p \otimes 1 = p$ and symmetrically $p \otimes q \le q$, so
+$\otimes \le \min$ everywhere, and $p \otimes 0 \le 1 \otimes 0 = 0$, so
+$\otimes$ annihilates $0$. Distributivity over $\max$ then follows from
+monotonicity alone, by the same chain argument as
+Theorem~\ref{thm:chain-lin}: on a chain, an operation monotone in each
+argument preserves finite joins.
+
+\begin{instance}[T-norm row]
+\label{inst:tnorm-row}
+\lean{NeSyCat.TRow.instBLatCSRng}
+\leanok
+For every t-norm $\otimes$, $([0,1], \max, \otimes)$ is a bounded
+commutative lattice-semiring, with $\oplus := \max$, unit $0 = \bot$,
+and $\otimes$'s own unit $1 = \top$.
+\uses{def:tnorm, def:bounded-comm-lattice-semiring}
+\end{instance}
+
+\begin{proof}
+\leanok
+$\max$ is associative, commutative, and monotone with unit $\bot$, from
+the lattice. $\otimes$ is associative and commutative by definition, and
+monotone in each argument; it distributes over $\max$ by the chain
+argument above, and annihilates $0=\bot$ by the bound $\otimes \le
+\min$. Its own unit $1$ is the lattice's own $\top$.
+\end{proof}
+
+The unit coincidence $0=\bot$, $1=\top$ that Instance~\ref{inst:tnorm-row}
+proves is exactly the bounded case UnitBounds (Class~\ref{def:unit-bounds})
+names elsewhere in the class tower. The Gödel, product, and Łukasiewicz
+rows below all instantiate Instance~\ref{inst:tnorm-row}.
+
+\begin{lemma}[Idempotent t-norms are the Gödel t-norm]
+\label{lem:godel-unique-idempotent}
+\lean{NeSyCat.TNorm.eq_min_of_idempotent}
+\leanok
+If a t-norm $\otimes$ is idempotent ($p \otimes p = p$ for every $p$),
+then $\otimes = \min$.
+\uses{def:tnorm}
+\end{lemma}
+
+\begin{proof}
+\leanok
+$\min(p,q) = \min(p,q) \otimes \min(p,q) \le p \otimes q \le \min(p,q)$:
+the middle step by monotonicity applied to $\min(p,q) \le p$ and
+$\min(p,q) \le q$ in each argument, the outer steps by idempotence and
+$\otimes \le \min$.
+\end{proof}
+
+This is why the Gödel t-norm is canonical among idempotent rows
+(Section~\ref{sec:truth-spaces} onward, the $\ell^\infty$ family): it is
+the only one there is.
+
+Not every t-norm distributes over every t-conorm besides $\max$. The
+product t-norm fails against the probabilistic sum $\mathrm{pSum}$
+(Definition~\ref{def:psum}): Lemma~\ref{lem:prob-not-semiring}'s own
+witness is exactly this failure, restated in t-norm/t-conorm language.
+
+\begin{lemma}[A t-norm that does not distribute over $\mathrm{pSum}$]
+\label{lem:tconorm-forces-max}
+\lean{NeSyCat.product_not_distrib_pSum}
+\leanok
+The product t-norm $p \otimes q := pq$ does not distribute over
+$\mathrm{pSum}$: there exist $p,q,r \in [0,1]$ with $p \otimes (q \oplus
+r) \ne (p \otimes q) \oplus (p \otimes r)$, where $\oplus :=
+\mathrm{pSum}$.
+\uses{def:tnorm, def:psum, lem:prob-not-semiring}
+\end{lemma}
+
+\begin{proof}
+\leanok
+Lemma~\ref{lem:prob-not-semiring}'s witness $p=q=r=\tfrac12$.
+\end{proof}
+
+$\max$ is a safe choice where $\mathrm{pSum}$ is not: every t-norm
+distributes over $\max$ (Instance~\ref{inst:tnorm-row}).
+
+\begin{definition}[Gödel row]
+\label{inst:godel-latcsrng}
+\lean{NeSyCat.godelTNorm}
+\leanok
+The Gödel t-norm $p \otimes q := \min(p,q)$, giving the row
+$\GodelS := ([0,1], \max, \min)$ (Instance~\ref{inst:tnorm-row}).
+\uses{inst:tnorm-row, lem:godel-unique-idempotent}
+\end{definition}
+
+\begin{definition}[Product row]
+\label{inst:viterbi-latcsrng}
+\lean{NeSyCat.viterbiTNorm}
+\leanok
+The product t-norm $p \otimes q := pq$, giving the row
+$\ViterbiS := ([0,1], \max, \cdot)$ (Instance~\ref{inst:tnorm-row}):
+the MPE (max-times) semiring, Viterbi-style most-probable-explanation
+evaluation \citep{maeneKLay2025}.
+\uses{inst:tnorm-row}
+\end{definition}
+
+\begin{definition}[Łukasiewicz row]
+\label{inst:luk-latcsrng}
+\lean{NeSyCat.lukTNorm}
+\leanok
+The Łukasiewicz t-norm $p \otimes q := \max(0, p+q-1)$, giving the row
+$\LukS := ([0,1], \max, \otimes)$ (Instance~\ref{inst:tnorm-row}).
+\uses{inst:tnorm-row}
+\end{definition}
 
 \begin{definition}[Semiring monad $\MS{S}$]
 \label{def:semiring-monad}
@@ -2877,4 +3001,5 @@ preserving for every pure $h$.
 \bibitem[Coumans and Jacobs(2013)]{coumansJacobsScalars2013} Dion Coumans and Bart Jacobs. Scalars, monads, and categories. In Chris Heunen, Mehrnoosh Sadrzadeh, and Edward Grefenstette, editors, \textit{Quantum Physics and Linguistics: A Compositional, Diagrammatic Discourse}. Oxford University Press, 2013. arXiv:1003.0585.
 \bibitem[Maene et~al.(2025)]{maeneKLay2025} Jaron Maene, Vincent Derkinderen, and Pedro Zuidberg Dos Martires. KLay: accelerating arithmetic circuits for neurosymbolic AI. In \textit{International Conference on Learning Representations (ICLR)}, 2025. arXiv:2410.11415.
 \bibitem[Eisner(2002)]{eisnerExpectationSemiring2002} Jason Eisner. Parameter estimation for probabilistic finite-state transducers. In \textit{Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics (ACL)}, pages 1 to 8, 2002.
+\bibitem[Hájek(1998)]{hajekMetamathematicsFuzzyLogic1998} Petr Hájek. \textit{Metamathematics of Fuzzy Logic}. Trends in Logic. Springer Netherlands, Dordrecht, 1998.
 \end{thebibliography}

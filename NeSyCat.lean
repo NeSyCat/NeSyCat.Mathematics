@@ -11,6 +11,7 @@ import NeSyCat.CategoricalLayer.SemiringMonads.Dist
 import NeSyCat.CategoricalLayer.SemiringMonads.LogIso
 import NeSyCat.CategoricalLayer.SemiringMonads.Support
 import NeSyCat.CategoricalLayer.SemiringMonads.GradientSemiring
+import NeSyCat.CategoricalLayer.SemiringMonads.TNorm
 import NeSyCat.CategoricalLayer.Signatures.Signatures
 import NeSyCat.CategoricalLayer.Embedding.Embedding
 import NeSyCat.CategoricalLayer.Embedding.EmbeddingExact
