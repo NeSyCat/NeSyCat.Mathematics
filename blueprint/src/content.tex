@@ -2433,10 +2433,7 @@ bound continuation $k_i$ is mass preserving
   L \seq (\dec \otimes \cdots \otimes \dec) \seq
   \bigl(B_1^{\Dmon} \seq \cdots \seq B_r^{\Dmon}\bigr),
 \]
-the same chain read in $\Dmon$, with one $\dec$ per leaf. If some
-$k_i$ is not mass preserving, the two sides differ in general, and
-Lemma~\ref{lem:tilt} gives the exact discrepancy: one
-$\tilt_{k_i \seq Z}$ per offending bind.
+the same chain read in $\Dmon$, with one $\dec$ per leaf.
 \uses{lem:pure-maps, lem:tensor, lem:units, lem:strengths, lem:tilt, def:mass-preserving, def:feed-forward}
 \end{theorem}
 
@@ -2451,6 +2448,10 @@ i.e.\ $k_i$ is mass preserving; the converse direction (some $k_i$ not
 mass preserving forces a genuine discrepancy) is witnessed by the
 tilt-failure example below.
 \end{proof}
+
+If some $k_i$ is not mass preserving, the two sides differ in general, and
+Lemma~\ref{lem:tilt} gives the exact discrepancy: one
+$\tilt_{k_i \seq Z}$ per offending bind.
 
 % OPEN: one-bind case provable from lem:tilt; the chain version has no
 % known proof -- a standing research target of this library. The
@@ -2485,6 +2486,8 @@ $r > 1$ binds.
 
 \begin{definition}[Normalizer]
 \label{def:normalizer}
+\lean{NeSyCat.nrm}
+\leanok
 $\nrm_X := \dec_X \seq \enc_X \colon \Tmon X \to \Tmon X$, concretely
 $\nrm(a) = a - \log Z(a)\cdot\mathbf 1$ (the log-softmax).
 \uses{def:dec-enc-mass}
@@ -2492,6 +2495,8 @@ $\nrm(a) = a - \log Z(a)\cdot\mathbf 1$ (the log-softmax).
 
 \begin{lemma}[Normalizer properties]
 \label{lem:normalizer-props}
+\lean{NeSyCat.normalizer_props}
+\leanok
 $\nrm$ (Definition~\ref{def:normalizer}) satisfies:
 \begin{enumerate}
 \item[(i)] $\nrm \seq \dec = \dec$ (predictions unchanged);
@@ -2504,6 +2509,7 @@ $\nrm$ (Definition~\ref{def:normalizer}) satisfies:
 \end{lemma}
 
 \begin{proof}
+\leanok
 (i) $\dec(\nrm(a))_x = e^{a_x-\log Z(a)}/Z(\nrm(a))$, and
 (ii) $Z(\nrm(a)) = \sum_x e^{a_x}/Z(a) = 1$, so (i)'s numerator/1 is
 $e^{a_x}/Z(a) = \dec(a)_x$; (iii) $Z(a+c\mathbf1) = e^cZ(a)$, so
@@ -2514,6 +2520,8 @@ to $\nrm(a)$, using (ii).
 
 \begin{lemma}[Normalized heads]
 \label{lem:normalized-heads}
+\lean{NeSyCat.normalized_heads}
+\leanok
 If every neural symbol interpretation is post-composed with $\nrm$
 (Definition~\ref{def:normalizer}), then every leaf and every bound
 continuation has mass one, hence is mass preserving
@@ -2526,6 +2534,7 @@ one $\lse$ evaluation per head.
 \end{lemma}
 
 \begin{proof}
+\leanok
 A mass-one weight vector $w$ has $Z(w)=1$
 (Lemma~\ref{lem:normalizer-props}(ii)), so $(\text{symbol})\seq Z$ is
 the constant function $1$, i.e.\ mass preserving

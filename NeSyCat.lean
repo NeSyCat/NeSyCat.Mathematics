@@ -44,4 +44,5 @@ import NeSyCat.StatisticalLayer.Batching.BatchTransformer
 import NeSyCat.StatisticalLayer.BridgesNormalization.BridgesNormalization
 import NeSyCat.StatisticalLayer.BridgesNormalization.DecEncMass
 import NeSyCat.StatisticalLayer.BridgesNormalization.Tilt
+import NeSyCat.StatisticalLayer.BridgesNormalization.Normalizer
 import NeSyCat.StatisticalLayer.Examples.Examples
