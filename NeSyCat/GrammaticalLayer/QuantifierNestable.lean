@@ -8,18 +8,34 @@ import NeSyCat.BlueprintAttr
 import NeSyCat.LogicalLayer.LogicalSignatures.LogicalSignatures
 
 /-!
-# Quantifier nestability (C3-B4b)
+# Quantifier nestability (C3-B4b, C3-ADJ)
 
-Toward blueprint item `lem:quantifier-nestable`
-(`blueprint/src/content.tex`, §"Grammatical layer"): for a symmetric,
-nestable quantifier family, the simultaneous interpretation
-`⟦Qx⃗(φ)⟧` of `def:kleisli-interpretation` equals the iterated
-interpretation `⟦Qx₁(Qx₂(⋯))⟧`.
+Blueprint item `lem:quantifier-nestable`
+(`blueprint/src/content.tex`, §"Grammatical layer"): for a nestable
+quantifier family with classical enumeration states, the simultaneous
+interpretation `⟦Qx⃗(φ)⟧` of `def:kleisli-interpretation` equals the
+iterated interpretation `⟦Qx₁(Qx₂(⋯))⟧`, taken in the lexicographic
+order of `x⃗`.
 
-**Honest scope (disclosed, C3-B4b).** This file formalizes the env's
-two hypothesis predicates (`Nestable`, `SymmetricFamily`) and proves
-the env's own proof plan — base case and inductive step — at the
-combinator level: `simQuant` below is the
+**USER RULING (C3-ADJ).** The lemma was kernel-proven false as
+originally stated, with no classicality proviso: the iterated reading
+inserts the head variable's state once and then copies the enlarged
+context, the simultaneous reading inserts a fresh state into each
+copy, and a general CD-category state is not copyable — a coin-flip
+enumeration state is a concrete counterexample, kernel-checked twice
+(C3-B4b's own analysis below, reason (1); an independent repro logged
+at `V-B4b` in `.foreman/ledger.md`). The user ruled this a FEATURE,
+not a defect: the lemma now carries classicality as its honest scope,
+sharing versus independent randomness across quantified branches is a
+semantic axis the framework deliberately distinguishes, and
+`lem:quantifier-nestable`'s own statement gained the classical-point
+hypothesis (`IsClassicalPoint` below is exactly `PointedObj.classical`
+below). `lem:quantifier-nestable` is now `\lean`/`\leanok`-marked,
+citing `simQuant_nest`.
+
+This file formalizes the env's two hypothesis predicates (`Nestable`,
+`SymmetricFamily`) and proves the env's own proof plan — base case and
+inductive step — at the combinator level: `simQuant` below is the
 `comulN ⨟ tensorFin ⨟ 𝓘(Q)_N` shape of `Fm.sem`'s quantifier clause
 (`NeSyCat/GrammaticalLayer/Kleisli.lean`), stated generically over a
 braided monoidal category with comonoid data (the CD-category fragment
@@ -29,32 +45,53 @@ enumeration), and `simQuant_nest` iterates it into the full
 simultaneous-equals-iterated statement over a list of quantified
 variables with classical enumeration points (`PointedObj`), the
 head-slow block decomposition (`blockIdx j i = n * j + i`) matching
-`listPt`'s own `finProdFinEquiv` convention. Tensor powers here are
+`listPt`'s own `finProdFinEquiv` convention — `simQuant_nest` is now
+`lem:quantifier-nestable`'s cited principal. Tensor powers here are
 built tail-first (`tensorPow X (n+1) = tensorPow X n ⊗ X`), so every
 recursion on `ℕ` is cast-free; `Kleisli.lean`'s
 `tensorList (List.replicate n X)` is head-first, and the connecting
 coherence iso is part of the disclosed syntax-bridge remainder.
 
-The env carries NO `\lean`/`\leanok` mark, for two kernel-checked
-reasons the statement as written does not survive: (1) the equality
-NEEDS the enumeration states to be CLASSICAL points (copyable and
-discardable, `IsClassicalPoint` below) — the iterated reading inserts
-the head state once and then copies the enlarged context, while the
-simultaneous reading inserts a fresh state into each copy, and in a CD
-category a general state is not copyable, so the two sides genuinely
-differ for a non-classical (e.g. randomized) enumeration; the env
-states no such proviso. (2) an `Id`-marked quantifier's clause wraps
-the family in `dstFoldN` (`StrongCatInterpretation.dst`), and
-`StrongCatInterpretation` carries strength as bare DATA with no laws,
-so no block coherence for `dstFoldN` is provable at all; only the
-`○`-marked case (where the clause consumes `𝓘(Q)_N` directly, the
-shape `simQuant` captures) is provable. The remaining bridge from
-this file to `Fm.sem`'s own syntax-level clause (the `ctxMerge`
-two-stage factorization, the head/tail tensor convention iso, and
-`Fm.sem`'s tactic-elaborated equation lemmas), and the "any ordering"
-clause's permutation action (`SymmetricFamily` is defined but its
-strided-regrouping consequence is not proved), are reported as the
-exact remainder in `.foreman/scratch/C3-B4b-report.md`.
+**`lem:quantifier-nestable-order` ("any ordering"), disclosed
+remainder, two real attempts (C3-ADJ).** The blueprint's closing "for
+any ordering of `x⃗`" clause is split into its own unmarked env,
+`\uses`-linked back to `lem:quantifier-nestable`. `SymmetricFamily`
+(below) is defined and instantiated (the four running quantifier
+columns, `QuantifierColumns.lean`) but its "strided-regrouping"
+consequence is not proved. Attempt 1: reduce a two-variable swap to
+`insertPoint` commutativity (a general fact about inserting two
+independent global states, provable from unitor/braiding naturality
+alone, needing no `SymmetricFamily`) composed with `simQuant_peel`
+applied at both groupings `n·m` and `m·n`. This reduces the claim to
+`simQuant q (n·m) F = simQuant q (m·n) F'` for `F`/`F'` related by the
+GRID-TRANSPOSE permutation of `Fin (n·m) ≃ Fin (m·n)` (position
+`n·j+i` for `blockIdx j i` corresponds to position `m·i+j` for the
+transposed grouping — not the identity permutation in general: at
+`m=2, n=3`, index `1 = blockIdx 0 1` transposes to index `2`, not `1`).
+Closing this needs `q`'s invariance under an ARBITRARY permutation of
+its inputs, not just the one adjacent transposition `SymmetricFamily`
+states directly. Attempt 2: build that general invariance from
+`SymmetricFamily`'s adjacent-transposition generators via a
+permutation-morphism combinator, `Equiv.Perm (Fin n) → (tensorPow X n
+⟶ tensorPow X n)` compatible with `tensorFinHom`'s indexed factors and
+generated by a reduced word of `swapPow`s. Mathlib carries no such
+combinator for braided/symmetric monoidal categories (checked:
+`Mathlib/CategoryTheory/Monoidal/**` has no `Equiv.Perm`-indexed tensor
+action). Constructing and generating it is a second, independent piece
+of categorical infrastructure on the scale of `tensorPowMulIso`/
+`tensorPowAddIso` below (the split/regroup isos, themselves ~150
+lines) — not completable inside this ticket. `lem:quantifier-nestable-order`
+stays unmarked, its informal proof sketch (symmetry absorbs the
+reindexing) recorded in `content.tex` as an ordinary (non-"Open.")
+proof — the argument is standard and believed, just not yet
+Lean-formalized.
+
+The remaining bridge from this file to `Fm.sem`'s own syntax-level
+clause (the `ctxMerge` two-stage factorization, the head/tail tensor
+convention iso, and `Fm.sem`'s tactic-elaborated equation lemmas), and
+the `Id`-marked quantifier blocker (`dstFoldN` has no strength laws to
+prove block coherence with) stay the exact remainder reported in
+`.foreman/scratch/C3-B4b-report.md`, unaffected by this ticket.
 -/
 
 open CategoryTheory MonoidalCategory
@@ -524,19 +561,15 @@ def iterQuant [BraidedCategory C] {X : C} (q : ∀ k, tensorPow X k ⟶ X) :
     simQuant q v.card fun j =>
       insertPoint (v.pt j) ≫ iterQuant q w L (Z ⊗ v.W) h
 
-/-- Toward `lem:quantifier-nestable` (C3-B4b), the env's STATEMENT at
-the combinator level: for a nestable quantifier family and a
-(nonempty) list of quantified variables with classical enumeration
-points, the simultaneous quantification over the lexicographic
-product states equals the iterated one-variable-at-a-time
+/-- Blueprint `lem:quantifier-nestable` (`simQuant_nest`): for a nestable
+quantifier family and a (nonempty) list of quantified variables with
+classical enumeration points, the simultaneous quantification over the
+lexicographic product states equals the iterated one-variable-at-a-time
 quantification. Induction on the variable list; the base case `l = 1`
 is definitional and the inductive step is `simQuant_peel`, exactly
 the env's own proof. The env's remaining "for any ordering of `x⃗`"
-clause is the `SymmetricFamily` remainder disclosed in the module
-doc. -/
-@[blueprint_internal] -- toward lem:quantifier-nestable: simultaneous
--- equals iterated (the env's statement, combinator level), env
--- stays unmarked pending its provisos
+clause is split into `lem:quantifier-nestable-order`, the
+`SymmetricFamily` remainder disclosed in the module doc. -/
 theorem simQuant_nest [BraidedCategory C] {X : C}
     {q : ∀ k, tensorPow X k ⟶ X} (hq : Nestable q) :
     ∀ (L : List (PointedObj C)) (v : PointedObj C) (Z : C) [ComonObj Z]

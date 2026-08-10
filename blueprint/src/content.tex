@@ -1983,19 +1983,33 @@ the term itself (the dice-or-die example below).
 % Theory v2} beyond the pinned lines 1--396.
 \begin{lemma}[Quantifier nestability]
 \label{lem:quantifier-nestable}
+\lean{NeSyCat.simQuant_nest}
+\leanok
 Call a family $\mathcal I(Q)_n$ ($n = 1,2,\ldots$) \textbf{nestable}
 when $\mathcal I(Q)_{mn} = \bigl(\mathcal I(Q)_n\bigr)^{\boxtimes m} \seq
 \mathcal I(Q)_m$ (grouping $mn$ inputs into $m$ blocks of $n$), and
 \textbf{symmetric} when $\mathcal I(Q)_n$ is invariant under
-permutations of its $n$ inputs. For a symmetric, nestable quantifier
-family, the simultaneous interpretation
+permutations of its $n$ inputs. Assume moreover that each enumeration
+state $\mathcal I([x_{p_j}])_i \colon \mathrm I \to \mathcal
+I([x_{p_j}])$ ($j = 1,\ldots,l$) is \emph{classical}: copying it
+duplicates it, $\mathcal I([x_{p_j}])_i \seq \mathsf{copy} = \mathcal
+I([x_{p_j}])_i \boxtimes \mathcal I([x_{p_j}])_i$ (under the canonical
+unitor $\mathrm I \cong \mathrm I \boxtimes \mathrm I$), rather than
+producing two independent samples, and deleting it is trivial,
+$\mathcal I([x_{p_j}])_i \seq \mathsf{del} = \mathrm{id}_{\mathrm I}$.
+For a nestable quantifier family with classical enumeration states,
+the simultaneous interpretation
 $\sem{Q\vec x(\phi)}$ of Definition~\ref{def:kleisli-interpretation}
 equals the iterated interpretation
-$\sem{Qx_1(Qx_2(\cdots(\phi)\cdots))}$, for any ordering of $\vec x$.
-\uses{def:kleisli-interpretation, def:logical-interpretation}
+$\sem{Qx_1(Qx_2(\cdots(\phi)\cdots))}$ taken in the lexicographic
+order of $\vec x$ (Definition~\ref{def:kleisli-interpretation}'s own
+enumeration convention); Lemma~\ref{lem:quantifier-nestable-order}
+below extends this to any ordering, using symmetry.
+\uses{def:kleisli-interpretation, def:logical-interpretation, def:cd-category}
 \end{lemma}
 
 \begin{proof}
+\leanok
 Induction on the length $l$ of $\vec x$. Base case $l=1$: the
 simultaneous and iterated interpretations coincide definitionally, both
 being $\sem\phi_{[\vec x\mapsto \mathcal I([\vec x])_i]} \seq \mathcal
@@ -2008,15 +2022,47 @@ value of the first variable $x_{p_1}$, with the remaining $l-1$
 variables enumerated within each block by the induction hypothesis.
 Nestability, $\mathcal I(Q)_{mn} = \bigl(\mathcal I(Q)_n\bigr)^{\boxtimes
 m} \seq \mathcal I(Q)_m$ at $m = \bigl|\mathcal I([x_{p_1}])\bigr|$,
-collapses this blocked tensor: it first applies the (by induction)
-iterated interpretation of $Q$ over the last $l-1$ variables within
-each block, then applies $\mathcal I(Q)_m$ over the blocks indexed by
-$x_{p_1}$. This is exactly the iterated interpretation
-$\sem{Qx_{p_1}(Q\vec x'(\phi))}$ for $\vec x' = \vec x
-\setminus\{x_{p_1}\}$. Symmetry of the family absorbs the reindexing
-needed to reach any other ordering of $\vec x$, since permuting the
-inputs of $\mathcal I(Q)_n$ (resp.\ $\mathcal I(Q)_m$) does not change
-its value.
+collapses this blocked tensor, and classicality absorbs the copy of
+the head state $\mathcal I([x_{p_1}])_i$ that the iterated reading
+performs and the simultaneous reading does not: it first applies the
+(by induction) iterated interpretation of $Q$ over the last $l-1$
+variables within each block, then applies $\mathcal I(Q)_m$ over the
+blocks indexed by $x_{p_1}$. This is exactly the iterated
+interpretation $\sem{Qx_{p_1}(Q\vec x'(\phi))}$ for $\vec x' = \vec x
+\setminus\{x_{p_1}\}$.
+\end{proof}
+
+% C3-ADJ (feature note, user ruling): classicality's necessity is
+% kernel-checked in NeSyCat/GrammaticalLayer/QuantifierNestable.lean
+% (module-doc analysis, reason (1)) and confirmed by an independent
+% coin-flip enumeration-state counterexample (an AND-quantifier
+% family over a randomized state, logged as V-B4b in
+% .foreman/ledger.md).
+Without the classicality hypothesis the two readings genuinely differ:
+the iterated reading inserts the outer variable's state once and
+copies the enlarged context, so every inner branch shares that one
+sample, while the simultaneous reading inserts a fresh state into each
+copy, so the branches sample independently. This divergence is
+kernel-verified, not merely suspected. The library keeps non-classical
+enumeration open on purpose: shared versus independent randomness
+across quantified branches is a semantic axis the framework
+distinguishes, rather than a defect awaiting repair.
+
+\begin{lemma}[Quantifier nestability, any ordering]
+\label{lem:quantifier-nestable-order}
+Under the hypotheses of Lemma~\ref{lem:quantifier-nestable}, assume
+moreover that the family is symmetric. Then the equality of
+Lemma~\ref{lem:quantifier-nestable} holds for any ordering of $\vec x$,
+not only the lexicographic one.
+\uses{lem:quantifier-nestable}
+\end{lemma}
+
+\begin{proof}
+Symmetry absorbs the reindexing needed to reach any other ordering of
+$\vec x$: permuting the inputs of $\mathcal I(Q)_n$ (resp.\ $\mathcal
+I(Q)_m$) does not change its value, so relabeling the enumeration by
+any permutation of $\vec x$ and repeating Lemma~\ref{lem:quantifier-nestable}'s
+induction on the relabeled blocks gives the same value.
 \end{proof}
 
 The four running quantifier columns (Max, Min, the $\Sigma$-$\Pi$ pair,
