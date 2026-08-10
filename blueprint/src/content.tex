@@ -2216,6 +2216,8 @@ equation would fail.
 
 \begin{definition}[Decode, encode, mass]
 \label{def:dec-enc-mass}
+\lean{NeSyCat.dec}
+\leanok
 For a finite set $X$, write a $\Tmon X$-value as a log-weight vector
 $a \in \LogS^X$ (allowing $-\infty$ coordinates for zero mass). Define
 \[
@@ -2232,14 +2234,24 @@ $a \in \LogS^X$ (allowing $-\infty$ coordinates for zero mass). Define
 \uses{def:dist-monad, lem:log-iso}
 \end{definition}
 
+\textbf{Scope disclosure.} $\dec_X$ lands in the full mass carrier
+underlying $\Dmon X$, not the mass-one submonad itself: at the all-$-\infty$
+log-weight vector ($Z_X(a) = 0$), softmax's division by $Z_X(a)$ has no
+mass-one value to return, so $\dec_X(a)$ is there the zero function, by the
+ambient $0/0 = 0$ convention. Every other coordinate of $\Tmon X$ decodes to
+a genuine mass-one distribution.
+
 \begin{lemma}[Pure maps]
 \label{lem:pure-maps}
+\lean{NeSyCat.pure_maps}
+\leanok
 For pure $h \colon X \to Y$: $Z\bigl(\Tmon(h)(a)\bigr) = Z(a)$ and
 $\Tmon(h) \seq \dec_Y = \dec_X \seq \Dmon(h)$.
 \uses{def:dec-enc-mass}
 \end{lemma}
 
 \begin{proof}
+\leanok
 The fibers $h^{-1}(y)$ partition $X$; summing $e^{a_x}$
 fiber by fiber rearranges the same total sum, giving both the mass
 identity and, after dividing by $Z(a)$, the commuting square.
@@ -2247,6 +2259,8 @@ identity and, after dividing by $Z(a)$, the commuting square.
 
 \begin{lemma}[Tensor]
 \label{lem:tensor}
+\lean{NeSyCat.tensor}
+\leanok
 Write $a \otimes b \in \Tmon(X\times Y)$ for the tensorial-strength
 pairing $(a\otimes b)_{(x,y)} := a_x+b_y$ of $a \in \Tmon X$, $b \in
 \Tmon Y$ (the general instance of which the Boolean-lifted $\otimes$ of
@@ -2262,6 +2276,7 @@ $\Dmon$).
 \end{lemma}
 
 \begin{proof}
+\leanok
 $e^{a_x+b_y} = e^{a_x}e^{b_y}$; sum over $x,y$ for the
 mass identity, then divide by $Z(a)Z(b)$ to get the pointwise product
 of softmaxes.
@@ -2269,6 +2284,8 @@ of softmaxes.
 
 \begin{lemma}[Units]
 \label{lem:units}
+\lean{NeSyCat.units}
+\leanok
 $\Ret_{\Dmon} \seq \enc = \Ret_{\Tmon}$, $\enc \seq \dec =
 \mathrm{id}_{\Dmon}$, hence $\Ret_{\Tmon} \seq \dec = \Ret_{\Dmon}$,
 and $Z(\Ret_{\Tmon}(x)) = 1$.
@@ -2276,6 +2293,7 @@ and $Z(\Ret_{\Tmon}(x)) = 1$.
 \end{lemma}
 
 \begin{proof}
+\leanok
 $\enc(\Ret_{\Dmon}(x))_{x'} = \log \delta_x(x')$, which
 is $0$ at $x'=x$ and $\log 0 = -\infty$ elsewhere, matching
 $\Ret_{\Tmon}(x)$ exactly (over $\LogS$); $\dec(\enc(p))_x =
@@ -2296,32 +2314,34 @@ $\Ret_{\Dmon}\seq\enc = \Ret_{\Tmon}$ to hold on the nose.
 
 \begin{lemma}[Strengths]
 \label{lem:strengths}
-Write the strength at slot $j$,
-$\sigma^{(j)}_{\Tmon}(x_1,\ldots,a,\ldots,x_m) :=
-\Ret_{\Tmon}(x_1) \otimes \cdots \otimes a \otimes \cdots \otimes
-\Ret_{\Tmon}(x_m)$
-(pairing the pure coordinates in via Lemma~\ref{lem:units}, tensoring
-the effectful slot $j$ in via Lemma~\ref{lem:tensor}), and
-$\sigma^{(j)}_{\Dmon}$ likewise over $\Dmon$. Then
+\lean{NeSyCat.strengths}
+\leanok
+Write the strength inserting one effectful value among finitely many pure
+ones as a tensor with a single pure value on each side. Here $b \in B$
+stands for the pure coordinates before the slot, and $c \in A$ for those
+after it:
 \[
-  Z\bigl(\sigma^{(j)}_{\Tmon}(x_1,\ldots,a,\ldots,x_m)\bigr) = Z(a),
-  \qquad
-  \sigma^{(j)}_{\Tmon} \seq \dec
-  = (\mathrm{id},\ldots,\dec,\ldots,\mathrm{id}) \seq \sigma^{(j)}_{\Dmon} \seq
-     \bigl(\mathrm{id} \otimes \cdots \otimes \dec_j \otimes \cdots
-     \otimes \mathrm{id}\bigr)
+  \sigma_{\Tmon}(b,a,c) := \bigl(\Ret_{\Tmon}(b) \otimes a\bigr) \otimes
+  \Ret_{\Tmon}(c)
 \]
-in the sense that decoding the strength agrees with decoding only the
-effectful slot and inserting the plain coordinates as certain values.
+(pairing the pure coordinates in via Lemma~\ref{lem:units}, tensoring the
+effectful value $a \in \Tmon X$ in via Lemma~\ref{lem:tensor}), and
+$\sigma_{\Dmon}$ likewise over $\Dmon$. A slot $j$ among $m$ coordinates
+$x_1,\ldots,x_m$ is the instance $B := X_1\times\cdots\times X_{j-1}$,
+$A := X_{j+1}\times\cdots\times X_m$. Then
+\[
+  Z\bigl(\sigma_{\Tmon}(b,a,c)\bigr) = Z(a), \qquad
+  \dec\bigl(\sigma_{\Tmon}(b,a,c)\bigr) = \sigma_{\Dmon}(b,\dec(a),c).
+\]
 \uses{lem:tensor, lem:units}
 \end{lemma}
 
 \begin{proof}
-The plain coordinates enter as $\Ret_{\Tmon}(x_i)$,
-mass $1$ by Lemma~\ref{lem:units}; apply
-Lemma~\ref{lem:tensor} to the resulting $m$-fold tensor, all of whose
-factors but the $j$-th have mass $1$, so both the total mass and the
-decode-commutation reduce to the single effectful factor.
+\leanok
+The pure coordinates enter as $\Ret_{\Tmon}(b)$ and $\Ret_{\Tmon}(c)$, each
+mass $1$ (Lemma~\ref{lem:units}); Lemma~\ref{lem:tensor}, applied twice,
+reduces both the total mass and the decode-commutation to the single
+effectful factor $a$.
 \end{proof}
 
 \begin{lemma}[Tilt]
