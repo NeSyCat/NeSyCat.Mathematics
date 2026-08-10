@@ -353,9 +353,11 @@ $\bot,\vee,\wedge,0,1,\oplus,\otimes$ as the mass row.
 $\MassS$ is built from Cauchy sequences: not every step of its own
 construction is decidable, so Lean marks its lattice-semiring instance
 \texttt{noncomputable}, and it does not run under \texttt{\#eval}.
-$\mathbb Q_{\ge 0}$ is the nonnegative rationals: every field is a pair
-of integers, every step decidable, so the identical instance carries
-no such marker and does run. This is the reference evaluator's carrier
+$\mathbb Q_{\ge 0}$ is the nonnegative rationals: every element is
+carried by a fraction in lowest terms, an integer numerator over a
+nonzero natural-number denominator, and every step of the arithmetic
+on such a pair is decidable, so the identical instance carries no such
+marker and does run. This is the reference evaluator's carrier
 throughout the rest of this section.
 
 \begin{instance}[Log row]
@@ -2909,9 +2911,12 @@ Definition~\ref{def:batch-monad}.
 \lean{NeSyCat.batch_layer_exact}
 \leanok
 The four identities of Theorem~\ref{thm:batch-transformer} and the two
-of Theorem~\ref{thm:pointwise-eval}, conjoined, hold for every type $X$
-and every lawful monad $\mathcal M$, with no hypothesis on $X$'s
-arithmetic and no assumption on $\mathcal M$ beyond lawfulness.
+of Theorem~\ref{thm:pointwise-eval}, conjoined, hold for all value
+types $X$ and $Y$ of the lowest type universe and every lawful monad
+$\mathcal M$, with no hypothesis on the arithmetic of $X$ or $Y$ and no
+assumption on $\mathcal M$ beyond lawfulness. (The universe restriction
+is the inner monad's: $\mathcal M$ is taken with signature
+$\mathsf{Type} \to \mathsf{Type}\,u$, so its value types are small.)
 \uses{thm:batch-transformer, thm:pointwise-eval}
 \end{theorem}
 
@@ -2919,16 +2924,42 @@ arithmetic and no assumption on $\mathcal M$ beyond lawfulness.
 \leanok
 The six identities are Theorem~\ref{thm:batch-transformer}'s four
 clauses and Theorem~\ref{thm:pointwise-eval}'s two clauses, cited
-verbatim.
+verbatim, one projection apiece:
+% batch_layer_exact, BatchTransformer.lean -- the six goals are closed
+% by batchTransformer.1, .2.1, .2.2.1, .2.2.2 (rows 1 to 4) and
+% ev_isMonadMorphism.1, .2 (rows 5 and 6); nothing is reproved.
+\begin{align*}
+  \mathrm{lift}_{\mathcal M}\bigl(\Ret_{\mathcal M}(x)\bigr)
+    &= \Ret_{\Bmon\mathcal M}(x), \\
+  \mathrm{lift}_{\mathcal M}(m \bind_{\mathcal M} k)
+    &= \mathrm{lift}_{\mathcal M}(m) \bind
+       \bigl(x \mapsto \mathrm{lift}_{\mathcal M}(k(x))\bigr), \\
+  \mathrm{lift}_{\Bmon}\bigl(\Ret_{\Bmon}(x)\bigr)
+    &= \Ret_{\Bmon\mathcal M}(x), \\
+  \mathrm{lift}_{\Bmon}(m \bind_{\Bmon} f)
+    &= \mathrm{lift}_{\Bmon}(m) \bind
+       \bigl(x \mapsto \mathrm{lift}_{\Bmon}(f(x))\bigr), \\
+  \mathrm{ev}_i\bigl(\Ret_{\Bmon\mathcal M}(x)\bigr)
+    &= \Ret_{\mathcal M}(x), \\
+  \mathrm{ev}_i(m \bind f)
+    &= \mathrm{ev}_i(m) \bind \bigl(x \mapsto \mathrm{ev}_i(f(x))\bigr).
+\end{align*}
+What the bundle adds is its own hypothesis list, quantified over all
+six clauses at once: a batch size $B$, an index $i \in \Bidx$, value
+types $X$ and $Y$, and a lawful $\mathcal M$. No other hypothesis
+appears.
 \end{proof}
 
 No hypothesis in Theorem~\ref{thm:batch-exactness}'s statement names an
-algebra on $X$. So the theorem holds for a float-valued tensor carrier
-exactly as it holds for $\MS S$: the batch layer contributes no error
-of its own to a computation running on it. This does not say that
-float arithmetic itself is exact. The batch layer only reads and
-rearranges values that $\mathcal M$ computes; it never computes with
-them.
+algebra on the value types $X$ and $Y$. Instantiating $X$ at a type of
+float-valued tensors is therefore permitted, and the six identities
+hold there verbatim, exactly as they hold when $X$ is instantiated at
+any other type. That is a statement about the value slot alone. It is
+not a statement about the inner monad slot: $\mathcal M$ is assumed
+lawful, and nothing here proves that a floating-point implementation
+of $\MS S$, or of any other monad, satisfies the monad laws. The batch
+layer reads and rearranges values that $\mathcal M$ computes; it never
+computes with them, so it contributes no error of its own.
 
 Whether $\mathcal M$'s own float arithmetic matches the real-valued
 semantics of Definition~\ref{def:semiring-monad} up to some bound is a
@@ -2938,6 +2969,88 @@ formalization, so no such bound is proved here.
 Theorem~\ref{thm:chain-bound} is the template for the shape such a
 bound would take: two evaluations of the same computation, bounded
 against each other.
+
+% ------------------------------------------------------------
+% THE DICHOTOMY (C3-EXEC item 2a, delivered at C3-EXEC-FIX item 3).
+% Rendered as a labelled table plus prose, NOT as a new environment, and
+% deliberately so: every statement it classifies is already an
+% environment of its own with its own \lean{} name, and the bijection law
+% (C2-E4a/A1) plus the census (C2-E4a/A2) require each Lean declaration
+% to be cited by EXACTLY ONE environment, so a second environment citing
+% batchTransformer/ev_isMonadMorphism/batch_layer_exact would be a hard
+% gate violation. The dichotomy is also not a new mathematical claim: it
+% is a classification of statements already proved, whose content is
+% their hypothesis lists. A table plus prose is what that is.
+%
+% The sentinel line below is READ BY scripts/blueprint.sh's
+% classification section (C3-EXEC-FIX item 2), which recomputes the split
+% from the Lean types on every run and FAILS the gate when the computed
+% counts or the computed structural names differ from it. Both numbers
+% quoted in the prose and the table below must be kept equal to it by
+% hand; the gate catches the drift, it does not repair it.
+% CLASSIFY-SENTINEL: total=59 structural=3 arithmetic=56 names=NeSyCat.batchTransformer,NeSyCat.batch_layer_exact,NeSyCat.ev_isMonadMorphism
+\textbf{Which laws hold for any carrier.} Two kinds of statement have
+been proved above, and an implementation stands in a different relation
+to each. A statement of the first kind constrains its value carrier
+nowhere: no algebraic class, no order, no categorical structure, and no
+already-structured concrete carrier appears anywhere in its hypotheses
+or in its conclusion. Such a statement holds verbatim in any
+implementation, whatever the values are, because it has asked the
+values for nothing. A statement of the second kind names axioms (a
+semiring, a lattice, a monoidal category, or a fixed carrier such as
+$\MassS$, $\MassSInf$, or $\LogS$), and holds in an implementation exactly
+insofar as that implementation's arithmetic satisfies them. Which kind
+a statement is can be read off its hypotheses, and is computed from the
+formalized statements themselves rather than assigned by hand.
+% Mechanically: scripts/blueprint.sh folds each cited theorem's FULL Lean
+% type (binders and conclusion) through Expr.getUsedConstants against a
+% disclosed marker list, every run.
+\begin{center}
+% \raggedright is applied inside each p-cell's own group (never at the
+% column specification, which would need the array package's >{...}
+% syntax, not loaded here) so that the row-ending \\ keeps its tabular
+% meaning; without it a narrow p-column stretches its interword spaces
+% and every line of the table reports an underfull \hbox.
+\begin{tabular}{p{0.16\textwidth}p{0.28\textwidth}p{0.36\textwidth}}
+\hline
+{\raggedright\textbf{Kind}\par} &
+  {\raggedright\textbf{What the hypotheses demand of the carrier}\par} &
+  {\raggedright\textbf{What an implementation gets}\par} \\
+\hline
+{\raggedright carrier-agnostic ($3$ of $59$)\par} &
+  {\raggedright nothing at all: the value types are bare types\par} &
+  {\raggedright the identity holds exactly, in any implementation,
+   whatever the values are and however they are computed\par} \\
+{\raggedright carrier-algebraic ($56$ of $59$)\par} &
+  {\raggedright a semiring, a lattice or an order, a monoidal or
+   braided category, or a fixed carrier ($\MassS$, $\MassSInf$,
+   $\LogS$, $\mathbb Q_{\ge 0}$, $[0,1]$, matrices)\par} &
+  {\raggedright the identity holds exactly insofar as the
+   implementation's own arithmetic satisfies those axioms, and no
+   further\par} \\
+\hline
+\end{tabular}
+\end{center}
+The carrier-agnostic side is exactly the batch layer:
+Theorem~\ref{thm:batch-transformer},
+Theorem~\ref{thm:pointwise-eval}, and their bundle
+Theorem~\ref{thm:batch-exactness}. Every other cited statement of this
+document is carrier-algebraic, Lemma~\ref{lem:quantifier-nestable}
+included: its hypotheses give the ambient category a monoidal and a
+braided structure and the object $Z$ a comonoid structure, and
+coherence of a tensor is a demand on the carrier exactly as
+associativity of a product is. A batch size $B$ and an index
+$i \in \Bidx$ count as neither, on either side: they shape a batch and
+ask nothing of the values in it.
+
+Two things the carrier-agnostic column does not say. It does not say
+that the inner monad $\mathcal M$ is lawful. Lawfulness is a hypothesis
+of all three statements, and whether some particular implementation's
+$\mathcal M$ satisfies it is a question about that implementation, not
+answered here. Nor does the column say that the values are computed
+exactly: $X$ and $Y$ range over types, and a value can be a float
+tensor carrying whatever error its own arithmetic carries.
+% ------------------------------------------------------------
 
 \begin{theorem}[Pointwise evaluation commutes with the Kleisli interpretation]
 \label{thm:pointwise-eval-kleisli}
@@ -3580,13 +3693,19 @@ preserving for every pure $h$.
 \label{def:rational-mass-row}
 \lean{NeSyCat.QRow.bind}
 \leanok
-For a finite value type $X$, the \textbf{rational mass row}
-$\mathrm{QRow}\,X$ is the plain function $X \to \mathbb Q_{\ge 0}$, with
+For a finite value type $X$ with decidable equality, the
+\textbf{rational mass row} $\mathrm{QRow}\,X$ is the plain function
+$X \to \mathbb Q_{\ge 0}$, with
 \[
   \Ret(x) := \bigl(y \mapsto \text{if } y = x \text{ then } 1 \text{
   else } 0\bigr), \qquad
   (f \bind k)(y) := \sum_{x \in X} f(x) \cdot k(x)(y).
 \]
+Both hypotheses on $X$ do computational work, and neither is
+cosmetic. Decidable equality is what lets $\Ret$ run: the test $y = x$
+is decided rather than assumed. Finiteness is what lets $\bind$ sum
+over the whole carrier, with no separately tracked support to carry
+alongside the function.
 \uses{inst:qmass-latcsrng}
 \end{definition}
 
@@ -3595,20 +3714,67 @@ $\mathrm{QRow}\,X$ is the plain function $X \to \mathbb Q_{\ge 0}$, with
 \lean{NeSyCat.QRow_monad_laws}
 \leanok
 $(\mathrm{QRow}, \Ret, \bind)$ of Definition~\ref{def:rational-mass-row}
-is a monad: the left unit law, the right unit law $f \bind \Ret = f$,
-and associativity of $\bind$ all hold, the same three laws
+is a monad on finite value types with decidable equality: the left unit
+law, the right unit law $f \bind \Ret = f$, and associativity of
+$\bind$ all hold, the same three laws
 Theorem~\ref{thm:semiring-monad-laws} proves for $\MS S$.
 \uses{def:rational-mass-row, thm:semiring-monad-laws}
 \end{theorem}
 
 \begin{proof}
 \leanok
-Left unit and associativity are finite-sum rearrangements of the
-identical shape Theorem~\ref{thm:semiring-monad-laws}'s proof uses,
-summed over $X$'s whole finite carrier rather than a separately
-tracked support. Right unit is folded inline, the same
-calibrated-reuse fold as there.
+Each law is checked at an arbitrary point of the resulting row, so
+every step below is an identity in $\mathbb Q_{\ge 0}$ between two
+finite sums over $X$ or over $Y$. The two unit laws collapse a sum
+against an indicator, written $[P]$ below for the weight $1$ when $P$
+holds and $0$ otherwise:
+% QRow.ret_bind and the inline right-unit clause of QRow_monad_laws,
+% RationalMassRow.lean: funext, unfold, then Finset.sum_ite_eq' /
+% Finset.sum_ite_eq -- one indicator kills the sum, the surviving
+% summand carries the factor 1.
+\begin{align*}
+  \bigl(\Ret(x) \bind k\bigr)(y)
+    &= \sum_{x' \in X} [x' = x] \cdot k(x')(y) = k(x)(y), \\
+  \bigl(f \bind \Ret\bigr)(y)
+    &= \sum_{x \in X} f(x) \cdot [y = x] = f(y).
+\end{align*}
+Associativity is the interchange of the two summations, and that
+interchange is the whole of it:
+% QRow.bind_assoc, RationalMassRow.lean: simp_rw [Finset.sum_mul],
+% rw [Finset.sum_comm], then pointwise rw [Finset.mul_sum] and ring.
+% Steps 1 and 4 are distributivity, step 2 is the Fubini interchange,
+% step 3 is associativity of the product in Q_{>=0}.
+\begin{align*}
+  \bigl((f \bind k) \bind l\bigr)(z)
+    &= \sum_{y \in Y} \Bigl(\sum_{x \in X} f(x) \cdot k(x)(y)\Bigr)
+       \cdot l(y)(z) \\
+    &= \sum_{y \in Y} \sum_{x \in X}
+       \bigl(f(x) \cdot k(x)(y)\bigr) \cdot l(y)(z)
+       && \text{(distributivity)} \\
+    &= \sum_{x \in X} \sum_{y \in Y}
+       \bigl(f(x) \cdot k(x)(y)\bigr) \cdot l(y)(z)
+       && \text{(interchange)} \\
+    &= \sum_{x \in X} \sum_{y \in Y}
+       f(x) \cdot \bigl(k(x)(y) \cdot l(y)(z)\bigr)
+       && \text{(associativity of $\cdot$)} \\
+    &= \sum_{x \in X} f(x) \cdot
+       \sum_{y \in Y} k(x)(y) \cdot l(y)(z)
+       && \text{(distributivity)} \\
+    &= \bigl(f \bind (x \mapsto k(x) \bind l)\bigr)(z).
+\end{align*}
+Both sums are over the whole finite carrier, so the interchange needs
+no side condition beyond finiteness.
 \end{proof}
+
+Theorem~\ref{thm:semiring-monad-laws} proves the same three laws for
+$\MS S$, and it uses the same three ingredients: distributivity of
+$\otimes$ over $\oplus$, the interchange of a double sum, and
+associativity of $\otimes$. The two proofs assemble them differently,
+and the encoding is the reason. Over $\MS S$ the sums run against a
+tracked support and the interchange arrives packaged inside
+$\mathrm{Finsupp}$'s own summation lemmas. Over $\mathrm{QRow}$ the
+sums run over all of $X$ and $Y$, so the interchange is performed in
+the open, as the step displayed above.
 
 $\MS{\mathbb Q_{\ge 0}}$ itself stays \texttt{noncomputable}: its
 $\Ret$/$\bind$ are built from a Mathlib finite-support type whose own

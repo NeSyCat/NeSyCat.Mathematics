@@ -72,8 +72,8 @@ def QRow.bind (f : QRow X) (k : X → QRow Y) : QRow Y :=
 
 /-- Blueprint `thm:rational-mass-row-monad` (left unit): `QRow.bind
 (QRow.ret x) k = k x`. -/
--- (A1 bijection-law companion of `QRow.bind_assoc`,
--- content.tex thm:rational-mass-row-monad)
+-- (A1 bijection-law companion of `QRow_monad_laws`, the one name
+-- content.tex thm:rational-mass-row-monad cites)
 @[blueprint_internal]
 theorem QRow.ret_bind [DecidableEq X] (x : X) (k : X → QRow Y) :
     QRow.bind (QRow.ret x) k = k x := by
@@ -82,9 +82,21 @@ theorem QRow.ret_bind [DecidableEq X] (x : X) (k : X → QRow Y) :
   simp [Finset.sum_ite_eq']
 
 /-- Blueprint `thm:rational-mass-row-monad` (associativity):
-`QRow.bind (QRow.bind f k) l = QRow.bind f (fun x => QRow.bind (k x) l)`. -/
--- (A1 bijection-law companion of `QRow.bind_assoc`,
--- content.tex thm:rational-mass-row-monad)
+`QRow.bind (QRow.bind f k) l = QRow.bind f (fun x => QRow.bind (k x) l)`.
+The crux is the INTERCHANGE of the two summations, `Finset.sum_comm`,
+performed in the open here: `Finset.sum_mul` distributes `l y z` into the
+inner sum, `Finset.sum_comm` swaps the `y`- and `x`-summations,
+`Finset.mul_sum` pulls `f x` back out, and `ring` reassociates the triple
+product. `semiring_monad_laws`/`bind_assoc` prove the same law for `MS`
+from the same three ingredients (distributivity, interchange,
+associativity of `*`) but by a different route: there the sums run against
+a tracked support and the interchange is packaged inside
+`Finsupp.sum_sum_index`/`Finsupp.sum_smul_index`/`Finsupp.smul_sum`, so it
+never appears as a step of its own. Not "the same shape" of proof, the
+same mathematics differently assembled (content.tex says so too, after
+thm:rational-mass-row-monad's proof). -/
+-- (A1 bijection-law companion of `QRow_monad_laws`, the one name
+-- content.tex thm:rational-mass-row-monad cites)
 @[blueprint_internal]
 theorem QRow.bind_assoc (f : QRow X) (k : X → QRow Y) (l : Y → QRow Z) :
     QRow.bind (QRow.bind f k) l = QRow.bind f (fun x => QRow.bind (k x) l) := by

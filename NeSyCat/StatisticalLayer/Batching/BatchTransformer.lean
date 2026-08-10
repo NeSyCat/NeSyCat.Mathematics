@@ -156,15 +156,21 @@ theorem ev_isMonadMorphism (i : Fin B) :
 arbitrary carrier -/
 
 /-- Blueprint `thm:batch-exactness` (Batching is exact): every clause of
-`thm:batch-transformer` and `thm:pointwise-eval`, bundled, for `X Y : Type*`
-completely unconstrained (no `Semiring`/`LatCSRng`/lattice hypothesis, no
-hypothesis whatsoever on the value carrier) and `M` an arbitrary lawful
-monad. Cited verbatim from `batchTransformer`/`ev_isMonadMorphism`, per the
-calibrated reuse principle: nothing new is proved here, the point is that
-the statement names no algebraic class and no already-structured carrier
-at all — mechanically confirmed by `scripts/blueprint.sh`'s classification
-gate (C3-EXEC item 2), which finds zero algebraic markers anywhere in this
-declaration's type. -/
+`thm:batch-transformer` and `thm:pointwise-eval`, bundled, for the value
+types `X Y : Type` completely unconstrained (no `Semiring`/`LatCSRng`/
+lattice hypothesis, no hypothesis whatsoever on the value carrier) and `M`
+an arbitrary lawful monad. The value types are `Type`, NOT `Type*`: the
+file's `variable` block fixes `{X Y : Type}` because the inner monad is
+taken at `M : Type → Type*`, so its value types are small. Cited verbatim
+from `batchTransformer`/`ev_isMonadMorphism`, per the calibrated reuse
+principle: nothing new is proved here, the point is that the statement
+names no algebraic class and no already-structured carrier at all —
+mechanically confirmed by `scripts/blueprint.sh`'s classification gate
+(C3-EXEC item 2, corrected and gated at C3-EXEC-FIX), which finds zero
+algebraic markers anywhere in this declaration's type. `[Monad M]
+[LawfulMonad M]` are not counted as such markers, deliberately: they
+constrain the AMBIENT monad, not the value carrier, and this theorem
+assumes rather than proves them. -/
 theorem batch_layer_exact (i : Fin B) :
     (∀ x : X, (liftM (pure x) : BmonT B M X) = pure x) ∧
       (∀ (m : M X) (k : X → M Y),

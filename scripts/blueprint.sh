@@ -97,6 +97,14 @@
 #      printed. The identical check also gates every commit (see
 #      scripts/git-hooks/commit-msg and its .git/hooks/ install), since a
 #      mismatched tree must never even be committable.
+#   e. STRUCTURAL/ARITHMETIC CLASSIFICATION (C3-EXEC item 2, corrected and
+#      GATED by C3-EXEC-FIX) — every cited theorem/lemma is bucketed, from
+#      its full Lean type, into carrier-agnostic (holds exactly in any
+#      implementation) and carrier-algebra-dependent (holds only insofar as
+#      the implementation's arithmetic realizes the axioms). The counts and
+#      the structural names are asserted against the `% CLASSIFY-SENTINEL:`
+#      line in content.tex; any drift is a hard gate violation, since the
+#      numbers are quoted to a reader in the rendered dichotomy table.
 # The structural/kind-check logic lives in a Python helper generated at
 # runtime into a scratch file (mirrors the scratch-.lean-file pattern
 # already used by the decl-check section below) — this script remains
@@ -919,13 +927,15 @@ def cmd_census_classify(content_tex_path, census_lean_out_path, repo_root):
 # instance-implicit binder on its own -- is caught, not just a bare
 # `[Semiring S]`-style hypothesis); `cmd_classify_report` reads that dump
 # back and buckets each name against the DISCLOSED marker list below: a
-# match makes the theorem ARITHMETIC (it requires the carrier's own algebra
-# somewhere in its statement, hence holds in an implementation only insofar
-# as that implementation's arithmetic does); no match makes it STRUCTURAL
-# (its Lean statement names no algebraic class and no already-structured
-# concrete carrier anywhere, hence it holds verbatim for any carrier
+# match makes the theorem ARITHMETIC (it requires structure on the carrier
+# -- algebraic, order-theoretic, or categorical -- somewhere in its
+# statement, hence holds in an implementation only insofar as that
+# implementation realizes those axioms); no match makes it STRUCTURAL (its
+# Lean statement names no such class and no already-structured concrete
+# carrier anywhere, hence it holds verbatim for any VALUE carrier
 # whatsoever, exactly as implemented, float tensors included -- this is the
-# mechanical confirmation of `thm:batch-exactness`, C3-EXEC item 1). The
+# mechanical confirmation of `thm:batch-exactness`, C3-EXEC item 1; see the
+# `Monad`/`LawfulMonad` caveat under the marker list). The
 # marker list mixes Mathlib's own algebraic/order class names (`Semiring`,
 # `Lattice`, `LinearOrder`, ...) with the library's own algebraic
 # vocabulary (`LatCSRng`, `BLat2Mon`, ...) AND its fixed already-structured
@@ -933,29 +943,94 @@ def cmd_census_classify(content_tex_path, census_lean_out_path, repo_root):
 # `Dist`, `MS`) -- a theorem tied to one of those concrete carriers depends
 # on that carrier's arithmetic exactly as much as one guarded by an
 # explicit instance hypothesis, even though no instance binder names it.
-# `Monad`/`LawfulMonad` (generic monadic-effect scaffolding, not a
-# carrier-value algebra) and pure category-theoretic classes
-# (`CategoryTheory.*`) are deliberately absent from the marker list: they
-# describe the computational framework a statement is generic IN, not an
-# algebraic constraint on its value carrier -- exactly why the Batching
-# layer (`batchTransformer`, `ev_isMonadMorphism`, both `[Monad M]
-# [LawfulMonad M]`-only) and the abstract nesting theorem
-# (`simQuant_nest`, pure `CategoryTheory`) land STRUCTURAL. Disclosed and
-# reproducible, in the same spirit as the CENSUS's own suffix/exempt lists
-# above: not a full semantic understanding of algebra, a fixed, auditable
-# name list checked by prefix/component match, calibrated against every
-# name cited in `content.tex` at authoring time (59 theorem-kind names, 4
-# structural / 55 arithmetic) and open to a disclosed extension the moment
-# a genuinely new algebraic vocabulary word is cited.
+# WHAT COUNTS AS ALGEBRA ON THE CARRIER (corrected, C3-EXEC-FIX item 1;
+# the first cut of this list got it wrong and shipped a false structural
+# verdict). CATEGORICAL structure counts: `[MonoidalCategory C]`,
+# `[BraidedCategory C]`, `[ComonObj Z]` are axioms ON the carrier exactly
+# as `[Semiring S]` is -- an implementation whose tensor is not
+# associative/unital on the nose does not satisfy a theorem stated over a
+# monoidal category, so `CategoryTheory` (and `Quiver`, the hom-structure
+# underneath it) are MARKERS. That single correction moves
+# `simQuant_nest` (lem:quantifier-nestable, whose type binds
+# `[MonoidalCategory C] [BraidedCategory C] [ComonObj Z]` plus a
+# `Nestable q` hypothesis) out of STRUCTURAL, where the first cut wrongly
+# left it.
+# The marker groups below were enumerated MECHANICALLY, not guessed: the
+# used-constant dump of all 59 cited theorem-kind declarations was folded
+# to its distinct head components, and every head naming an algebraic
+# operation, an algebraic/order class, a categorical structure, or a fixed
+# already-structured carrier was taken as a marker (the enumeration is
+# reproducible: `emit-classify-lean` + `getUsedConstants`, one grep over
+# the dump). The bare operation classes (`Add`, `Mul`, `Zero`, `One`, ...)
+# and the low-level order classes (`LE`, `Preorder`, `PartialOrder`, ...)
+# are markers on the same principle as the big ones: a statement that
+# writes `x * y` or `x <= y` at all has demanded that much structure of
+# its carrier. Component-prefix matching keeps them precise -- marker
+# `Mul` matches `Mul` and `Mul.*`, never `MulOpposite` or `MulZeroClass`,
+# which are separate markers of their own.
+# DELIBERATELY NOT MARKERS, each for a stated reason:
+#   - `Monad`/`LawfulMonad`: effect scaffolding on the AMBIENT monad, not
+#     algebra on the VALUE carrier. A STRUCTURAL verdict therefore means
+#     "no constraint on the value carrier", and it still PRESUPPOSES the
+#     ambient monad is lawful -- a separate property of an implementation,
+#     not something this fold or any theorem here certifies. content.tex's
+#     dichotomy table states that caveat in the rendered document; it must
+#     never be dropped when quoting the counts.
+#   - `Nat`/`Fin`/`List`/`Prod`/`Set`/`Finset`/`Function`/`Eq`: index,
+#     shape, and metadata types. `B : Nat` is a batch SIZE and `i : Fin B`
+#     a batch INDEX; neither asks anything of the values being batched.
+#     Marking `Nat` would make every statement in the document arithmetic
+#     by bookkeeping alone and the classification would say nothing.
+#   - `Fintype`/`DecidableEq`: finiteness and decidability side conditions
+#     (what makes a row computable), not value algebra.
+# Disclosed and reproducible, in the same spirit as the CENSUS's own
+# suffix/exempt lists above: not a full semantic understanding of algebra,
+# a fixed, auditable name list checked by prefix/component match,
+# calibrated against every name cited in `content.tex` at authoring time
+# (59 theorem-kind names, 3 structural / 56 arithmetic) and open to a
+# disclosed extension the moment a genuinely new algebraic vocabulary word
+# is cited. The counts are no longer advisory: `% CLASSIFY-SENTINEL:` in
+# content.tex records them and the shell section below FAILS the gate on
+# any drift, names included (C3-EXEC-FIX item 2).
 CLASSIFY_ALGEBRAIC_MARKERS = [
-    "Semiring", "CommSemiring", "Ring", "CommRing", "Field",
-    "Lattice", "BoundedOrder", "DistribLattice", "LinearOrder",
-    "NNReal", "ENNReal", "Real", "Matrix", "TrivSqZeroExt", "unitInterval",
+    # bare operation/element classes: naming `x * y`, `x + y`, `0`, `1`
+    # already demands that much of the carrier
+    "Add", "Mul", "Sub", "Div", "Neg", "Inv", "Zero", "One", "Pow", "SMul",
+    "NatCast", "IntCast", "OfNat",
+    "HAdd", "HMul", "HSub", "HDiv", "HPow", "HSMul",
+    # Mathlib algebraic classes
+    "AddZero", "AddZeroClass", "MulZeroClass", "MulOneClass",
+    "AddSemigroup", "Semigroup", "CommSemigroup",
+    "AddMonoid", "AddCommMonoid", "Monoid", "CommMonoid",
+    "AddMonoidWithOne", "AddCommMonoidWithOne", "MonoidWithZero",
+    "DivInvMonoid", "AddGroup", "AddCommGroup", "Group", "CommGroup",
+    "Distrib", "DistribMulAction", "DistribSMul", "SMulZeroClass",
+    "MulAction", "Module", "Algebra",
+    "Semiring", "CommSemiring", "NonAssocSemiring", "NonUnitalSemiring",
+    "NonUnitalNonAssocSemiring",
+    "Ring", "CommRing", "NonUnitalRing", "NonUnitalNonAssocRing",
+    "NonUnitalCommRing", "NonUnitalNonAssocCommRing",
+    "DivisionRing", "Field", "MulOpposite",
+    # Mathlib order classes
+    "LE", "LT", "Preorder", "PartialOrder", "SemilatticeInf",
+    "SemilatticeSup", "Lattice", "DistribLattice", "CompleteLattice",
+    "ConditionallyCompleteLattice", "LinearOrder", "BoundedOrder",
+    "OrderBot", "OrderTop", "Bot", "Top", "Max", "Min", "OrderDual",
+    "ZeroLEOneClass", "Monotone", "Antitone", "abs",
+    # categorical structure ON the carrier (C3-EXEC-FIX item 1)
+    "CategoryTheory", "Quiver",
+    # fixed already-structured concrete carriers
+    "NNReal", "ENNReal", "Real", "Int", "Rat", "NNRat", "Float",
+    "Matrix", "TrivSqZeroExt", "unitInterval",
+    # the library's own algebraic and categorical vocabulary
     "NeSyCat.LatSRng", "NeSyCat.LatCSRng", "NeSyCat.BLatSRng", "NeSyCat.BLatCSRng",
     "NeSyCat.BLat2Mon", "NeSyCat.BLat2CMon", "NeSyCat.LinBLat2Mon", "NeSyCat.LinBLat2CMon",
-    "NeSyCat.DMStructure", "NeSyCat.ZeroBot", "NeSyCat.OneTop", "NeSyCat.UnitBounds",
+    "NeSyCat.DMStructure", "NeSyCat.DMFullCalculus", "NeSyCat.ZeroBot",
+    "NeSyCat.OneTop", "NeSyCat.UnitBounds",
     "NeSyCat.TNorm", "NeSyCat.GradSemiring", "NeSyCat.MassPreserving", "NeSyCat.TruthSpace",
-    "NeSyCat.BoolW", "NeSyCat.LogS", "NeSyCat.Tens", "NeSyCat.LogTens",
+    "NeSyCat.Nestable", "NeSyCat.PointedObj", "NeSyCat.SymmetricFamily",
+    # the library's own fixed already-structured carriers
+    "NeSyCat.BoolW", "NeSyCat.LogS", "NeSyCat.LogSInf", "NeSyCat.Tens", "NeSyCat.LogTens",
     "NeSyCat.PulloutChain", "NeSyCat.Dist", "NeSyCat.MS", "NeSyCat.QRow",
 ]
 
@@ -1015,12 +1090,13 @@ def cmd_classify_report(classify_out_path):
                 structural.append(name)
     total = len(structural) + len(arithmetic)
     print(f"CLASSIFY-SUMMARY\t{total} cited theorem/lemma declarations "
-          f"classified: {len(structural)} structural (bare-type, no "
-          f"algebraic hypothesis anywhere in the statement -- holds "
-          f"exactly for any carrier) / {len(arithmetic)} arithmetic "
-          "(the statement depends somewhere on an algebraic hypothesis "
-          "or a fixed already-structured carrier -- holds in an "
-          "implementation only insofar as its arithmetic does)")
+          f"classified: {len(structural)} structural (bare value carrier: "
+          f"no algebraic, order, or categorical hypothesis anywhere in the "
+          f"statement -- holds exactly for any carrier) / "
+          f"{len(arithmetic)} arithmetic (the statement depends somewhere "
+          "on such a hypothesis or on a fixed already-structured carrier "
+          "-- holds in an implementation only insofar as its arithmetic "
+          "does)")
     for n in sorted(structural):
         print("CLASSIFY-STRUCTURAL\t" + n)
     for n, m in sorted(arithmetic):
@@ -1255,6 +1331,52 @@ else
   printf '%s\n' "$CLASSIFY_OUT" | grep "^CLASSIFY-SUMMARY${TAB}" | sed -E "s/^CLASSIFY-SUMMARY${TAB}/classification: /"
   printf '%s\n' "$CLASSIFY_OUT" | grep "^CLASSIFY-STRUCTURAL${TAB}" | sed -E "s/^CLASSIFY-STRUCTURAL${TAB}/  structural: /"
   printf '%s\n' "$CLASSIFY_OUT" | grep "^CLASSIFY-ARITHMETIC${TAB}" | sed -E "s/^CLASSIFY-ARITHMETIC${TAB}/  arithmetic: /"
+
+  # SENTINEL ASSERTION (C3-EXEC-FIX item 2). The first cut of this section
+  # ended in `|| true` and asserted nothing, so the two counts could drift
+  # silently -- and one of them was already wrong. They are now GATED, and
+  # gated against the DOCUMENT, not against a number buried in this script:
+  # the expectation lives in blueprint/src/content.tex as a single
+  # `% CLASSIFY-SENTINEL:` line, immediately above the rendered dichotomy
+  # table that quotes the same numbers to the reader. Anything that moves a
+  # theorem across the line -- a new citation, a changed hypothesis, an
+  # extended marker list -- turns this section RED until a human re-reads
+  # the new structural entries' full types ONE BY ONE and updates both the
+  # sentinel and the table. The structural NAMES are asserted too, not just
+  # the counts: a swap of one structural entry for another keeps the counts
+  # and must still stop the build. Format (one line, exact):
+  #   % CLASSIFY-SENTINEL: total=N structural=K arithmetic=M names=a,b,c
+  # with `names` the sorted, comma-separated structural list. The sort is
+  # pinned to `LC_ALL=C` (byte order), not the ambient locale: the two
+  # disagree on `_` against an upper-case letter (`batchTransformer` sorts
+  # before `batch_layer_exact` in byte order, after it under en_US), and a
+  # sentinel that flipped with the caller's locale would be a false RED.
+  N_STRUCT="$(printf '%s\n' "$CLASSIFY_OUT" | grep -c "^CLASSIFY-STRUCTURAL${TAB}" || true)"
+  N_ARITH="$(printf '%s\n' "$CLASSIFY_OUT" | grep -c "^CLASSIFY-ARITHMETIC${TAB}" || true)"
+  N_CLASSIFIED=$((N_STRUCT + N_ARITH))
+  STRUCT_NAMES="$(
+    printf '%s\n' "$CLASSIFY_OUT" \
+      | grep "^CLASSIFY-STRUCTURAL${TAB}" \
+      | sed -E "s/^CLASSIFY-STRUCTURAL${TAB}//" \
+      | LC_ALL=C sort | tr '\n' ',' | sed -E 's/,$//'
+  )" || true
+  CLASSIFY_ACTUAL="total=$N_CLASSIFIED structural=$N_STRUCT arithmetic=$N_ARITH names=$STRUCT_NAMES"
+  SENTINEL_LINE="$(grep -E '^% CLASSIFY-SENTINEL:' blueprint/src/content.tex || true)"
+  if [ -z "$SENTINEL_LINE" ]; then
+    echo "classification sentinel: FAILED -- no '% CLASSIFY-SENTINEL:' line in blueprint/src/content.tex"
+    echo "  computed: $CLASSIFY_ACTUAL"
+    fail 1
+  fi
+  CLASSIFY_EXPECT="$(printf '%s\n' "$SENTINEL_LINE" | sed -E 's/^% CLASSIFY-SENTINEL:[[:space:]]*//')"
+  if [ "$CLASSIFY_EXPECT" != "$CLASSIFY_ACTUAL" ]; then
+    echo "classification sentinel: FAILED -- classification drifted from the recorded expectation"
+    echo "  expected (content.tex % CLASSIFY-SENTINEL): $CLASSIFY_EXPECT"
+    echo "  computed (this run):                        $CLASSIFY_ACTUAL"
+    echo "  Re-read each structural entry's FULL type before updating the"
+    echo "  sentinel, and update the dichotomy table's counts with it."
+    fail 1
+  fi
+  echo "classification sentinel: OK ($CLASSIFY_ACTUAL)"
 fi
 
 echo "==> registry sync (macros.sty <-> NeSyCat/Notation.lean)"
