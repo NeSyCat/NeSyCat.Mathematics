@@ -13,7 +13,7 @@
 % phase appends to this line. SENTINEL: the counts, asserted every run, so
 % a display quietly losing its tag stops the build.
 % LEAN-STEP-PHASE: thm:semiring-monad-laws, lem:tilt, thm:pullout, thm:chain-bound-sandwich, thm:chain-bound
-% LEAN-STEP-SENTINEL: envs=5 displays=14 tags=14 names=55
+% LEAN-STEP-SENTINEL: envs=5 displays=14 tags=14 names=54
 
 \section{Introduction}  % lean-dir: -
 
@@ -3094,7 +3094,7 @@ against each other.
 % counts or the computed structural names differ from it. Both numbers
 % quoted in the prose and the table below must be kept equal to it by
 % hand; the gate catches the drift, it does not repair it.
-% CLASSIFY-SENTINEL: total=59 structural=3 arithmetic=56 names=NeSyCat.batchTransformer,NeSyCat.batch_layer_exact,NeSyCat.ev_isMonadMorphism
+% CLASSIFY-SENTINEL: total=61 structural=5 arithmetic=56 names=NeSyCat.batchTransformer,NeSyCat.batch_layer_exact,NeSyCat.ev_isMonadMorphism,NeSyCat.ev_strength_natural,NeSyCat.typeStrength_naturality_left
 \textbf{Which laws hold for any carrier.} Two kinds of statement have
 been proved above, and an implementation stands in a different relation
 to each. A statement of the first kind constrains its value carrier
@@ -3123,15 +3123,16 @@ formalized statements themselves rather than assigned by hand.
   {\raggedright\textbf{What the hypotheses demand of the carrier}\par} &
   {\raggedright\textbf{What an implementation gets}\par} \\
 \hline
-{\raggedright carrier-agnostic ($3$ of $59$)\par} &
+{\raggedright carrier-agnostic ($5$ of $61$)\par} &
   {\raggedright nothing at all: the value types are bare types, and of
-   the ambient monad at most the left unit law\par} &
+   the ambient monad anywhere from no law at all to full lawfulness,
+   depending on the identity\par} &
   {\raggedright the identity holds exactly, in any implementation,
-   whatever the values are and however they are computed, provided the
-   implementation's $\bind$ satisfies the left unit law; five of
-   Theorem~\ref{thm:batch-exactness}'s six identities do not need even
-   that\par} \\
-{\raggedright carrier-algebraic ($56$ of $59$)\par} &
+   whatever the values are and however they are computed, whenever the
+   implementation's monad satisfies the one law each identity itself
+   asks for, if any; five of Theorem~\ref{thm:batch-exactness}'s six
+   identities do not need even the left unit law\par} \\
+{\raggedright carrier-algebraic ($56$ of $61$)\par} &
   {\raggedright a semiring, a lattice or an order, a monoidal or
    braided category, or a fixed carrier ($\MassS$, $\MassSInf$,
    $\LogS$, $\mathbb Q_{\ge 0}$, $[0,1]$, matrices)\par} &
@@ -3141,12 +3142,18 @@ formalized statements themselves rather than assigned by hand.
 \hline
 \end{tabular}
 \end{center}
-The carrier-agnostic side is exactly the batch layer:
+The carrier-agnostic side is the batch layer,
 Theorem~\ref{thm:batch-transformer},
 Theorem~\ref{thm:pointwise-eval}, and their bundle
-Theorem~\ref{thm:batch-exactness}. Every other cited statement of this
-document is carrier-algebraic, Lemma~\ref{lem:quantifier-nestable}
-included: its hypotheses give the ambient category a monoidal and a
+Theorem~\ref{thm:batch-exactness}, together with two identities about
+the concrete substrate built toward
+Theorem~\ref{thm:pointwise-eval-kleisli}: Lemma~\ref{lem:type-strength-laws}'s
+strength laws, which need the ambient monad fully lawful, and
+Lemma~\ref{lem:ev-strength-natural}'s commutation of $\mathrm{ev}_i$
+with strength, which needs no law of it at all. Every other cited
+statement of this document is carrier-algebraic,
+Lemma~\ref{lem:quantifier-nestable} included: its hypotheses give the
+ambient category a monoidal and a
 braided structure and the object $Z$ a comonoid structure, and
 coherence of a tensor is a demand on the carrier exactly as
 associativity of a product is. A batch size $B$ and an index
@@ -3215,6 +3222,143 @@ Theorem~\ref{thm:pointwise-eval}'s claim survives: $\mathrm{ev}_i$
 still commutes with $\Ret$ and $\bind$, because it is a monad morphism.
 But if a symbol were interpreted differently at each batch index, the
 equation would fail.
+
+Definition~\ref{def:cd-category} and
+Definition~\ref{def:categorical-interpretation} left the
+$\mathbf{Set}$/Tens/Identity example as prose. Making
+Theorem~\ref{thm:pointwise-eval-kleisli} precise needs that example as
+data: a CD category on $\mathbf{Set}$, a canonical strength for the
+ambient monad, and $\mathrm{ev}_i$ read as a morphism of categorical
+monads. What follows builds that substrate, for monads
+$\mathcal M \colon \mathsf{Type} \to \mathsf{Type}$: one universe
+narrower than Theorem~\ref{thm:batch-exactness}'s own
+$\mathsf{Type} \to \mathsf{Type}\,u$, because $\Bidx$ itself lives in
+the bottom universe and the categorical bridge below needs the whole
+composite $\Bmon\mathcal M$ back in $\mathsf{Type} \to \mathsf{Type}$
+too. It is not Theorem~\ref{thm:pointwise-eval-kleisli}'s proof: the
+theorem's own induction over the six clauses of
+Definition~\ref{def:kleisli-interpretation}, instantiating the
+interpretation at $\mathcal M$ compatibly with $\Bmon\mathcal M$, is
+left for a further ticket.
+
+\begin{definition}[$\mathbf{Set}$ as a CD category]
+\label{def:type-cd-category}
+\lean{NeSyCat.typeCD}
+\leanok
+$\mathbf{Set}$, cartesian monoidal under $\times$ with unit a
+one-point set, is a CD category (Definition~\ref{def:cd-category}):
+the chosen comonoid on every type is the diagonal
+$\mathsf{copy}(x) := (x,x)$ and the unique map to the point, and the
+two compatibility clauses hold because the diagonal on $X \times Y$
+agrees with the tensor of the two diagonals.
+\uses{def:cd-category}
+\end{definition}
+
+\begin{proof}
+\leanok
+The comonoid on each type, and its commutativity, come from
+Mathlib's cartesian-to-copy-discard bridge applied to the cartesian
+monoidal structure on $\mathsf{Type}$. Compatibility with $\times$ is
+that bridge's own copy/discard-tensor laws, specialized there.
+\end{proof}
+
+\begin{definition}[Canonical strength]
+\label{def:type-strength}
+\lean{NeSyCat.typeStrength}
+\leanok
+For a monad $\mathcal M$ on $\mathsf{Type}$, the \textbf{canonical
+strength} $\sigma \colon X \times \mathcal M Y \to \mathcal M(X \times Y)$
+pairs a pure value with an effectful one,
+$\sigma(x, m) := m \bind (y \mapsto \Ret(x,y))$.
+\end{definition}
+
+\begin{lemma}[Strength laws]
+\label{lem:type-strength-laws}
+\lean{NeSyCat.typeStrength_naturality_left}
+\leanok
+For a lawful monad $\mathcal M$ on $\mathsf{Type}$, the canonical
+strength of Definition~\ref{def:type-strength} is natural in both
+arguments, inserts a pure value under $\Ret$ without effect, commutes
+with $\bind$, and is coherent with the left unitor and the associator
+of $\times$: for $f \colon X \to X'$, $g \colon Y \to Y'$, $x \in X$,
+$x' \in X'$, $m \in \mathcal M Y$, and $mm \in \mathcal M(\mathcal M Y)$,
+\begin{align*}
+\sigma(f(x), m) &= \mathcal M(f \times \mathrm{id})\bigl(\sigma(x, m)\bigr), \\
+\sigma\bigl(x, \mathcal M(g)(m)\bigr) &= \mathcal M(\mathrm{id} \times g)\bigl(\sigma(x, m)\bigr), \\
+\sigma(x, \Ret(y)) &= \Ret(x, y), \\
+\sigma(x, mm \bind \mathrm{id}) &= \sigma(x, mm) \bind \sigma, \\
+\mathcal M(\mathrm{snd})\bigl(\sigma(\ast, m)\bigr) &= m, \\
+\mathcal M(\mathrm{assoc})\bigl(\sigma((x,x'), m)\bigr) &= \sigma\bigl(x, \sigma(x', m)\bigr),
+\end{align*}
+where $\ast$ is the one point of the unit and $\mathrm{assoc}$ the
+canonical bijection $(X \times X') \times Y \cong X \times (X' \times Y)$.
+\uses{def:type-strength}
+\end{lemma}
+
+\begin{proof}
+\leanok
+Each identity unfolds Definition~\ref{def:type-strength}'s formula on
+both sides. Naturality and the $\Ret$ law are one unfolding apiece.
+The $\bind$ law and the two coherence identities each collapse a
+double bind by the left and right unit laws of $\mathcal M$, the same
+two laws Theorem~\ref{thm:semiring-monad-laws} names for $\MS S$.
+\end{proof}
+
+\begin{definition}[A categorical interpretation at $\mathbf{Set}$]
+\label{def:type-cat-interpretation}
+\lean{NeSyCat.typeCatInterpretation}
+\leanok
+For a lawful monad $M$ on $\mathsf{Type}$, a categorical interpretation
+(Definition~\ref{def:categorical-interpretation}) is realized with
+$\mathcal C := \mathbf{Set}$ of Definition~\ref{def:type-cd-category},
+actor category $\mathcal A := \mathbf{Set}$ acting on $\mathcal C$ by
+its own product, and $\mathcal M$ the categorical monad that $M$'s own
+unit and join determine.
+\uses{def:categorical-interpretation, def:type-cd-category}
+\end{definition}
+
+\begin{definition}[$\mathrm{ev}_i$ as a monad morphism]
+\label{def:ev-monad-hom}
+\lean{NeSyCat.evMonadHom}
+\leanok
+Read categorically, at Definition~\ref{def:type-cat-interpretation}'s
+realization, $\mathrm{ev}_i$ of Theorem~\ref{thm:pointwise-eval} is a
+morphism of categorical monads: a natural transformation from the
+categorical monad $\Bmon\mathcal M$ determines to the one $\mathcal M$
+determines, commuting with each monad's unit and multiplication.
+\uses{def:type-cat-interpretation, thm:pointwise-eval}
+\end{definition}
+
+\begin{proof}
+\leanok
+Naturality is $\mathrm{ev}_i$ applied after mapping equal to
+$\mathrm{ev}_i$ mapped after applying, the reader transformer's own
+functorial law. The unit clause is Theorem~\ref{thm:pointwise-eval}'s
+unit identity. The multiplication clause is
+Theorem~\ref{thm:pointwise-eval}'s bind identity applied twice, once
+at the outer bind and once inside the mapped value, closed by the left
+and right unit laws of $\mathcal M$.
+\end{proof}
+
+\begin{lemma}[$\mathrm{ev}_i$ commutes with strength]
+\label{lem:ev-strength-natural}
+\lean{NeSyCat.ev_strength_natural}
+\leanok
+$\mathrm{ev}_i$ commutes with the canonical strength across
+$\mathcal M$ and its batch transform $\Bmon\mathcal M$:
+$\mathrm{ev}_i\bigl(\sigma(x, m)\bigr) = \sigma\bigl(x, \mathrm{ev}_i(m)\bigr)$
+for $x \in X$ and $m \in \Bmon\mathcal M\, Y$. No law of $\mathcal M$
+is assumed.
+\uses{def:type-strength, thm:pointwise-eval}
+\end{lemma}
+
+\begin{proof}
+\leanok
+Both sides unfold to the same computation: evaluating a
+$\Bmon\mathcal M$-bind at index $i$ commutes with the bind itself, the
+reader transformer's own $\bind$ law, and pairing with $x$ afterward
+is the identical formula on either side.
+\end{proof}
 
 % ------------------------------------------------------------
 \subsection{Bridges and normalization}  % lean-dir: StatisticalLayer/BridgesNormalization
@@ -3407,7 +3551,7 @@ Unfold $\dec(a)_x = e^{a_x}/Z(a)$ in the second line. Its $Z(k(x))$
 factor cancels in every term of the numerator, leaving
 $e^{a_x}e^{k(x)_y}/Z(a)$, and the same substitution turns the
 denominator into
-% lean-step: reweighted_sum, tilt_mass, NeSyCat.dec_mul_Z
+% lean-step: tilt_mass, NeSyCat.dec_mul_Z
 \[
   \sum_{x'} Z(k(x'))\,\frac{e^{a_{x'}}}{Z(a)}
     = \frac{1}{Z(a)}\sum_{x'} e^{a_{x'}}\,Z(k(x'))

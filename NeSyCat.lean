@@ -52,6 +52,7 @@ import NeSyCat.StatisticalLayer.Batching.Batching
 import NeSyCat.StatisticalLayer.Batching.BatchMonad
 import NeSyCat.StatisticalLayer.Batching.BatchTransformer
 import NeSyCat.StatisticalLayer.Batching.PointwiseKleisli
+import NeSyCat.StatisticalLayer.Batching.TypeInstantiation
 import NeSyCat.StatisticalLayer.BridgesNormalization.BridgesNormalization
 import NeSyCat.StatisticalLayer.BridgesNormalization.DecEncMass
 import NeSyCat.StatisticalLayer.BridgesNormalization.Tilt

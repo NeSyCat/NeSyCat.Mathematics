@@ -639,7 +639,15 @@ step below.
      counts and is asserted every run, in the document rather than in the
      script, exactly like `% CLASSIFY-SENTINEL:`. The resolution rule and
      its transitive closure through `@[blueprint_internal]` companions
-     are documented in full at the script's `cmd_lean_step_scan`.
+     are documented in full at the script's `cmd_lean_step_scan`. When a
+     cited principal's own proof is a one-line delegation to such a
+     companion (the calibrated reuse principle's normal shape for an item
+     like `lem:tilt`, whose real mathematics lives in `tilt_bind'`), a
+     display legitimately transcribes the COMPANION's proof body reached
+     through that closure, not the principal's own one-liner: this is the
+     intended reading of "the cited declaration's own proof" above, not a
+     defect, and it recurs every time an item's mathematics lives in its
+     internal helper rather than in its cited wrapper.
   3. **What it catches, stated without overselling it.** CATCHES: a
      display attributing a step to a lemma that does not occur in the
      cited proof; a display naming a step that does not exist; a covered
