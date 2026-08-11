@@ -31,13 +31,13 @@ universe, so `BmonT B M : Type 0 → Type u` needs `M`'s own codomain at
 qualify for `ofTypeMonad`. This file therefore works throughout at
 `M : Type → Type` (the codomain `Type 0`), not the library's general
 `M : Type → Type*`. `MS S` (`NeSyCat/CategoricalLayer/SemiringMonads/SemiringMonad.lean`)
-is defined for `X : Type*` and specializes to `Type → Type` at `X :
-Type`, but carries no Lean `Monad`/`LawfulMonad` INSTANCE anywhere in
-this library (`bind`/`ret` are bare functions, not registered against
-Lean's `Monad` class — `SemiringMonad.lean`'s own module doc says so
-explicitly), so `ofTypeMonad (MS S)` does not typecheck as written: a
-`Monad (MS S)` instance would need to be registered first, which is out
-of this ticket's write set. `Idmon`, the identity-monad clause the
+is defined for `X : Type*` and specializes to `Type → Type` at
+`X : Type`, and since C4-MONAD it also carries the Lean
+`Monad`/`LawfulMonad` instances `instMonadMS`/`instLawfulMonadMS`
+(registered over the library's own `ret`/`bind`, with the three
+obligations discharged from `semiring_monad_laws`), so
+`ofTypeMonad (MS S)` typechecks and this file's substrate reaches the
+library's own monad. `Idmon`, the identity-monad clause the
 blueprint prose names alongside `MS S`, has no separate Lean object in
 this library (`TruthSpace.lean`'s module doc: "no Lean object" needed,
 the identity case is definitionally trivial); read as Lean core's own

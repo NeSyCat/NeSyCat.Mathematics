@@ -19,7 +19,14 @@ TODO_RE = re.compile(r"--.*TODO")
 # FEEDBACK-LOOP / blueprint-correspondence additions (Run 5 finale, ticket
 # H1): these are advisory only (additionalContext), never blocking -- the
 # gate is scripts/blueprint.sh's CORRESPONDENCE section.
-BLUEPRINT_LABEL_RE = re.compile(r"Blueprint\s+([A-Za-z]+:[A-Za-z0-9_-]+)")
+# The label may be backticked, and a doc comment may cite several
+# (`Blueprint `def:a`/`thm:b` (name): ...`). The original single-token,
+# backtick-free pattern silently matched NOTHING against the codebase's
+# dominant style, leaving check (i) below inert project-wide -- caught by
+# blind verification of C4-MONAD. Anchor on the word, then take every
+# label-shaped token on that line.
+BLUEPRINT_ANCHOR_RE = re.compile(r"Blueprint\s")
+BLUEPRINT_LABEL_RE = re.compile(r"`?\b([a-z]+:[A-Za-z0-9_-]+)`?")
 DECL_NAME_RE = re.compile(
     r"^(?:noncomputable\s+|private\s+|protected\s+)*"
     r"(?:def|abbrev|theorem|lemma|structure|class|instance)\s+"
@@ -168,6 +175,8 @@ def main():
         labels = blueprint_labels(content_tex_path)
         cited_missing = []
         for idx, line in enumerate(lines):
+            if not BLUEPRINT_ANCHOR_RE.search(line):
+                continue
             for m in BLUEPRINT_LABEL_RE.finditer(line):
                 label = m.group(1)
                 if label not in labels:
