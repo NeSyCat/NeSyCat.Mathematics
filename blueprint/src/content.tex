@@ -13,7 +13,7 @@
 % phase appends to this line. SENTINEL: the counts, asserted every run, so
 % a display quietly losing its tag stops the build.
 % LEAN-STEP-PHASE: thm:semiring-monad-laws, lem:tilt, thm:pullout, thm:chain-bound-sandwich, thm:chain-bound
-% LEAN-STEP-SENTINEL: envs=5 displays=14 tags=14 names=54
+% LEAN-STEP-SENTINEL: envs=5 displays=15 tags=15 names=55
 
 \section{Introduction}  % lean-dir: -
 
@@ -3241,6 +3241,14 @@ Definition~\ref{def:kleisli-interpretation}, instantiating the
 interpretation at $\mathcal M$ compatibly with $\Bmon\mathcal M$, is
 left for a further ticket.
 
+This substrate covers a monad $\mathcal M$ that carries a Lean
+\texttt{Monad}/\texttt{LawfulMonad} instance. $\mathrm{Identity}$
+qualifies, since read as Lean's own identity monad it is lawful at
+every universe. $\MS{S}$, the running semiring monad of this library,
+does not qualify: its $\Ret$ and $\bind$ are bare functions here,
+registered against no \texttt{Monad} instance, so this substrate does
+not yet cover it.
+
 \begin{definition}[$\mathbf{Set}$ as a CD category]
 \label{def:type-cd-category}
 \lean{NeSyCat.typeCD}
@@ -3316,6 +3324,12 @@ its own product, and $\mathcal M$ the categorical monad that $M$'s own
 unit and join determine.
 \uses{def:categorical-interpretation, def:type-cd-category}
 \end{definition}
+
+The actor category here is $\mathbf{Set}$ acting on itself by product,
+not $\mathbf{Tens}$, the actor of the Set/Tens/Identity example above.
+The substitution is harmless: Definition~\ref{def:categorical-interpretation}'s
+$\actop$ field carries no coherence law, so no proof in this substrate
+depends on which actor category is chosen.
 
 \begin{definition}[$\mathrm{ev}_i$ as a monad morphism]
 \label{def:ev-monad-hom}
@@ -3547,11 +3561,17 @@ on the right,
     &= \sum_x \frac{Z(k(x))\dec(a)_x}{\sum_{x'} Z(k(x'))\dec(a)_{x'}}
        \cdot \frac{e^{k(x)_y}}{Z(k(x))}.
 \end{align*}
-Unfold $\dec(a)_x = e^{a_x}/Z(a)$ in the second line. Its $Z(k(x))$
-factor cancels in every term of the numerator, leaving
-$e^{a_x}e^{k(x)_y}/Z(a)$, and the same substitution turns the
-denominator into
-% lean-step: tilt_mass, NeSyCat.dec_mul_Z
+Unfold $\dec(a)_x = e^{a_x}/Z(a)$ in the second line's numerator.
+Its $Z(k(x))$ factor cancels against $\dec(k(x))_y$'s own $Z(k(x))$
+denominator, term by term:
+% lean-step: reweighted_sum, NeSyCat.dec_mul_Z
+\[
+  \sum_x Z(k(x))\,\dec(a)_x\,\dec(k(x))_y
+    \;=\; \frac{1}{Z(a)}\sum_x e^{a_x}\bigl(Z(k(x))\,\dec(k(x))_y\bigr)
+    \;=\; \frac{1}{Z(a)}\sum_x e^{a_x}\,e^{k(x)_y}.
+\]
+The same substitution turns the denominator into
+% lean-step: tilt_mass
 \[
   \sum_{x'} Z(k(x'))\,\frac{e^{a_{x'}}}{Z(a)}
     = \frac{1}{Z(a)}\sum_{x'} e^{a_{x'}}\,Z(k(x'))

@@ -55,14 +55,17 @@ universe u
 
 /-! ### The Type category as a CD category -/
 
-/-- Toward `thm:pointwise-eval-kleisli`: `Type u`, cartesian monoidal and
-symmetric via Mathlib's own `typesCartesianMonoidalCategory`/
+/-- Blueprint `def:type-cd-category` (Set as a CD category): `Type u`,
+cartesian monoidal and symmetric via Mathlib's own
+`typesCartesianMonoidalCategory`/
 `CartesianMonoidalCategory.toSymmetricCategory`, is a `CDCategory`
 (`def:cd-category`) with the diagonal comonoid on every object
 (`CartesianCopyDiscard.instComonObjOfCartesian`/`instIsCommComonObjOfCartesian`)
 and tensor-compatibility discharged by the generic cartesian-to-copy-discard
 bridge `CartesianCopyDiscard.ofCartesianMonoidalCategory` together with
-`CopyDiscardCategory.copy_tensor`/`discard_tensor`. -/
+`CopyDiscardCategory.copy_tensor`/`discard_tensor`. Toward
+`thm:pointwise-eval-kleisli`: the first piece of the concrete instantiation
+substrate at `Type`. -/
 noncomputable def typeCD : NeSyCat.CDCategory.{u+1,u} where
   C := Type u
   comon := fun X => CartesianCopyDiscard.instComonObjOfCartesian X
@@ -82,10 +85,10 @@ noncomputable def typeCD : NeSyCat.CDCategory.{u+1,u} where
 
 variable {M : Type u → Type u} [Monad M]
 
-/-- Toward `thm:pointwise-eval-kleisli`: the canonical (tensorial) left
-strength of a `Type`-valued monad `M` with respect to the cartesian
-product, inserting one pure value `p.1` alongside an `M`-effectful one
-`p.2`. -/
+/-- Blueprint `def:type-strength` (Canonical strength): the canonical
+(tensorial) left strength of a `Type`-valued monad `M` with respect to the
+cartesian product, inserting one pure value `p.1` alongside an
+`M`-effectful one `p.2`. Toward `thm:pointwise-eval-kleisli`. -/
 def typeStrength {X Y : Type u} (p : X × M Y) : M (X × Y) :=
   p.2 >>= fun y => pure (p.1, y)
 
@@ -137,13 +140,14 @@ theorem typeStrength_assoc_coherence {X X' Y : Type u} (x : X) (x' : X') (my : M
 
 /-! ### A `CatInterpretation` at `Type` -/
 
-/-- Toward `thm:pointwise-eval-kleisli`: a `def:categorical-interpretation`
-witness at `typeCD` (specialized to `Type 0`), for a lawful `M : Type →
-Type` — `𝓘(C) := typeCD`, the actor category `𝓘(A)` taken as `Type`
-itself acting on `typeCD.C` by its own cartesian product, and the monad
-`ℳ := 𝓘(○)` realized as `CategoryTheory.ofTypeMonad M`
-(`Mathlib.CategoryTheory.Monad.Types`, background machinery converting a
-lawful Lean `Monad` into a categorical `Monad`). -/
+/-- Blueprint `def:type-cat-interpretation` (A categorical interpretation at
+Set): a `def:categorical-interpretation` witness at `typeCD` (specialized
+to `Type 0`), for a lawful `M : Type → Type` — `𝓘(C) := typeCD`, the actor
+category `𝓘(A)` taken as `Type` itself acting on `typeCD.C` by its own
+cartesian product, and the monad `ℳ := 𝓘(○)` realized as
+`CategoryTheory.ofTypeMonad M` (`Mathlib.CategoryTheory.Monad.Types`,
+background machinery converting a lawful Lean `Monad` into a categorical
+`Monad`). Toward `thm:pointwise-eval-kleisli`. -/
 noncomputable def typeCatInterpretation (sigA : CatSignature)
     (M : Type → Type) [Monad M] [LawfulMonad M] : NeSyCat.CatInterpretation sigA where
   cd := typeCD.{0}
@@ -155,15 +159,16 @@ noncomputable def typeCatInterpretation (sigA : CatSignature)
 
 variable {B : ℕ} {M' : Type → Type} [Monad M'] [LawfulMonad M']
 
-/-- Toward `thm:pointwise-eval-kleisli`: `ev i` (`thm:pointwise-eval`),
-read categorically, is a `CategoryTheory.MonadHom` from `ofTypeMonad
+/-- Blueprint `def:ev-monad-hom` (`ev i` as a monad morphism): `ev i`
+(`thm:pointwise-eval`), read categorically at `typeCatInterpretation`'s
+realization, is a `CategoryTheory.MonadHom` from `ofTypeMonad
 (BmonT B M')` to `ofTypeMonad M'` — the two law fields `app_η`/`app_μ`
 of `MonadHom` correspond exactly to the two clauses of
 `ev_isMonadMorphism`: `app_η` is the unit clause (`rfl`, `ofTypeMonad`'s
 unit is `pure`), `app_μ` is the bind clause read at `join`, closing by
 `bind_assoc`/`pure_bind` once `ev_isMonadMorphism`'s own clauses are
 applied. Naturality of the underlying transformation is `ReaderT`'s own
-`run_map`. -/
+`run_map`. Toward `thm:pointwise-eval-kleisli`. -/
 noncomputable def evMonadHom (i : Fin B) :
     CategoryTheory.MonadHom (CategoryTheory.ofTypeMonad (BmonT B M'))
       (CategoryTheory.ofTypeMonad M') where
@@ -198,13 +203,14 @@ noncomputable def evMonadHom (i : Fin B) :
 /-! ### `ev` commutes with the canonical strength -/
 
 omit [LawfulMonad M'] in
-/-- Toward `thm:pointwise-eval-kleisli`: `ev i` commutes with the
-canonical strength (`typeStrength`) across `M'` and its batch transform
-`BmonT B M'` — the pure coordinate rides along untouched, whether it is
-inserted before or after evaluating at index `i`. Needs no lawfulness of
-`M'` at all: `typeStrength` unfolds to `ReaderT`'s own bind, and `ev i`
-is literally indexing at `i`, so both sides reduce definitionally
-through `ReaderT.run_bind`. -/
+/-- Blueprint `lem:ev-strength-natural` (`ev i` commutes with strength):
+`ev i` commutes with the canonical strength (`typeStrength`) across `M'`
+and its batch transform `BmonT B M'` — the pure coordinate rides along
+untouched, whether it is inserted before or after evaluating at index `i`.
+Needs no lawfulness of `M'` at all: `typeStrength` unfolds to `ReaderT`'s
+own bind, and `ev i` is literally indexing at `i`, so both sides reduce
+definitionally through `ReaderT.run_bind`. Toward
+`thm:pointwise-eval-kleisli`. -/
 theorem ev_strength_natural (i : Fin B) {X' Y' : Type} (x : X') (bm : BmonT B M' Y') :
     ev i (typeStrength (x, bm)) = typeStrength (x, ev i bm) := by
   change (bm >>= fun y => pure (x, y)) i = ev i bm >>= fun y => pure (x, y)
