@@ -101,6 +101,20 @@ HARD BANS (no exceptions):
 - Deleting a hard item instead of finishing it. Leave it as a `sorry`
   with notes instead.
 
+**DO-SUGAR BAN.** `MS S` is registered against Lean's `Monad` and
+`LawfulMonad` classes (`instMonadMS`/`instLawfulMonadMS`, over the
+library's own `Ret`/`bind`), so do-notation is writable — but only its
+faithful fragment corresponds to the hand-proved semantics: `←`,
+`let :=`, nested actions, and a final `pure`. Lean's EXTENDED sugar does
+not, and must not appear in a formal statement or proof about `MS S`:
+`let mut` and `for … in` desugar through `ForIn`/state-passing
+machinery, and an early `return` through an `ExceptT`-shaped short
+circuit, none of which `MS S` provides. Writing them would silently
+change what is being proved. `.claude/hooks/lint-lean.py` flags all
+three, advisory rather than blocking — the same patterns are legitimate
+Lean outside `MS S` code, and the hook cannot see do-block context, so
+the judgement stays with the author.
+
 ## Faithfulness
 
 **Absolutely lean.** Once an item's Lean form is settled (post-`\leanok`),

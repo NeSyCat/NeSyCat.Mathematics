@@ -662,6 +662,11 @@ $\otimes$ gives associativity of chained binds. Distributivity of
 $\otimes$ over $\oplus$ gives associativity of $\bind$ itself. None of
 this needs $\otimes$ to commute.
 
+The formalization registers $\Ret$ and $\bind$ against Lean's own
+\texttt{Monad} and \texttt{LawfulMonad} classes, Theorem~\ref{thm:semiring-monad-laws}'s
+three laws standing in exactly for the \texttt{LawfulMonad} obligations.
+$\MS S$ can therefore be written in Lean's own do-notation.
+
 \begin{abbreviation}[Tensor monad]
 \label{abbr:tensor-monad}
 \lean{NeSyCat.Tens}
@@ -3245,9 +3250,14 @@ This substrate covers a monad $\mathcal M$ that carries a Lean
 \texttt{Monad}/\texttt{LawfulMonad} instance. $\mathrm{Identity}$
 qualifies, since read as Lean's own identity monad it is lawful at
 every universe. $\MS{S}$, the running semiring monad of this library,
-does not qualify: its $\Ret$ and $\bind$ are bare functions here,
-registered against no \texttt{Monad} instance, so this substrate does
-not yet cover it.
+qualifies too: its $\Ret$ and $\bind$ are now registered against Lean's
+\texttt{Monad} and \texttt{LawfulMonad} classes (the paragraph
+following Theorem~\ref{thm:semiring-monad-laws} above), so
+\texttt{ofTypeMonad}$(\MS{S})$ typechecks. Registering the instance
+closes only this substrate gap. Theorem~\ref{thm:pointwise-eval-kleisli}
+itself stays unproved: the induction it needs over the six clauses of
+Definition~\ref{def:kleisli-interpretation} is still the further ticket
+named above.
 
 \begin{definition}[$\mathbf{Set}$ as a CD category]
 \label{def:type-cd-category}

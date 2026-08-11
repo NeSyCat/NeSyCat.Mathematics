@@ -163,6 +163,61 @@ theorem semiring_monad_laws :
       bind (bind f k) l = bind f (fun x => bind (k x) l) := bind_assoc
   exact ⟨left_unit, right_unit, assoc⟩
 
+/-! ### The `Monad`/`LawfulMonad` instances
+
+`semiring_monad_laws` already IS the mathematical content: registering it
+against Lean's own `Monad` class adds no new mathematics, only lets the
+formalization write `MS S` computations in Lean's own do-notation (matching
+`new.tex`'s derivation of do-notation and both the HaskTorch and JAX
+implementations' use of it). Both instances below are A1 bijection-law
+technical companions of `bind`/`semiring_monad_laws`, exactly as `MS` itself
+already is (line 69 above): no environment of their own, `@[blueprint_internal]`. -/
+
+/-- Blueprint `def:semiring-monad`/`thm:semiring-monad-laws` (Monad instance):
+registers the library's own `ret` as `pure` and its own `bind` as
+`Bind.bind`, so `MS S` is a genuine Lean `Monad`. -/
+-- (A1 bijection-law companion of `bind`, content.tex def:semiring-monad)
+@[blueprint_internal]
+noncomputable instance instMonadMS {S : Type*} [Semiring S] : Monad (MS S) where
+  pure := ret
+  bind := bind
+
+/-- Blueprint `thm:semiring-monad-laws` (LawfulMonad instance): the three
+monad laws bundled in `semiring_monad_laws` are exactly the `LawfulMonad`
+obligations for `instMonadMS` — `pure_bind` is the left unit law, `bind_assoc`
+is associativity, and `id_map` (`id <$> f = f`) unfolds definitionally to the
+right unit law `bind f ret = f`. -/
+-- (A1 bijection-law companion of `semiring_monad_laws`, content.tex
+-- thm:semiring-monad-laws)
+@[blueprint_internal]
+noncomputable instance instLawfulMonadMS {S : Type*} [Semiring S] : LawfulMonad (MS S) :=
+  LawfulMonad.mk'
+    (id_map := by
+      intro X f
+      change bind f ret = f
+      exact (semiring_monad_laws (S := S) (X := X) (Y := X) (Z := X)).2.1 f)
+    (pure_bind := by
+      intro X Y x k
+      exact (semiring_monad_laws (S := S) (X := X) (Y := Y) (Z := Y)).1 x k)
+    (bind_assoc := by
+      intro X Y Z f k l
+      exact (semiring_monad_laws (S := S) (X := X) (Y := Y) (Z := Z)).2.2 f k l)
+
+-- Smoke tests: the registered `Monad` instance uses the library's OWN
+-- `ret`/`bind`, not freshly written ones (`rfl`, not merely propositionally
+-- equal — a second bind would silently stop every existing theorem applying).
+example {S : Type*} [Semiring S] (f : MS S ℕ) (k : ℕ → MS S ℕ) :
+    (f >>= k) = bind f k := rfl
+
+example {S : Type*} [Semiring S] (x : ℕ) : (pure x : MS S ℕ) = ret x := rfl
+
+-- Do-notation smoke test: the MNIST-shaped bind chain this instance exists
+-- to let the library write.
+noncomputable example {S : Type*} [Semiring S] (a b : MS S ℕ) : MS S ℕ := do
+  let x ← a
+  let y ← b
+  pure (x + y)
+
 /-! ### `thm:semiring-monad-commutative`: the double-strength/interchange maps
 
 A monad `M` is *commutative* (in the technical, monad-theoretic sense) when

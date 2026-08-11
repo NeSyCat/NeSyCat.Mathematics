@@ -27,6 +27,19 @@ DECL_NAME_RE = re.compile(
 TEX_LABEL_RE = re.compile(r"\\label\{([^}]*)\}")
 TEX_LEAN_RE = re.compile(r"\\lean\{([^}]*)\}")
 
+# DO-SUGAR BAN (C4-MONAD). Registering `Monad`/`LawfulMonad` on `MS S` makes
+# do-notation writable, and only the faithful fragment corresponds to the
+# hand-proved `ret`/`bind`: `<-`, `let :=`, nested actions, a final `pure`.
+# Lean's EXTENDED sugar does not -- `let mut` and `for ... in` desugar through
+# `ForIn`/state-passing machinery, and an early `return` through an
+# `ExceptT`-shaped short circuit, none of which `MS S` provides. Advisory
+# only, like the other checks here: the patterns are legitimate Lean in
+# non-`MS` code (scripts, `IO`, gate generators), so this flags for a human
+# rather than blocking.
+DO_MUT_RE = re.compile(r"(^|[^A-Za-z0-9_])let[ \t]+mut([^A-Za-z0-9_]|$)")
+DO_FOR_RE = re.compile(r"^[ \t]*for[ \t]+.*[ \t]+in[ \t]")
+DO_RETURN_RE = re.compile(r"^[ \t]*return([^A-Za-z0-9_]|$)")
+
 
 def find_content_tex(project_dir):
     path = os.path.join(project_dir, "blueprint", "src", "content.tex")
@@ -197,6 +210,30 @@ def main():
                     "with this file or note the justified skip via a "
                     "'Blueprint-sync:' commit-message line."
                 )
+
+    # (iii) DO-SUGAR BAN (C4-MONAD): flag Lean's extended do-sugar, which does
+    # not correspond to `MS S`'s hand-proved `ret`/`bind`. Comment lines are
+    # skipped, as elsewhere in this file.
+    sugar_hits = []
+    for idx, line in enumerate(lines):
+        if COMMENT_RE.match(line.lstrip()):
+            continue
+        for rx, what in ((DO_MUT_RE, "let mut"),
+                         (DO_FOR_RE, "for ... in"),
+                         (DO_RETURN_RE, "return")):
+            if rx.search(line):
+                sugar_hits.append(f"{rel_posix}:{idx + 1}: {what}")
+    if sugar_hits:
+        advisories.append(
+            "DO-SUGAR BAN (FORMALIZE.md): extended do-notation does not "
+            "correspond to MS S's ret/bind -- `let mut` and `for ... in` "
+            "desugar through ForIn/state-passing machinery and an early "
+            "`return` through an ExceptT-shaped short circuit, none of which "
+            "MS S provides. Faithful fragment: `<-`, `let :=`, nested "
+            "actions, a final `pure`. If this occurrence is not inside an "
+            "MS S do-block it is fine -- this check cannot see block "
+            "context. Occurrences: " + "; ".join(sugar_hits)
+        )
 
     if advisories:
         out = {
