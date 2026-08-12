@@ -19,12 +19,25 @@
 % Make sure that arguments of \uses and \proves are real labels, by using invisible refs:
 % latex prints a warning if the label is not defined, but nothing is shown in the pdf file.
 % It uses LaTeX3 programming, this is why we use the expl3 package.
+%
+% SPACING FIX (user-reported, twice). The upstream template phantoms each
+% label with \vphantom{\ref{##1}}. A \vphantom has zero WIDTH but the full
+% HEIGHT and DEPTH of what it phantoms, so when an environment ends with a
+% display -- the house shape, since \uses sits on the line after \] -- the
+% phantoms form a line box a whole text line tall, and the statement is
+% pushed away from its proof by roughly \baselineskip. Measured on a minimal
+% reproduction: 74pt of block height with \vphantom against 64pt with the
+% form below, i.e. a spurious ~10pt per affected environment.
+% \sbox typesets the \ref into a box that is then discarded, so the
+% undefined-label warning this macro exists for still fires (verified: an
+% unknown label still produces "Reference `...' on page N undefined") while
+% nothing at all reaches the page.
 \ExplSyntaxOn
 \NewDocumentCommand{\uses}{m}
- {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+ {\clist_map_inline:nn{#1}{\sbox0{\ref{##1}}}%
   \ignorespaces}
 \NewDocumentCommand{\proves}{m}
- {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+ {\clist_map_inline:nn{#1}{\sbox0{\ref{##1}}}%
   \ignorespaces}
 \ExplSyntaxOff
 % Bibliography heading (C3-ISAR P1, rider R-A): EMPTY on this engine.
