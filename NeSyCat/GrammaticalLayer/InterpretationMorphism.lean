@@ -249,6 +249,16 @@ structure InterpretationMorphism
   quanMor_compat : ∀ (Q : sigB.Quan) (n : ℕ),
     J₁.quanMor Q n ≫ markerMor monadMor.toNatTrans (sigB.quanMonad Q) omegaMor
       = interpretPowMor monadMor.toNatTrans omegaMor (sigB.quanMonad Q) n ≫ J₂.quanMor Q n
+  /-- The two readings enumerate a variable's domain to the same length.
+  The quantified clause indexes its product state space by that count, so
+  without this the two readings' clauses share no arity and cannot be
+  compared at all. -/
+  varCard_compat : ∀ x : sigG.Var, K₁.varCard x = K₂.varCard x
+  /-- The two readings enumerate a variable's domain in the same order: the
+  family carries the `i`-th point of `𝓘₁([x])` to the `i`-th point of
+  `𝓘₂([x])`. -/
+  varPt_compat : ∀ (x : sigG.Var) (i : Fin (K₁.varCard x)),
+    K₁.varPt x i ≫ domMor (sigG.varOver x) = K₂.varPt x (Fin.cast (varCard_compat x) i)
 
 namespace InterpretationMorphism
 
@@ -1415,6 +1425,361 @@ theorem fmListMor_map_const (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) 
 
 end FmListMor
 
+/-!
+## The quantified clause's machinery is compatible with a morphism
+
+`Fm.sem`'s quantified clause copies the surviving context once per product
+state (`comulN`), inserts one state into each copy (`ctxMerge` against
+`listPt`), reads the body at every copy (`tensorFin`), and feeds the
+tensored results to the quantifier's own morphism. Every piece has its own
+compatibility here.
+
+Two of them spend the bundle's enumeration laws. `listCard_compat` is
+`varCard_compat` folded over a variable list, and `listPt_compat` is
+`varPt_compat` folded the same way. Both are stated against the underlying
+index rather than against a transport of it, so that a proof never has to
+identify the two readings' `Fin` types. The two readings' arities are
+identified once instead, in `quantSum_compat`, whose two arities are
+ordinary variables and so can simply be `subst`ed.
+
+`ctxMerge`'s own clauses carry their list transports in the DOMAIN, where
+`ctxProjFilter`'s carried theirs in the codomain. `eqRec_dom` is
+`eqRec_cod`'s twin for that side, and `ctxMerge_cons_pos`/
+`ctxMerge_cons_neg` are the cast-free readings it yields.
+-/
+
+section QuantCompat
+
+variable {SI₁ : StrongCatInterpretation I} {J₁ : LogInterpretation I sigB}
+  {D₁ : DomInterpretation I J₁ sigG} {K₁ : KleisliInterpretation I SI₁ J₁ D₁}
+  {SI₂ : StrongCatInterpretation (I.withMonad M₂)}
+  {J₂ : LogInterpretation (I.withMonad M₂) sigB}
+  {D₂ : DomInterpretation (I.withMonad M₂) J₂ sigG}
+  {K₂ : KleisliInterpretation (I.withMonad M₂) SI₂ J₂ D₂}
+
+/-- Companion of `lem:kleisli-formula-natural`: a transport in a morphism's
+domain is a composite with `eqToHom`, the twin of `eqRec_cod` for the other
+side. `ctxMerge`'s two clauses transport their domains, not their
+codomains. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the
+-- domain-transport lemma ctxMerge's clauses need
+theorem eqRec_dom {C : Type*} [Category C] {α : Sort*} (F : α → C) {X : C} {a b : α}
+    (g : F a ⟶ X) (h : a = b) :
+    @Eq.rec α a (fun y _ => F y ⟶ X) g b h = eqToHom (congrArg F h).symm ≫ g := by
+  cases h; simp
+
+/-- Companion of `lem:kleisli-formula-natural`: a `○`-marked tensor power
+of induced morphisms is the `Id`-marked tensor power of the `○`-transported
+morphism, since an `Id`-marked slot takes the morphism as it stands. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the two
+-- readings of a tensor power of induced morphisms
+theorem interpretPowMor_mon_eq_id (θ : I.monad.toFunctor ⟶ M₂.toFunctor) {X₁ X₂ : I.cd.C}
+    (g : X₁ ⟶ X₂) : ∀ n : ℕ,
+    interpretPowMor θ g MonSym.mon n
+      = interpretPowMor θ (markerMor θ MonSym.mon g) MonSym.id n
+  | 0 => rfl
+  | n + 1 => by
+      have tail_pow := interpretPowMor_mon_eq_id θ g n
+      change markerMor θ MonSym.mon g ⊗ₘ interpretPowMor θ g MonSym.mon n
+        = markerMor θ MonSym.id (markerMor θ MonSym.mon g) ⊗ₘ
+          interpretPowMor θ (markerMor θ MonSym.mon g) MonSym.id n
+      rw (config := { transparency := .default }) [markerMor_id, tail_pow]
+      rfl
+
+/-- Companion of `lem:kleisli-formula-natural`: `varPt_compat` read against
+a bare index equality, which is the form the fold below needs. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural:
+-- varPt_compat at a bare index equality
+theorem varPt_compat_val (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (x : sigG.Var)
+    (i : Fin (K₁.varCard x)) (j : Fin (K₂.varCard x)) (hij : (i : ℕ) = (j : ℕ)) :
+    K₁.varPt x i ≫ Φ.domMor (sigG.varOver x) = K₂.varPt x j := by
+  rw [Φ.varPt_compat x i]
+  congr 1
+  exact Fin.ext hij
+
+/-- Companion of `lem:kleisli-formula-natural`: the two readings give a
+variable list the same product-state cardinality, by induction on the list
+out of `varCard_compat`. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: listCard
+-- against a morphism of interpretations
+theorem listCard_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    ∀ l : List sigG.Var, listCard K₁ l = listCard K₂ l
+  | [] => rfl
+  | x :: xs => by
+      have tail_card := listCard_compat Φ xs
+      change K₁.varCard x * listCard K₁ xs = K₂.varCard x * listCard K₂ xs
+      rw [Φ.varCard_compat x, tail_card]
+
+/-- Companion of `lem:kleisli-formula-natural`: the two readings enumerate a
+variable list's product states in the same order, by induction on the list
+out of `varPt_compat`. The two `Fin` types differ, so the statement asks
+only that the two indices have the same underlying number. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: listPt
+-- against a morphism of interpretations
+theorem listPt_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    ∀ (l : List sigG.Var) (i : Fin (listCard K₁ l)) (j : Fin (listCard K₂ l)),
+      (i : ℕ) = (j : ℕ) → listPt K₁ l i ≫ Φ.ctxMor l = listPt K₂ l j
+  | [], _, _, _ => by
+      rw [ctxMor_nil]
+      change 𝟙 (𝟙_ I.cd.C) ≫ 𝟙 (𝟙_ I.cd.C) = 𝟙 (𝟙_ I.cd.C)
+      rw [Category.comp_id]
+  | x :: xs, i, j, hij => by
+      have tail_card := listCard_compat Φ xs
+      have head_index : ((finProdFinEquiv.symm i).1 : ℕ) = ((finProdFinEquiv.symm j).1 : ℕ) := by
+        simp only [finProdFinEquiv, Equiv.coe_fn_symm_mk, Fin.coe_divNat]
+        rw [hij, tail_card]
+      have tail_index : ((finProdFinEquiv.symm i).2 : ℕ) = ((finProdFinEquiv.symm j).2 : ℕ) := by
+        simp only [finProdFinEquiv, Equiv.coe_fn_symm_mk, Fin.coe_modNat]
+        rw [hij, tail_card]
+      have tail_pt := listPt_compat Φ xs (finProdFinEquiv.symm i).2 (finProdFinEquiv.symm j).2
+        tail_index
+      change ((λ_ (𝟙_ I.cd.C)).inv ≫
+          (K₁.varPt x (finProdFinEquiv.symm i).1 ⊗ₘ
+            listPt K₁ xs (finProdFinEquiv.symm i).2)) ≫
+            (Φ.domMor (sigG.varOver x) ⊗ₘ Φ.ctxMor xs)
+        = (λ_ (𝟙_ I.cd.C)).inv ≫
+          (K₂.varPt x (finProdFinEquiv.symm j).1 ⊗ₘ listPt K₂ xs (finProdFinEquiv.symm j).2)
+      rw (config := { transparency := .default })
+        [Category.assoc, tensorHom_comp_tensorHom, varPt_compat_val Φ x _ _ head_index, tail_pt]
+
+/-- Companion of `lem:kleisli-formula-natural`: the `n`-ary self-copy
+commutes with any comonoid morphism, by induction on the arity. The unit
+case is the counit half; the step case is the comultiplication half and
+naturality of the tensor. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: comulN
+-- against a comonoid morphism
+theorem comulN_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) {X₁ X₂ : I.cd.C}
+    (g : X₁ ⟶ X₂)
+    (hcomul : g ≫ (I.cd.comon X₂).comul = (I.cd.comon X₁).comul ≫ (g ⊗ₘ g))
+    (hcounit : g ≫ (I.cd.comon X₂).counit = (I.cd.comon X₁).counit) : ∀ n : ℕ,
+    g ≫ comulN X₂ n = comulN X₁ n ≫ interpretPowMor Φ.monadMor.toNatTrans g MonSym.id n
+  | 0 => by
+      change g ≫ (I.cd.comon X₂).counit = (I.cd.comon X₁).counit ≫ 𝟙 (𝟙_ I.cd.C)
+      rw [Category.comp_id, hcounit]
+  | n + 1 => by
+      have tail_copy := comulN_compat Φ g hcomul hcounit n
+      change g ≫ (I.cd.comon X₂).comul ≫ (𝟙 X₂ ⊗ₘ comulN X₂ n)
+        = ((I.cd.comon X₁).comul ≫ (𝟙 X₁ ⊗ₘ comulN X₁ n)) ≫
+          (markerMor Φ.monadMor.toNatTrans MonSym.id g ⊗ₘ
+            interpretPowMor Φ.monadMor.toNatTrans g MonSym.id n)
+      rw (config := { transparency := .default })
+        [markerMor_id, ← Category.assoc, hcomul, Category.assoc, Category.assoc,
+          tensorHom_comp_tensorHom, tensorHom_comp_tensorHom, Category.comp_id,
+          Category.id_comp, tail_copy]
+      rfl
+
+/-- Companion of `lem:kleisli-formula-natural`: an indexed tensor of
+morphisms commutes with a morphism of interpretations as soon as each index
+does, by induction on the arity. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural:
+-- tensorFin against a morphism of interpretations
+theorem tensorFin_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) {X₁ X₂ Y₁ Y₂ : I.cd.C}
+    (u : X₁ ⟶ X₂) (w : Y₁ ⟶ Y₂) : ∀ (n : ℕ) (f₁ : Fin n → (X₁ ⟶ Y₁)) (f₂ : Fin n → (X₂ ⟶ Y₂)),
+    (∀ i, f₁ i ≫ w = u ≫ f₂ i) →
+    tensorFin X₁ Y₁ n f₁ ≫ interpretPowMor Φ.monadMor.toNatTrans w MonSym.id n
+      = interpretPowMor Φ.monadMor.toNatTrans u MonSym.id n ≫ tensorFin X₂ Y₂ n f₂
+  | 0, _, _, _ => by
+      change 𝟙 (𝟙_ I.cd.C) ≫ 𝟙 (𝟙_ I.cd.C) = 𝟙 (𝟙_ I.cd.C) ≫ 𝟙 (𝟙_ I.cd.C)
+      rfl
+  | n + 1, f₁, f₂, hf => by
+      have tail_tensor := tensorFin_compat Φ u w n (fun i => f₁ i.succ) (fun i => f₂ i.succ)
+        (fun i => hf i.succ)
+      change (f₁ 0 ⊗ₘ tensorFin X₁ Y₁ n (fun i => f₁ i.succ)) ≫
+          (markerMor Φ.monadMor.toNatTrans MonSym.id w ⊗ₘ
+            interpretPowMor Φ.monadMor.toNatTrans w MonSym.id n)
+        = (markerMor Φ.monadMor.toNatTrans MonSym.id u ⊗ₘ
+            interpretPowMor Φ.monadMor.toNatTrans u MonSym.id n) ≫
+          (f₂ 0 ⊗ₘ tensorFin X₂ Y₂ n (fun i => f₂ i.succ))
+      rw (config := { transparency := .default })
+        [markerMor_id, markerMor_id, tensorHom_comp_tensorHom, tensorHom_comp_tensorHom,
+          hf 0, tail_tensor]
+      rfl
+
+/-- Companion of `lem:kleisli-formula-natural`: the whole quantified
+composite, copy then per-state read then quantifier morphism, commutes with
+a morphism of interpretations. The two readings carry their own arities, so
+the statement takes both and their equation; `subst` identifies them, and
+what remains is `comulN_compat`, `tensorFin_compat` and `quanMorAt_compat`
+in that order. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the
+-- quantified composite against a morphism of interpretations
+theorem quantSum_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (Q : sigB.Quan)
+    {X₁ X₂ : I.cd.C} (u : X₁ ⟶ X₂)
+    (hcomul : u ≫ (I.cd.comon X₂).comul = (I.cd.comon X₁).comul ≫ (u ⊗ₘ u))
+    (hcounit : u ≫ (I.cd.comon X₂).counit = (I.cd.comon X₁).counit)
+    (n₁ n₂ : ℕ) (harity : n₁ = n₂)
+    (f₁ : Fin n₁ → (X₁ ⟶ I.monad.obj J₁.Ω)) (f₂ : Fin n₂ → (X₂ ⟶ M₂.obj J₂.Ω))
+    (hf : ∀ (i : Fin n₁) (j : Fin n₂), (i : ℕ) = (j : ℕ) →
+      f₁ i ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor = u ≫ f₂ j) :
+    (comulN X₁ n₁ ≫ tensorFin X₁ (I.monad.obj J₁.Ω) n₁ f₁ ≫ quanMorAt SI₁ J₁ Q n₁) ≫
+        Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+      = u ≫ comulN X₂ n₂ ≫ tensorFin X₂ (M₂.obj J₂.Ω) n₂ f₂ ≫ quanMorAt SI₂ J₂ Q n₂ := by
+  subst harity
+  have states : ∀ i : Fin n₁,
+      f₁ i ≫ markerMor Φ.monadMor.toNatTrans MonSym.mon Φ.omegaMor = u ≫ f₂ i :=
+    fun i => hf i i rfl
+  rw (config := { transparency := .default })
+    [Category.assoc, Category.assoc, quanMorAt_compat Φ Q n₁,
+      ← Category.assoc (tensorFin X₁ (I.monad.obj J₁.Ω) n₁ f₁),
+      interpretPowMor_mon_eq_id Φ.monadMor.toNatTrans Φ.omegaMor n₁,
+      tensorFin_compat Φ u (markerMor Φ.monadMor.toNatTrans MonSym.mon Φ.omegaMor) n₁ f₁ f₂ states,
+      Category.assoc, ← Category.assoc (comulN X₁ n₁), ← comulN_compat Φ u hcomul hcounit n₁,
+      Category.assoc]
+  rfl
+
+/-- Companion of `lem:kleisli-formula-natural`: a transport of both factors
+of a tensor, prefixed to a morphism, leaves that morphism alone. This is
+what makes `ctxMerge`'s two domain transports readable factor by factor. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: a
+-- two-factor domain transport is invisible up to HEq
+theorem tensorHom_eqToHom_heq {C : Type u} [Category.{v} C] [MonoidalCategory C]
+    {A A' B B' X : C} (h₁ : A = A') (h₂ : B = B') (f : A' ⊗ B' ⟶ X) :
+    (eqToHom h₁ ⊗ₘ eqToHom h₂) ≫ f ≍ f := by
+  cases h₁; cases h₂; simp
+
+/-- Companion of `def:kleisli-interpretation`: the bound-head clause of
+`ctxMerge`, as a rewrite with its two domain transports made explicit. The
+head belongs to the inserted part, so it is slid past the surviving part by
+the symmetry. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- ctxMerge's bound-head clause, cast-free
+theorem ctxMerge_cons_pos {J : LogInterpretation I sigB} (D : DomInterpretation I J sigG)
+    (p : sigG.Var → Bool) (y : sigG.Var) (l' : List sigG.Var) (hpy : p y = true) :
+    ctxMerge D p (y :: l')
+      = (eqToHom (congrArg (ctxObj D)
+            (List.filter_cons_of_neg (by simp [hpy]) :
+              (y :: l').filter (fun x => !p x) = l'.filter (fun x => !p x))) ⊗ₘ
+          eqToHom (congrArg (ctxObj D) (List.filter_cons_of_pos hpy))) ≫
+        (α_ (ctxObj D (l'.filter (fun x => !p x))) (D.domObj (sigG.varOver y))
+            (ctxObj D (l'.filter p))).inv ≫
+        ((β_ (ctxObj D (l'.filter (fun x => !p x))) (D.domObj (sigG.varOver y))).hom ⊗ₘ
+            𝟙 (ctxObj D (l'.filter p))) ≫
+        (α_ (D.domObj (sigG.varOver y)) (ctxObj D (l'.filter (fun x => !p x)))
+            (ctxObj D (l'.filter p))).hom ≫
+        (𝟙 (D.domObj (sigG.varOver y)) ⊗ₘ ctxMerge D p l') := by
+  have hh : ctxMerge D p (y :: l')
+      ≍ (α_ (ctxObj D (l'.filter (fun x => !p x))) (D.domObj (sigG.varOver y))
+            (ctxObj D (l'.filter p))).inv ≫
+        ((β_ (ctxObj D (l'.filter (fun x => !p x))) (D.domObj (sigG.varOver y))).hom ⊗ₘ
+            𝟙 (ctxObj D (l'.filter p))) ≫
+        (α_ (D.domObj (sigG.varOver y)) (ctxObj D (l'.filter (fun x => !p x)))
+            (ctxObj D (l'.filter p))).hom ≫
+        (𝟙 (D.domObj (sigG.varOver y)) ⊗ₘ ctxMerge D p l') := by
+    rw [ctxMerge]
+    split
+    · dsimp only
+      rw (config := { transparency := .default })
+        [eqRec_dom (fun z => ctxObj D z ⊗ ctxObj D ((y :: l').filter p)),
+          eqRec_dom (fun z => ctxObj D (l'.filter (fun x => !p x)) ⊗ ctxObj D z)]
+      exact (eqToHom_comp_heq _ _).trans (eqToHom_comp_heq _ _)
+    · simp_all
+  exact eq_of_heq (hh.trans (tensorHom_eqToHom_heq _ _ _).symm)
+
+/-- Companion of `def:kleisli-interpretation`: the surviving-head clause of
+`ctxMerge`, as a rewrite with its two domain transports made explicit. The
+head belongs to the surviving part, so it stays where it is. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- ctxMerge's surviving-head clause, cast-free
+theorem ctxMerge_cons_neg {J : LogInterpretation I sigB} (D : DomInterpretation I J sigG)
+    (p : sigG.Var → Bool) (y : sigG.Var) (l' : List sigG.Var) (hpy : p y = false) :
+    ctxMerge D p (y :: l')
+      = (eqToHom (congrArg (ctxObj D)
+            (List.filter_cons_of_pos (by simp [hpy]) :
+              (y :: l').filter (fun x => !p x) = y :: l'.filter (fun x => !p x))) ⊗ₘ
+          eqToHom (congrArg (ctxObj D)
+            (List.filter_cons_of_neg (by simp [hpy]) :
+              (y :: l').filter p = l'.filter p))) ≫
+        (α_ (D.domObj (sigG.varOver y)) (ctxObj D (l'.filter (fun x => !p x)))
+            (ctxObj D (l'.filter p))).hom ≫
+        (𝟙 (D.domObj (sigG.varOver y)) ⊗ₘ ctxMerge D p l') := by
+  have hh : ctxMerge D p (y :: l')
+      ≍ (α_ (D.domObj (sigG.varOver y)) (ctxObj D (l'.filter (fun x => !p x)))
+            (ctxObj D (l'.filter p))).hom ≫
+        (𝟙 (D.domObj (sigG.varOver y)) ⊗ₘ ctxMerge D p l') := by
+    rw [ctxMerge]
+    split
+    · simp_all
+    · dsimp only
+      rw (config := { transparency := .default })
+        [eqRec_dom (fun z => ctxObj D z ⊗ ctxObj D ((y :: l').filter p)),
+          eqRec_dom (fun z => ctxObj D (y :: l'.filter (fun x => !p x)) ⊗ ctxObj D z)]
+      exact (eqToHom_comp_heq _ _).trans (eqToHom_comp_heq _ _)
+  exact eq_of_heq (hh.trans (tensorHom_eqToHom_heq _ _ _).symm)
+
+/-- Companion of `def:kleisli-interpretation`: merging a split context back
+together commutes with a morphism of interpretations, by induction on the
+context. Both clauses are naturality of the associator, and the bound-head
+clause is naturality of the braiding as well. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: ctxMerge
+-- against a morphism of interpretations
+theorem ctxMerge_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (p : sigG.Var → Bool) :
+    ∀ l : List sigG.Var,
+    (Φ.ctxMor (l.filter (fun x => !p x)) ⊗ₘ Φ.ctxMor (l.filter p)) ≫
+        ctxMerge (I := I.withMonad M₂) (J := J₂) D₂ p l
+      = ctxMerge D₁ p l ≫ Φ.ctxMor l
+  | [] => by
+      change (𝟙 (𝟙_ I.cd.C) ⊗ₘ 𝟙 (𝟙_ I.cd.C)) ≫ (λ_ (𝟙_ I.cd.C)).hom
+        = (λ_ (𝟙_ I.cd.C)).hom ≫ 𝟙 (𝟙_ I.cd.C)
+      rw [tensorHom_id, id_whiskerRight, Category.id_comp, Category.comp_id]
+  | y :: l' => by
+      have tail_merge := ctxMerge_compat Φ p l'
+      cases hpy : p y
+      · rw [ctxMerge_cons_neg D₂ p y l' hpy, ctxMerge_cons_neg D₁ p y l' hpy]
+        rw (config := { transparency := .default })
+          [← Category.assoc, tensorHom_comp_tensorHom,
+            ← ctxMor_eqToHom Φ (List.filter_cons_of_pos (by simp [hpy]) :
+              (y :: l').filter (fun x => !p x) = y :: l'.filter (fun x => !p x)),
+            ← ctxMor_eqToHom Φ (List.filter_cons_of_neg (by simp [hpy]) :
+              (y :: l').filter p = l'.filter p),
+            ← tensorHom_comp_tensorHom, Category.assoc, Category.assoc, ctxMor_cons,
+            associator_naturality_assoc, tensorHom_comp_tensorHom, Category.comp_id,
+            tail_merge, ← Category.id_comp (Φ.domMor (sigG.varOver y)),
+            ← tensorHom_comp_tensorHom, ← Category.assoc, ← ctxMor_cons]
+        rw (config := { transparency := .default }) [Category.assoc, Category.assoc]
+        rfl
+      · rw [ctxMerge_cons_pos D₂ p y l' hpy, ctxMerge_cons_pos D₁ p y l' hpy]
+        rw (config := { transparency := .default })
+          [← Category.assoc, tensorHom_comp_tensorHom,
+            ← ctxMor_eqToHom Φ (List.filter_cons_of_neg (by simp [hpy]) :
+              (y :: l').filter (fun x => !p x) = l'.filter (fun x => !p x)),
+            ← ctxMor_eqToHom Φ (List.filter_cons_of_pos hpy),
+            ← tensorHom_comp_tensorHom, Category.assoc, Category.assoc, ctxMor_cons,
+            associator_inv_naturality_assoc, tensorHom_comp_tensorHom_assoc, Category.comp_id,
+            BraidedCategory.braiding_naturality, ← Category.id_comp (Φ.ctxMor (l'.filter p)),
+            ← tensorHom_comp_tensorHom, Category.assoc, associator_naturality_assoc,
+            tensorHom_comp_tensorHom, Category.comp_id, tail_merge,
+            ← Category.id_comp (Φ.domMor (sigG.varOver y)), ← tensorHom_comp_tensorHom,
+            ← Category.assoc, ← ctxMor_cons]
+        rw (config := { transparency := .default })
+          [Category.assoc, Category.assoc, Category.assoc, Category.assoc]
+        rfl
+
+/-- Companion of `lem:kleisli-formula-natural`: inserting one product state
+into the surviving context commutes with a morphism of interpretations, by
+`ctxMerge_compat`, `listPt_compat` and naturality of the right unitor. This
+is the per-state morphism `Fm.sem`'s quantified clause tensors over. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the
+-- quantified clause's per-state insertion against a morphism
+theorem quantState_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (p : sigG.Var → Bool)
+    (l : List sigG.Var) (i : Fin (listCard K₁ (l.filter p)))
+    (j : Fin (listCard K₂ (l.filter p))) (hij : (i : ℕ) = (j : ℕ)) :
+    ((ρ_ (ctxObj D₁ (l.filter (fun x => !p x)))).inv ≫
+        (𝟙 (ctxObj D₁ (l.filter (fun x => !p x))) ⊗ₘ listPt K₁ (l.filter p) i) ≫
+        ctxMerge D₁ p l) ≫ Φ.ctxMor l
+      = Φ.ctxMor (l.filter (fun x => !p x)) ≫
+        (ρ_ (ctxObj (I := I.withMonad M₂) (J := J₂) D₂ (l.filter (fun x => !p x)))).inv ≫
+        (𝟙 (ctxObj (I := I.withMonad M₂) (J := J₂) D₂ (l.filter (fun x => !p x))) ⊗ₘ
+          listPt K₂ (l.filter p) j) ≫
+        ctxMerge (I := I.withMonad M₂) (J := J₂) D₂ p l := by
+  rw (config := { transparency := .default })
+    [Category.assoc, Category.assoc, ← ctxMerge_compat Φ p l,
+      tensorHom_comp_tensorHom_assoc, Category.id_comp,
+      listPt_compat Φ (l.filter p) i j hij,
+      MonoidalCategory.rightUnitor_inv_naturality_assoc, ← tensorHom_id,
+      tensorHom_comp_tensorHom_assoc, Category.comp_id, Category.id_comp]
+
+end QuantCompat
+
 -- (completeness census, same pattern as `Tm.KTyped.eq_def` in
 -- `NeSyCat/GrammaticalLayer/Kleisli.lean`: equation-lemma and congruence
 -- byproducts of `Tm.sem`/`TmList.sem`, generated in this module by the
@@ -1424,7 +1789,7 @@ end FmListMor
 attribute [blueprint_internal] Tm.sem.eq_def TmList.sem.eq_def Tm.sem.congr_simp
   TmList.sem.congr_simp Fm.sem.eq_def Fm.sem.congr_simp FmList.sem.congr_simp
   ctxCopy.congr_simp connMorAt.congr_simp projTo.congr_simp ctxProjFilter.eq_def
-  ctxCopy.eq_def
+  ctxCopy.eq_def ctxMerge.eq_def
 
 -- (step correspondence, C3-ISAR: a mutual block compiles each of its two
 -- theorems to a proof term that mentions only the compiler's own bundle

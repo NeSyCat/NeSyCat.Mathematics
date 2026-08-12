@@ -2844,22 +2844,26 @@ CD category, each with its own logical
 $\mathcal I_1(S) \to \mathcal I_2(S)$ on domain symbols, a map
 $\Omega_1 \to \Omega_2$ of truth objects, and a monad morphism
 $\mathcal M_1 \to \mathcal M_2$. Every component of the family is a
-comonoid morphism for the CD category's chosen comonoids. The chosen
-comultiplication and counit on $X \boxtimes Y$ are those of $X$ and $Y$
-shuffled back into order. The two strengths agree along the monad
-morphism. Naturality holds for the target strength. Every function,
-relation, connective and quantifier symbol is interpreted compatibly
-with the family.
+comonoid morphism for the CD category's chosen comonoids. The two
+strengths agree along the monad morphism. Naturality holds for the target
+strength. Every function, relation, connective and quantifier symbol is
+interpreted compatibly with the family. The two readings enumerate every
+variable's domain to the same length, and the family carries the $i$-th
+point of one enumeration to the $i$-th point of the other.
 \uses{def:kleisli-interpretation, def:logical-interpretation, def:domain-interpretation, def:categorical-interpretation, def:cd-category}
 \end{definition}
 
-Three of those laws say nothing about a second reading. Naturality of the
-target strength is a law about that interpretation alone, and the two
-tensor compatibilities are laws about the CD category alone. They sit
-here because
-Definition~\ref{def:categorical-interpretation} bundles the strength as
-data without its naturality, and because carrying a law as a hypothesis
-leaves every already-formalized item untouched.
+One of those laws says nothing about a second reading. Naturality of the
+target strength is a law about the target interpretation alone. It sits
+here because Definition~\ref{def:categorical-interpretation} bundles the
+strength as data without its naturality, and because carrying a law as a
+hypothesis leaves every already-formalized item untouched.
+
+The two enumeration laws are what the quantified clause of
+Definition~\ref{def:kleisli-interpretation} needs. That clause indexes its
+product state space by a cardinality read off the interpretation, so
+without the first law the two readings of a quantified formula share no
+arity and cannot be compared at all.
 
 The tensor compatibilities need a further word, because
 Definition~\ref{def:cd-category} asks for them and, for a time, did not
