@@ -211,24 +211,12 @@ structure InterpretationMorphism
   `domMor_comul` this says every component is a comonoid morphism. -/
   domMor_counit : ∀ S : sigG.Dom,
     domMor S ≫ (I.cd.comon (D₂.domObj S)).counit = (I.cd.comon (D₁.domObj S)).counit
-  /-- The chosen comultiplication is compatible with the tensor: on
-  `X ⊠ Y` it is the two factors' comultiplications followed by the shuffle
-  that puts the four factors back in order. This is a law of the CD
-  category alone, like `strength_natural` below, and it travels here for
-  the same reason: this file may not change `CDCategory`. `CDCategory`
-  does declare a field of this name, but as elaborated that field is
-  reflexivity, because the structure's own `comon` field is itself a local
-  instance and so `ComonObj.comul (X := X ⊗ Y)` there resolves to the
-  chosen comonoid rather than to the induced one. -/
-  comul_tensor : ∀ X Y : I.cd.C,
-    (I.cd.comon (X ⊗ Y)).comul
-      = ((I.cd.comon X).comul ⊗ₘ (I.cd.comon Y).comul) ≫ tensorμ X X Y Y
-  /-- The chosen counit is compatible with the tensor: on `X ⊠ Y` it is the
-  two factors' counits into the unit. The discard twin of `comul_tensor`,
-  carried here for the same reason. -/
-  counit_tensor : ∀ X Y : I.cd.C,
-    (I.cd.comon (X ⊗ Y)).counit
-      = ((I.cd.comon X).counit ⊗ₘ (I.cd.comon Y).counit) ≫ (λ_ (𝟙_ I.cd.C)).hom
+  -- The two tensor compatibilities of the chosen comonoid were carried here
+  -- as fields while `CDCategory.copy_tensor`/`del_tensor` were vacuous
+  -- (they elaborated to reflexivity; repaired at C4-ERR). The category now
+  -- states them with content, so this structure uses `I.cd.copy_tensor` and
+  -- `I.cd.del_tensor` directly rather than assuming its own copies: one
+  -- statement of a law, in the place that owns it.
   /-- The monad morphism `𝓜₁ ⟶ 𝓜₂`. In the batch reading this is `ev i`
   again, now read as a monad morphism `Bmon 𝓜 ⟶ 𝓜` (`evMonadHom`). -/
   monadMor : CategoryTheory.MonadHom I.monad M₂
@@ -931,8 +919,8 @@ whole of `def:kleisli-interpretation`'s insertion machinery to commute with
 a morphism of interpretations. `ctxMor_comul` and `ctxMor_counit` are the
 root of that: the induced morphism on a context's tensor is a comonoid
 morphism, because each component is one (`domMor_comul`, `domMor_counit`)
-and the chosen comonoid is compatible with the tensor (`comul_tensor`,
-`counit_tensor`). `ctxProjFilter_compat`, `projTo_compat` and
+and the chosen comonoid is compatible with the tensor (the CD category's
+`copy_tensor`/`del_tensor`). `ctxProjFilter_compat`, `projTo_compat` and
 `ctxCopy_compat` then carry that up through the three layers of the
 machinery, in the order it is built.
 -/
@@ -963,7 +951,7 @@ theorem ctxMor_cons (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (x : sig
 
 /-- Companion of `def:kleisli-interpretation`: the induced morphism on a
 context's tensor discards as the chosen counits do, by induction on the
-context out of `domMor_counit` and `counit_tensor`. -/
+context out of `domMor_counit` and the CD category's `del_tensor`. -/
 @[blueprint_internal] -- companion of def:kleisli-interpretation: ctxMor
 -- respects the chosen counit
 theorem ctxMor_counit (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) : ∀ l : List sigG.Var,
@@ -980,12 +968,12 @@ theorem ctxMor_counit (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) : ∀ 
             ctxObj (I := I.withMonad M₂) (J := J₂) D₂ l')).counit
         = (I.cd.comon (D₁.domObj (sigG.varOver x) ⊗ ctxObj D₁ l')).counit
       rw (config := { transparency := .default })
-        [Φ.counit_tensor, Φ.counit_tensor, ← Category.assoc,
+        [I.cd.del_tensor, I.cd.del_tensor, ← Category.assoc,
           tensorHom_comp_tensorHom, Φ.domMor_counit, tail_counit]
 
 /-- Companion of `def:kleisli-interpretation`: the induced morphism on a
 context's tensor copies as the chosen comultiplications do, by induction on
-the context out of `domMor_comul`, `comul_tensor` and naturality of the
+the context out of `domMor_comul`, the CD category's `copy_tensor` and naturality of the
 shuffle. -/
 @[blueprint_internal] -- companion of def:kleisli-interpretation: ctxMor
 -- respects the chosen comultiplication
@@ -1005,7 +993,7 @@ theorem ctxMor_comul (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) : ∀ l
           ((Φ.domMor (sigG.varOver x) ⊗ₘ Φ.ctxMor l') ⊗ₘ
             (Φ.domMor (sigG.varOver x) ⊗ₘ Φ.ctxMor l'))
       rw (config := { transparency := .default })
-        [Φ.comul_tensor, Φ.comul_tensor, ← Category.assoc,
+        [I.cd.copy_tensor, I.cd.copy_tensor, ← Category.assoc,
           tensorHom_comp_tensorHom, Φ.domMor_comul, tail_comul, ← tensorHom_comp_tensorHom,
           Category.assoc, tensorμ_natural, ← Category.assoc]
 
