@@ -570,6 +570,327 @@ end
 
 end TermNaturalityMor
 
+/-!
+## The formula clauses, read off cast-free
+
+`Fm.sem` computes its four clauses through `Fm.on` and `Fm.KTyped`, both
+compiled by recursion over a nested inductive, so those clauses hold
+propositionally and not definitionally and `Fm.sem`'s own equations carry
+casts. The lemmas below turn each cast into an `eqToHom` composite once and
+for all, the formula-side twins of `Tm.sem_var_eq` and `Tm.sem_app_eq`:
+`Fm.on_rel`/`Fm.on_conn`/`Fm.on_quant`/`Fm.on_subst` for the context,
+`Fm.ktyped_rel`/`Fm.ktyped_conn`/`Fm.ktyped_quant`/`Fm.ktyped_subst` for the
+typing side condition, and `Fm.sem_rel_eq`/`Fm.sem_conn_eq`/
+`Fm.sem_quant_eq`/`Fm.sem_subst_eq` for the clauses themselves.
+
+Two further casts appear here that the term half never met. A `Prop`
+structure has no definitional eta, so the `obtain` a clause performs on its
+typing witness stays a blocked `And.rec` in the equation: `and_rec_proj`
+turns it into the witness's own projections, which proof irrelevance then
+identifies with any other witness. And a clause that rewrites a hypothesis
+rather than the goal leaves a `cast` in a morphism's codomain rather than an
+`Eq.rec`: `cast_hom_cod` is `eqRec_cod`'s twin for that shape.
+
+The connective and quantifier clauses dispatch on the marker their symbol
+carries, so their morphisms are named here as `connMorAt` and `quanMorAt`,
+built by the same marker match `Fm.sem` performs.
+-/
+
+section FmClauses
+
+variable {J : LogInterpretation I sigB} {D : DomInterpretation I J sigG}
+  {SI : StrongCatInterpretation I} [DecidableEq sigG.Var]
+
+/-- Companion of `def:kleisli-interpretation`: a non-dependent case
+analysis on a conjunction is that conjunction's own two projections. Lean
+has no definitional eta for a `Prop` structure, so a clause's `obtain` on
+its typing witness survives into `Fm.sem`'s equations as a blocked
+`And.rec`; this releases it, and proof irrelevance then identifies the
+projections with any other witness of the same conjunction. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: releases
+-- the blocked And.rec a clause's `obtain` leaves in Fm.sem's equations
+theorem and_rec_proj {a b : Prop} {M : Sort*} (f : ∀ (_ : a) (_ : b), M) (h : a ∧ b) :
+    @And.rec a b (fun _ => M) f h = f h.1 h.2 := by
+  cases h; rfl
+
+/-- Companion of `def:kleisli-interpretation`: a cast in a morphism's
+codomain is a composite with `eqToHom`. The twin of `eqRec_cod` for the
+shape a clause leaves when it rewrites a hypothesis rather than the goal. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- codomain-cast lemma the relation-symbol and substitution clauses need
+theorem cast_hom_cod {C : Type*} [Category C] {X Y Y' : C} (f : X ⟶ Y) (e : Y = Y')
+    (h : (X ⟶ Y) = (X ⟶ Y')) : cast h f = f ≫ eqToHom e := by
+  subst e; simp
+
+/-- Companion of `def:kleisli-interpretation`: `[R(ξ⃗)]` is the dedup'd
+concatenation of the arguments' own contexts, the atomic clause of `Fm.on`
+as a rewrite. `Fm.on` recurses over a nested inductive, so its clauses are
+propositional. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: Fm.on's
+-- atomic clause as a rewrite
+theorem Fm.on_rel (R : sigG.Rel) (args : List (Tm sigG sigB)) :
+    (Fm.rel R args : Fm sigG sigB).on = firstDedup (args.map Tm.inn).flatten := by
+  simp [Fm.on]
+
+/-- Companion of `def:kleisli-interpretation`: `[*(φ⃗)]` is the dedup'd
+concatenation of the arguments' own contexts, the compound clause of
+`Fm.on` as a rewrite. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: Fm.on's
+-- compound clause as a rewrite
+theorem Fm.on_conn (c : sigB.Conn) (args : List (Fm sigG sigB)) :
+    (Fm.conn c args : Fm sigG sigB).on = firstDedup (args.map Fm.on).flatten := by
+  simp [Fm.on]
+
+/-- Companion of `def:kleisli-interpretation`: `[Qx⃗(φ)]` is `[φ]` with the
+bound variables removed, the quantified clause of `Fm.on` as a rewrite. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: Fm.on's
+-- quantified clause as a rewrite
+theorem Fm.on_quant (Q : sigB.Quan) (xs : List sigG.Var) (body : Fm sigG sigB) :
+    (Fm.quant Q xs body : Fm sigG sigB).on = body.on.filter (fun v => !decide (v ∈ xs)) := by
+  simp [Fm.on]
+
+/-- Companion of `def:kleisli-interpretation`: `[φ[x := ξ]]` is `[φ]` with
+`x` replaced positionally by `inn(ξ)`, the substituted clause of `Fm.on` as
+a rewrite. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: Fm.on's
+-- substituted clause as a rewrite
+theorem Fm.on_subst (body : Fm sigG sigB) (x : sigG.Var) (t : Tm sigG sigB) :
+    (Fm.subst body x t : Fm sigG sigB).on
+      = body.on.takeWhile (fun v => decide (v ≠ x)) ++
+          (t.inn ++ (body.on.dropWhile (fun v => decide (v ≠ x))).tail) := by
+  simp [Fm.on]
+
+/-- Companion of `def:kleisli-interpretation`: the two conjuncts of
+`Fm.KTyped` at an atomic formula, the value-match witness and the
+arguments' own typing. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- Fm.KTyped's atomic clause, read off
+theorem Fm.ktyped_rel {R : sigG.Rel} {args : List (Tm sigG sigB)}
+    (ht : (Fm.rel R args : Fm sigG sigB).KTyped) :
+    (args.map Tm.kcod).flatten = sigG.rari R ∧ ∀ a ∈ args, a.KTyped := by
+  simpa [Fm.KTyped] using ht
+
+/-- Companion of `def:kleisli-interpretation`: the two conjuncts of
+`Fm.KTyped` at a compound formula, the arity match and the arguments' own
+typing. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- Fm.KTyped's compound clause, read off
+theorem Fm.ktyped_conn {c : sigB.Conn} {args : List (Fm sigG sigB)}
+    (ht : (Fm.conn c args : Fm sigG sigB).KTyped) :
+    sigB.connArity c = args.length ∧ ∀ a ∈ args, a.KTyped := by
+  simpa [Fm.KTyped] using ht
+
+/-- Companion of `def:kleisli-interpretation`: a quantified formula's
+typing is its body's. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- Fm.KTyped's quantified clause, read off
+theorem Fm.ktyped_quant {Q : sigB.Quan} {xs : List sigG.Var} {body : Fm sigG sigB}
+    (ht : (Fm.quant Q xs body : Fm sigG sigB).KTyped) : body.KTyped := by
+  simpa [Fm.KTyped] using ht
+
+/-- Companion of `def:kleisli-interpretation`: the four conjuncts of
+`Fm.KTyped` at a substituted formula: the term's value match, the
+substituted variable's occurrence, and the two subterms' own typing. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- Fm.KTyped's substituted clause, read off
+theorem Fm.ktyped_subst {body : Fm sigG sigB} {x : sigG.Var} {t : Tm sigG sigB}
+    (ht : (Fm.subst body x t : Fm sigG sigB).KTyped) :
+    Tm.kcod t = [(MonSym.id, sigG.varOver x)] ∧ x ∈ body.on ∧ body.KTyped ∧ t.KTyped := by
+  simpa [Fm.KTyped] using ht
+
+/-- Companion of `def:kleisli-interpretation`: `⟦R(ξ⃗)⟧` is the dedup'd
+context routed to the argument list's semantics and then through `𝓘(R)`, up
+to the transport along `[R(ξ⃗)] = firstDedup(inn(ξ⃗))` and the value-match
+witness `he`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: Fm.sem's
+-- atomic clause, cast-free
+theorem Fm.sem_rel_eq (K : KleisliInterpretation I SI J D) (R : sigG.Rel)
+    (args : List (Tm sigG sigB)) (ht : (Fm.rel R args : Fm sigG sigB).KTyped)
+    (he : (args.map Tm.kcod).flatten = sigG.rari R) (hargs : ∀ a ∈ args, a.KTyped) :
+    Fm.sem K (.rel R args) ht
+      = eqToHom (congrArg (ctxObj D) (Fm.on_rel R args)) ≫
+        ctxCopy D (firstDedup (args.map Tm.inn).flatten) (firstDedup_nodup _)
+            (args.map Tm.inn).flatten (fun _ hy => mem_firstDedup hy) ≫
+        TmList.sem K args hargs ≫
+        I.monad.map (eqToHom (congrArg (interpretMS I D.domObj) he) ≫ K.relMorK R) := by
+  have hh : Fm.sem K (Fm.rel R args) ht
+      ≍ ctxCopy D (firstDedup (args.map Tm.inn).flatten) (firstDedup_nodup _)
+            (args.map Tm.inn).flatten (fun _ hy => mem_firstDedup hy) ≫
+          TmList.sem K args hargs ≫
+          I.monad.map (eqToHom (congrArg (interpretMS I D.domObj) he) ≫ K.relMorK R) := by
+    rw [Fm.sem.eq_1]
+    simp only [eq_mpr_eq_cast]
+    refine (cast_heq _ _).trans ?_
+    rw [eqRec_cod (fun l => I.monad.obj (interpretMS I D.domObj l))]
+    simp [eqToHom_map]
+  exact eq_of_heq (hh.trans (eqToHom_comp_heq _ _).symm)
+
+/-- Companion of `def:kleisli-interpretation`: `𝓘(*)` at whichever marker
+the connective carries, read at an arity the typing witness matches — the
+`○`-marked instance as it stands, the `Id`-marked one after `dstFoldN`
+collapses the `n` separately-monadic factors. The same marker match
+`Fm.sem`'s compound clause performs, named so that clause can be stated
+without repeating it. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- compound clause's marker-dispatched connective morphism
+def connMorAt (SI : StrongCatInterpretation I) (J : LogInterpretation I sigB)
+    (c : sigB.Conn) (n : ℕ) (harity : sigB.connArity c = n) :
+    tensorList (List.replicate n (I.monad.obj J.Ω)) ⟶ I.monad.obj J.Ω := by
+  match hCM : sigB.connMonad c with
+  | .mon =>
+    have hcm := J.connMor c
+    rw [hCM, harity] at hcm
+    exact hcm
+  | .id =>
+    have hcm := J.connMor c
+    rw [hCM, harity] at hcm
+    exact dstFoldN SI J.Ω n ≫ I.monad.map hcm
+
+/-- Companion of `def:kleisli-interpretation`: `⟦*(φ⃗)⟧` is the dedup'd
+context routed to the formula list's semantics and then through `𝓘(*)`, up
+to the transport along `[*(φ⃗)] = firstDedup([φ⃗])` and the constant-map
+identity `map (fun _ => 𝓜Ω) φ⃗ = replicate |φ⃗| 𝓜Ω`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: Fm.sem's
+-- compound clause, cast-free
+theorem Fm.sem_conn_eq (K : KleisliInterpretation I SI J D) (c : sigB.Conn)
+    (args : List (Fm sigG sigB)) (ht : (Fm.conn c args : Fm sigG sigB).KTyped)
+    (harity : sigB.connArity c = args.length) (hargs : ∀ a ∈ args, a.KTyped) :
+    Fm.sem K (.conn c args) ht
+      = eqToHom (congrArg (ctxObj D) (Fm.on_conn c args)) ≫
+        ctxCopy D (firstDedup (args.map Fm.on).flatten) (firstDedup_nodup _)
+            (args.map Fm.on).flatten (fun _ hy => mem_firstDedup hy) ≫
+        FmList.sem K args hargs ≫
+        eqToHom (congrArg tensorList (List.map_const' (l := args) (b := I.monad.obj J.Ω))) ≫
+        connMorAt SI J c args.length harity := by
+  have hh : Fm.sem K (Fm.conn c args) ht
+      ≍ ctxCopy D (firstDedup (args.map Fm.on).flatten) (firstDedup_nodup _)
+            (args.map Fm.on).flatten (fun _ hy => mem_firstDedup hy) ≫
+          FmList.sem K args hargs ≫
+          eqToHom (congrArg tensorList (List.map_const' (l := args) (b := I.monad.obj J.Ω))) ≫
+          connMorAt SI J c args.length harity := by
+    rw [Fm.sem.eq_2]
+    simp only [eq_mpr_eq_cast]
+    refine (cast_heq _ _).trans ?_
+    refine heq_of_eq ?_
+    simp only [eq_mp_eq_cast]
+    simp only [and_rec_proj]
+    rw [cast_hom_cod _
+        (congrArg tensorList (List.map_const' (l := args) (b := I.monad.obj J.Ω))),
+      Category.assoc]
+    rfl
+  exact eq_of_heq (hh.trans (eqToHom_comp_heq _ _).symm)
+
+/-- Companion of `def:kleisli-interpretation`: `𝓘(Q)_n` at whichever
+marker the quantifier carries, the quantifier twin of `connMorAt`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- quantified clause's marker-dispatched quantifier morphism
+def quanMorAt (SI : StrongCatInterpretation I) (J : LogInterpretation I sigB)
+    (Q : sigB.Quan) (n : ℕ) :
+    tensorList (List.replicate n (I.monad.obj J.Ω)) ⟶ I.monad.obj J.Ω := by
+  match hQM : sigB.quanMonad Q with
+  | .mon =>
+    have hqm := J.quanMor Q n
+    rw [hQM] at hqm
+    exact hqm
+  | .id =>
+    have hqm := J.quanMor Q n
+    rw [hQM] at hqm
+    exact dstFoldN SI J.Ω n ≫ I.monad.map hqm
+
+/-- Companion of `def:kleisli-interpretation`: `⟦Qx⃗(φ)⟧` is the remaining
+context copied once per product state, each copy taking its own state
+through `⟦φ⟧`, the results tensored and fed to `𝓘(Q)_N`, up to the transport
+along `[Qx⃗(φ)] = [φ] ∖ x⃗`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: Fm.sem's
+-- quantified clause, cast-free
+theorem Fm.sem_quant_eq (K : KleisliInterpretation I SI J D) (Q : sigB.Quan)
+    (xs : List sigG.Var) (body : Fm sigG sigB)
+    (ht : (Fm.quant Q xs body : Fm sigG sigB).KTyped) (hbody : body.KTyped) :
+    Fm.sem K (.quant Q xs body) ht
+      = eqToHom (congrArg (ctxObj D) (Fm.on_quant Q xs body)) ≫
+        comulN (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs))))
+            (listCard K (body.on.filter (fun v => decide (v ∈ xs)))) ≫
+        tensorFin (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs)))) (I.monad.obj J.Ω)
+          (listCard K (body.on.filter (fun v => decide (v ∈ xs))))
+          (fun i =>
+            ((ρ_ (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs))))).inv ≫
+                (𝟙 (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs)))) ⊗ₘ
+                  listPt K (body.on.filter (fun v => decide (v ∈ xs))) i) ≫
+                ctxMerge D (fun v => decide (v ∈ xs)) body.on) ≫
+              Fm.sem K body hbody) ≫
+        quanMorAt SI J Q (listCard K (body.on.filter (fun v => decide (v ∈ xs)))) := by
+  have hh : Fm.sem K (Fm.quant Q xs body) ht
+      ≍ comulN (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs))))
+            (listCard K (body.on.filter (fun v => decide (v ∈ xs)))) ≫
+          tensorFin (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs)))) (I.monad.obj J.Ω)
+            (listCard K (body.on.filter (fun v => decide (v ∈ xs))))
+            (fun i =>
+              ((ρ_ (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs))))).inv ≫
+                  (𝟙 (ctxObj D (body.on.filter (fun v => !decide (v ∈ xs)))) ⊗ₘ
+                    listPt K (body.on.filter (fun v => decide (v ∈ xs))) i) ≫
+                  ctxMerge D (fun v => decide (v ∈ xs)) body.on) ≫
+                Fm.sem K body hbody) ≫
+          quanMorAt SI J Q (listCard K (body.on.filter (fun v => decide (v ∈ xs)))) := by
+    rw [Fm.sem.eq_3]
+    simp only [eq_mpr_eq_cast, eq_mp_eq_cast]
+    exact cast_heq _ _
+  exact eq_of_heq (hh.trans (eqToHom_comp_heq _ _).symm)
+
+/-- Companion of `def:kleisli-interpretation`: `⟦φ[x := ξ]⟧` is the term's
+semantics tensored in at `x`'s own position and bound into the body's
+semantics, up to the transport along `[φ[x := ξ]]`'s positional split. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: Fm.sem's
+-- substituted clause, cast-free
+theorem Fm.sem_subst_eq (K : KleisliInterpretation I SI J D) (body : Fm sigG sigB)
+    (x : sigG.Var) (t : Tm sigG sigB) (ht : (Fm.subst body x t : Fm sigG sigB).KTyped)
+    (hkcod : Tm.kcod t = [(MonSym.id, sigG.varOver x)]) (hocc : x ∈ body.on)
+    (hbody : body.KTyped) (htt : t.KTyped) :
+    Fm.sem K (.subst body x t) ht
+      = eqToHom (congrArg (ctxObj D) (Fm.on_subst body x t)) ≫
+        (ctxAppendIso D (body.on.takeWhile (fun v => decide (v ≠ x)))
+            (t.inn ++ (body.on.dropWhile (fun v => decide (v ≠ x))).tail)).hom ≫
+        (𝟙 (ctxObj D (body.on.takeWhile (fun v => decide (v ≠ x)))) ⊗ₘ
+          (ctxAppendIso D t.inn (body.on.dropWhile (fun v => decide (v ≠ x))).tail).hom) ≫
+        (𝟙 (ctxObj D (body.on.takeWhile (fun v => decide (v ≠ x)))) ⊗ₘ
+          ((Tm.sem K t htt ≫
+            I.monad.map (eqToHom (congrArg (interpretMS I D.domObj) hkcod) ≫
+              (ρ_ (D.domObj (sigG.varOver x))).hom)) ⊗ₘ
+            𝟙 (ctxObj D (body.on.dropWhile (fun v => decide (v ≠ x))).tail))) ≫
+        (𝟙 (ctxObj D (body.on.takeWhile (fun v => decide (v ≠ x)))) ⊗ₘ SI.leftStrength) ≫
+        SI.strength ≫
+        I.monad.map
+          ((ctxAppendIso D (body.on.takeWhile (fun v => decide (v ≠ x)))
+                (x :: (body.on.dropWhile (fun v => decide (v ≠ x))).tail)).inv ≫
+            eqToHom (congrArg (ctxObj D) (list_split_pre_post hocc))) ≫
+        SI.bind (Fm.sem K body hbody) := by
+  have hh : Fm.sem K (Fm.subst body x t) ht
+      ≍ (ctxAppendIso D (body.on.takeWhile (fun v => decide (v ≠ x)))
+            (t.inn ++ (body.on.dropWhile (fun v => decide (v ≠ x))).tail)).hom ≫
+        (𝟙 (ctxObj D (body.on.takeWhile (fun v => decide (v ≠ x)))) ⊗ₘ
+          (ctxAppendIso D t.inn (body.on.dropWhile (fun v => decide (v ≠ x))).tail).hom) ≫
+        (𝟙 (ctxObj D (body.on.takeWhile (fun v => decide (v ≠ x)))) ⊗ₘ
+          ((Tm.sem K t htt ≫
+            I.monad.map (eqToHom (congrArg (interpretMS I D.domObj) hkcod) ≫
+              (ρ_ (D.domObj (sigG.varOver x))).hom)) ⊗ₘ
+            𝟙 (ctxObj D (body.on.dropWhile (fun v => decide (v ≠ x))).tail))) ≫
+        (𝟙 (ctxObj D (body.on.takeWhile (fun v => decide (v ≠ x)))) ⊗ₘ SI.leftStrength) ≫
+        SI.strength ≫
+        I.monad.map
+          ((ctxAppendIso D (body.on.takeWhile (fun v => decide (v ≠ x)))
+                (x :: (body.on.dropWhile (fun v => decide (v ≠ x))).tail)).inv ≫
+            eqToHom (congrArg (ctxObj D) (list_split_pre_post hocc))) ≫
+        SI.bind (Fm.sem K body hbody) := by
+    rw [Fm.sem.eq_4]
+    simp only [eq_mpr_eq_cast, eq_mp_eq_cast]
+    refine (cast_heq _ _).trans ?_
+    simp only [and_rec_proj]
+    rw [cast_hom_cod _ (congrArg (fun l => I.monad.obj (interpretMS I D.domObj l)) hkcod)]
+    refine heq_of_eq ?_
+    simp only [Functor.map_comp, eqToHom_map, Category.assoc]
+  exact eq_of_heq (hh.trans (eqToHom_comp_heq _ _).symm)
+
+end FmClauses
+
 -- (completeness census, same pattern as `Tm.KTyped.eq_def` in
 -- `NeSyCat/GrammaticalLayer/Kleisli.lean`: equation-lemma and congruence
 -- byproducts of `Tm.sem`/`TmList.sem`, generated in this module by the
@@ -577,7 +898,8 @@ end TermNaturalityMor
 -- with no attribute site of their own, tagged post-hoc -- not
 -- blueprint-cited, plumbing of the two semantics functions)
 attribute [blueprint_internal] Tm.sem.eq_def TmList.sem.eq_def Tm.sem.congr_simp
-  TmList.sem.congr_simp
+  TmList.sem.congr_simp Fm.sem.eq_def Fm.sem.congr_simp FmList.sem.congr_simp
+  ctxCopy.congr_simp connMorAt.congr_simp
 
 -- (step correspondence, C3-ISAR: a mutual block compiles each of its two
 -- theorems to a proof term that mentions only the compiler's own bundle
