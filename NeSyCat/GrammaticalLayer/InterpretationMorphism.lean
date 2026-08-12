@@ -1130,6 +1130,223 @@ theorem ctxCopy_compat [DecidableEq sigG.Var] (Φ : InterpretationMorphism SI₁
 
 end ContextCompat
 
+/-!
+## The marker dispatch is compatible with a morphism of interpretations
+
+`Fm.sem`'s compound and quantified clauses read their symbol's monad
+marker and dispatch on it. At `○` the symbol's morphism is applied as it
+stands; at `Id` the `n` separately-monadic factors are first collapsed by
+`dstFoldN` and the plain morphism is then applied inside the monad. The
+`Id` branch was long reported unprovable, since `StrongCatInterpretation`
+carries the strength as bare data. It goes through here because a morphism
+of interpretations carries the two laws that branch needs:
+`strength_compat` (through `dst_compat`) and `strength_natural` (through
+`dst_natural`). `dstFoldN_compat` is where they are spent.
+
+`markerAdapt` names the dispatch with the marker as an ordinary argument
+rather than as the scrutinee of a dependent match, so that a case analysis
+on it produces no transports at all. `connMorAt_eq` and `quanMorAt_eq`
+identify `Fm.sem`'s own dispatch with it, and `markerAdapt_compat` then
+proves the compatibility once for both.
+-/
+
+section MarkerCompat
+
+variable {SI₁ : StrongCatInterpretation I} {J₁ : LogInterpretation I sigB}
+  {D₁ : DomInterpretation I J₁ sigG} {K₁ : KleisliInterpretation I SI₁ J₁ D₁}
+  {SI₂ : StrongCatInterpretation (I.withMonad M₂)}
+  {J₂ : LogInterpretation (I.withMonad M₂) sigB}
+  {D₂ : DomInterpretation (I.withMonad M₂) J₂ sigG}
+  {K₂ : KleisliInterpretation (I.withMonad M₂) SI₂ J₂ D₂}
+
+/-- Companion of `def:interpretation-morphism`: at `Id` the per-slot
+transport is the morphism itself. -/
+@[blueprint_internal] -- companion of def:interpretation-morphism:
+-- markerMor's Id clause
+theorem markerMor_id (θ : I.monad.toFunctor ⟶ M₂.toFunctor) {X₁ X₂ : I.cd.C} (g : X₁ ⟶ X₂) :
+    markerMor θ MonSym.id g = g := rfl
+
+/-- Companion of `def:interpretation-morphism`: at `○` the per-slot
+transport is the monad morphism followed by `𝓜₂` of the morphism. -/
+@[blueprint_internal] -- companion of def:interpretation-morphism:
+-- markerMor's ○ clause
+theorem markerMor_mon (θ : I.monad.toFunctor ⟶ M₂.toFunctor) {X₁ X₂ : I.cd.C} (g : X₁ ⟶ X₂) :
+    markerMor θ MonSym.mon g = θ.app X₁ ≫ M₂.map g := rfl
+
+/-- Companion of `def:kleisli-interpretation`: the `n`-ary strength
+collapse commutes with a morphism of interpretations, by induction on the
+arity. The unit case is the monad morphism's unit law. The step case
+spends `dst_compat` and then naturality of the target double strength,
+which is where `strength_natural` earns its place in the bundle. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: dstFoldN
+-- against a morphism of interpretations
+theorem dstFoldN_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) {X₁ X₂ : I.cd.C}
+    (g : X₁ ⟶ X₂) : ∀ n : ℕ,
+    dstFoldN SI₁ X₁ n ≫ Φ.monadMor.app (tensorList (List.replicate n X₁)) ≫
+        M₂.map (interpretPowMor Φ.monadMor.toNatTrans g MonSym.id n)
+      = interpretPowMor Φ.monadMor.toNatTrans g MonSym.mon n ≫ dstFoldN SI₂ X₂ n
+  | 0 => by
+      change I.monad.η.app (𝟙_ I.cd.C) ≫ Φ.monadMor.app (𝟙_ I.cd.C) ≫ M₂.map (𝟙 (𝟙_ I.cd.C))
+          = 𝟙 (𝟙_ I.cd.C) ≫ M₂.η.app (𝟙_ I.cd.C)
+      rw [CategoryTheory.Functor.map_id, Category.comp_id, Category.id_comp]
+      exact Φ.monadMor.app_η _
+  | n + 1 => by
+      have tail_collapse := dstFoldN_compat Φ g n
+      change ((𝟙 (I.monad.obj X₁) ⊗ₘ dstFoldN SI₁ X₁ n) ≫ SI₁.dst) ≫ _ ≫
+          M₂.map (markerMor Φ.monadMor.toNatTrans MonSym.id g ⊗ₘ
+            interpretPowMor Φ.monadMor.toNatTrans g MonSym.id n)
+        = (markerMor Φ.monadMor.toNatTrans MonSym.mon g ⊗ₘ
+            interpretPowMor Φ.monadMor.toNatTrans g MonSym.mon n) ≫
+          ((𝟙 (M₂.obj X₂) ⊗ₘ dstFoldN SI₂ X₂ n) ≫ SI₂.dst)
+      rw (config := { transparency := .default })
+        [markerMor_id, markerMor_mon, Category.assoc, reassoc_of% Φ.dst_compat,
+          ← StrongCatInterpretation.dst_natural SI₂ Φ.strength_natural g
+            (interpretPowMor Φ.monadMor.toNatTrans g MonSym.id n),
+          ← Category.assoc (𝟙 (I.monad.obj X₁) ⊗ₘ dstFoldN SI₁ X₁ n), tensorHom_comp_tensorHom]
+      rw (config := { transparency := .default })
+        [tensorHom_comp_tensorHom_assoc, Category.assoc, Category.assoc, tail_collapse,
+          tensorHom_comp_tensorHom_assoc, Category.id_comp, Category.comp_id]
+      rfl
+
+/-- Companion of `def:kleisli-interpretation`: the marker dispatch of
+`Fm.sem`'s compound and quantified clauses, written with the marker as an
+ordinary argument. A case analysis on that argument produces no
+transports, which is what makes the compatibility below provable at all. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- marker dispatch, with the marker as an argument rather than a scrutinee
+def markerAdapt (SI : StrongCatInterpretation I) (X : I.cd.C) :
+    (m : MonSym) → (n : ℕ) → (interpretPow I X m n ⟶ (I.interpretMon m).obj X) →
+      (tensorList (List.replicate n (I.monad.obj X)) ⟶ I.monad.obj X)
+  | .mon, _, g => g
+  | .id, n, g => dstFoldN SI X n ≫ I.monad.map g
+
+/-- Companion of `def:kleisli-interpretation`: at `○` the dispatch applies
+the morphism as it stands. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- markerAdapt's ○ clause
+theorem markerAdapt_mon (SI : StrongCatInterpretation I) (X : I.cd.C) (n : ℕ)
+    (g : interpretPow I X MonSym.mon n ⟶ (I.interpretMon MonSym.mon).obj X) :
+    markerAdapt SI X MonSym.mon n g = g := rfl
+
+/-- Companion of `def:kleisli-interpretation`: at `Id` the dispatch first
+collapses the `n` separately-monadic factors, then applies the morphism
+inside the monad. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- markerAdapt's Id clause
+theorem markerAdapt_id (SI : StrongCatInterpretation I) (X : I.cd.C) (n : ℕ)
+    (g : interpretPow I X MonSym.id n ⟶ (I.interpretMon MonSym.id).obj X) :
+    markerAdapt SI X MonSym.id n g = dstFoldN SI X n ≫ I.monad.map g := rfl
+
+/-- Companion of `def:kleisli-interpretation`: transporting the morphism
+along a marker equation and dispatching at the transported marker is
+dispatching at the original one. This is what identifies `Fm.sem`'s own
+dependent marker match with `markerAdapt`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- markerAdapt against a marker transport
+theorem markerAdapt_cast (SI : StrongCatInterpretation I) (X : I.cd.C) (n : ℕ)
+    {m m' : MonSym} (h : m = m')
+    (g : interpretPow I X m n ⟶ (I.interpretMon m).obj X) :
+    markerAdapt SI X m' n
+        (cast (congrArg (fun mm => interpretPow I X mm n ⟶ (I.interpretMon mm).obj X) h) g)
+      = markerAdapt SI X m n g := by
+  cases h; rfl
+
+/-- Companion of `def:kleisli-interpretation`: the quantified clause's
+marker dispatch is `markerAdapt` at the quantifier's own marker. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- quanMorAt through markerAdapt
+theorem quanMorAt_eq (SI : StrongCatInterpretation I) (J : LogInterpretation I sigB)
+    (Q : sigB.Quan) (n : ℕ) :
+    quanMorAt SI J Q n = markerAdapt SI J.Ω (sigB.quanMonad Q) n (J.quanMor Q n) := by
+  rw [quanMorAt]
+  split
+  · rename_i hQM
+    rw [← markerAdapt_cast SI J.Ω n hQM (J.quanMor Q n), markerAdapt_mon]
+    rfl
+  · rename_i hQM
+    rw [← markerAdapt_cast SI J.Ω n hQM (J.quanMor Q n), markerAdapt_id]
+    rfl
+
+/-- Companion of `def:kleisli-interpretation`: the marker dispatch commutes
+with a morphism of interpretations, given that the dispatched morphisms do.
+At `○` this is the given compatibility itself. At `Id` it is naturality of
+the monad morphism, the given compatibility, and `dstFoldN_compat`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- markerAdapt against a morphism of interpretations
+theorem markerAdapt_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (m : MonSym) (n : ℕ)
+    (g₁ : interpretPow I J₁.Ω m n ⟶ (I.interpretMon m).obj J₁.Ω)
+    (g₂ : interpretPow (I.withMonad M₂) J₂.Ω m n ⟶
+      ((I.withMonad M₂).interpretMon m).obj J₂.Ω)
+    (hg : g₁ ≫ markerMor Φ.monadMor.toNatTrans m Φ.omegaMor
+      = interpretPowMor Φ.monadMor.toNatTrans Φ.omegaMor m n ≫ g₂) :
+    markerAdapt SI₁ J₁.Ω m n g₁ ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+      = interpretPowMor Φ.monadMor.toNatTrans Φ.omegaMor MonSym.mon n ≫
+        markerAdapt SI₂ J₂.Ω m n g₂ := by
+  cases m with
+  | mon => exact hg
+  | id =>
+      rw [markerAdapt_id, markerAdapt_id, markerMor_id] at *
+      rw (config := { transparency := .default })
+        [Category.assoc, Φ.monadMor.toNatTrans.naturality_assoc, ← CategoryTheory.Functor.map_comp,
+          hg, CategoryTheory.Functor.map_comp, reassoc_of% (dstFoldN_compat Φ Φ.omegaMor n),
+          Category.assoc]
+      rfl
+
+/-- Companion of `def:kleisli-interpretation`: the compound clause's marker
+dispatch is `markerAdapt` at the connective's own marker, once its arity is
+transported to the argument list's length. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- connMorAt through markerAdapt
+theorem connMorAt_eq (SI : StrongCatInterpretation I) (J : LogInterpretation I sigB)
+    (c : sigB.Conn) (n : ℕ) (harity : sigB.connArity c = n) :
+    connMorAt SI J c n harity
+      = markerAdapt SI J.Ω (sigB.connMonad c) n
+          (eqToHom (congrArg (fun k => interpretPow I J.Ω (sigB.connMonad c) k) harity.symm) ≫
+            J.connMor c) := by
+  subst harity
+  simp only [eqToHom_refl, Category.id_comp]
+  rw [connMorAt]
+  split
+  · rename_i hCM
+    rw [← markerAdapt_cast SI J.Ω _ hCM (J.connMor c), markerAdapt_mon]
+    rfl
+  · rename_i hCM
+    rw [← markerAdapt_cast SI J.Ω _ hCM (J.connMor c), markerAdapt_id]
+    rfl
+
+/-- Companion of `def:kleisli-interpretation`: the compound clause's
+connective morphism commutes with a morphism of interpretations, by
+`markerAdapt_compat` at `connMor_compat`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- compound clause's connective morphism against a morphism of
+-- interpretations
+theorem connMorAt_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (c : sigB.Conn) (n : ℕ)
+    (harity : sigB.connArity c = n) :
+    connMorAt SI₁ J₁ c n harity ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+      = interpretPowMor Φ.monadMor.toNatTrans Φ.omegaMor MonSym.mon n ≫
+        connMorAt SI₂ J₂ c n harity := by
+  subst harity
+  rw [connMorAt_eq, connMorAt_eq]
+  simp only [eqToHom_refl, Category.id_comp]
+  exact markerAdapt_compat Φ (sigB.connMonad c) (sigB.connArity c) (J₁.connMor c) (J₂.connMor c)
+    (Φ.connMor_compat c)
+
+/-- Companion of `def:kleisli-interpretation`: the quantified clause's
+quantifier morphism commutes with a morphism of interpretations, by
+`markerAdapt_compat` at `quanMor_compat`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: the
+-- quantified clause's quantifier morphism against a morphism of
+-- interpretations
+theorem quanMorAt_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (Q : sigB.Quan) (n : ℕ) :
+    quanMorAt SI₁ J₁ Q n ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+      = interpretPowMor Φ.monadMor.toNatTrans Φ.omegaMor MonSym.mon n ≫
+        quanMorAt SI₂ J₂ Q n := by
+  rw [quanMorAt_eq, quanMorAt_eq]
+  exact markerAdapt_compat Φ (sigB.quanMonad Q) n (J₁.quanMor Q n) (J₂.quanMor Q n)
+    (Φ.quanMor_compat Q n)
+
+end MarkerCompat
+
 -- (completeness census, same pattern as `Tm.KTyped.eq_def` in
 -- `NeSyCat/GrammaticalLayer/Kleisli.lean`: equation-lemma and congruence
 -- byproducts of `Tm.sem`/`TmList.sem`, generated in this module by the
