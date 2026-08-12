@@ -1552,13 +1552,14 @@ theorem comulN_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) {X₁ 
     (g : X₁ ⟶ X₂)
     (hcomul : g ≫ (I.cd.comon X₂).comul = (I.cd.comon X₁).comul ≫ (g ⊗ₘ g))
     (hcounit : g ≫ (I.cd.comon X₂).counit = (I.cd.comon X₁).counit) : ∀ n : ℕ,
-    g ≫ comulN X₂ n = comulN X₁ n ≫ interpretPowMor Φ.monadMor.toNatTrans g MonSym.id n
+    g ≫ comulN (I := I.withMonad M₂) X₂ n
+      = comulN X₁ n ≫ interpretPowMor Φ.monadMor.toNatTrans g MonSym.id n
   | 0 => by
       change g ≫ (I.cd.comon X₂).counit = (I.cd.comon X₁).counit ≫ 𝟙 (𝟙_ I.cd.C)
       rw [Category.comp_id, hcounit]
   | n + 1 => by
       have tail_copy := comulN_compat Φ g hcomul hcounit n
-      change g ≫ (I.cd.comon X₂).comul ≫ (𝟙 X₂ ⊗ₘ comulN X₂ n)
+      change g ≫ (I.cd.comon X₂).comul ≫ (𝟙 X₂ ⊗ₘ comulN (I := I.withMonad M₂) X₂ n)
         = ((I.cd.comon X₁).comul ≫ (𝟙 X₁ ⊗ₘ comulN X₁ n)) ≫
           (markerMor Φ.monadMor.toNatTrans MonSym.id g ⊗ₘ
             interpretPowMor Φ.monadMor.toNatTrans g MonSym.id n)
@@ -1577,7 +1578,8 @@ theorem tensorFin_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) {X�
     (u : X₁ ⟶ X₂) (w : Y₁ ⟶ Y₂) : ∀ (n : ℕ) (f₁ : Fin n → (X₁ ⟶ Y₁)) (f₂ : Fin n → (X₂ ⟶ Y₂)),
     (∀ i, f₁ i ≫ w = u ≫ f₂ i) →
     tensorFin X₁ Y₁ n f₁ ≫ interpretPowMor Φ.monadMor.toNatTrans w MonSym.id n
-      = interpretPowMor Φ.monadMor.toNatTrans u MonSym.id n ≫ tensorFin X₂ Y₂ n f₂
+      = interpretPowMor Φ.monadMor.toNatTrans u MonSym.id n ≫
+        tensorFin (I := I.withMonad M₂) X₂ Y₂ n f₂
   | 0, _, _, _ => by
       change 𝟙 (𝟙_ I.cd.C) ≫ 𝟙 (𝟙_ I.cd.C) = 𝟙 (𝟙_ I.cd.C) ≫ 𝟙 (𝟙_ I.cd.C)
       rfl
@@ -1589,7 +1591,7 @@ theorem tensorFin_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) {X�
             interpretPowMor Φ.monadMor.toNatTrans w MonSym.id n)
         = (markerMor Φ.monadMor.toNatTrans MonSym.id u ⊗ₘ
             interpretPowMor Φ.monadMor.toNatTrans u MonSym.id n) ≫
-          (f₂ 0 ⊗ₘ tensorFin X₂ Y₂ n (fun i => f₂ i.succ))
+          (f₂ 0 ⊗ₘ tensorFin (I := I.withMonad M₂) X₂ Y₂ n (fun i => f₂ i.succ))
       rw (config := { transparency := .default })
         [markerMor_id, markerMor_id, tensorHom_comp_tensorHom, tensorHom_comp_tensorHom,
           hf 0, tail_tensor]
@@ -1611,20 +1613,21 @@ theorem quantSum_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (Q :
     (f₁ : Fin n₁ → (X₁ ⟶ I.monad.obj J₁.Ω)) (f₂ : Fin n₂ → (X₂ ⟶ M₂.obj J₂.Ω))
     (hf : ∀ (i : Fin n₁) (j : Fin n₂), (i : ℕ) = (j : ℕ) →
       f₁ i ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor = u ≫ f₂ j) :
-    (comulN X₁ n₁ ≫ tensorFin X₁ (I.monad.obj J₁.Ω) n₁ f₁ ≫ quanMorAt SI₁ J₁ Q n₁) ≫
+    comulN X₁ n₁ ≫ tensorFin X₁ (I.monad.obj J₁.Ω) n₁ f₁ ≫ quanMorAt SI₁ J₁ Q n₁ ≫
         Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
-      = u ≫ comulN X₂ n₂ ≫ tensorFin X₂ (M₂.obj J₂.Ω) n₂ f₂ ≫ quanMorAt SI₂ J₂ Q n₂ := by
+      = u ≫ comulN (I := I.withMonad M₂) X₂ n₂ ≫
+        tensorFin (I := I.withMonad M₂) X₂ (M₂.obj J₂.Ω) n₂ f₂ ≫ quanMorAt SI₂ J₂ Q n₂ := by
   subst harity
   have states : ∀ i : Fin n₁,
       f₁ i ≫ markerMor Φ.monadMor.toNatTrans MonSym.mon Φ.omegaMor = u ≫ f₂ i :=
     fun i => hf i i rfl
   rw (config := { transparency := .default })
-    [Category.assoc, Category.assoc, quanMorAt_compat Φ Q n₁,
-      ← Category.assoc (tensorFin X₁ (I.monad.obj J₁.Ω) n₁ f₁),
+    [quanMorAt_compat Φ Q n₁,
       interpretPowMor_mon_eq_id Φ.monadMor.toNatTrans Φ.omegaMor n₁,
-      tensorFin_compat Φ u (markerMor Φ.monadMor.toNatTrans MonSym.mon Φ.omegaMor) n₁ f₁ f₂ states,
-      Category.assoc, ← Category.assoc (comulN X₁ n₁), ← comulN_compat Φ u hcomul hcounit n₁,
-      Category.assoc]
+      reassoc_of% (tensorFin_compat Φ u
+        (markerMor Φ.monadMor.toNatTrans MonSym.mon Φ.omegaMor) n₁ f₁ f₂ states),
+      Category.assoc, ← Category.assoc (comulN X₁ n₁),
+      ← comulN_compat Φ u hcomul hcounit n₁, Category.assoc]
   rfl
 
 /-- Companion of `lem:kleisli-formula-natural`: a transport of both factors
@@ -1780,6 +1783,350 @@ theorem quantState_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (p
 
 end QuantCompat
 
+/-!
+## The formula half of the naturality induction
+
+`Fm.sem_natural` below, with its list companion `FmList.sem_natural`, is
+the formula half: a morphism of interpretations carries `Fm.sem`'s reading
+of a formula to the other reading's, one grammar rule at a time.
+
+An atomic formula is the copy machinery, the term half, and compatibility
+at the relation symbol. A compound formula is the copy machinery, the
+list's own induction hypothesis, and compatibility at the connective, with
+`fmListMor_map_const` translating between the list's codomain and the
+tensor power the connective consumes. A quantified formula is
+`quantSum_compat` at the per-state morphism, whose own compatibility is
+`quantState_compat` against the body's induction hypothesis. A substituted
+formula is the longest clause: the term half at the substituted term, both
+strengths carried along the monad morphism and both natural in the target,
+and `bind_compat` joining the body's induction hypothesis.
+
+Three further pieces of plumbing appear only here. `ctxMor_ctxAppendIso_inv`
+reads the concatenation splitting in the direction the substitution clause
+needs, `msMor_singleton_id` names the induced morphism on a one-slot
+`Id`-marked list, and `bind_compat` carries `bind` along the monad
+morphism out of its multiplication law.
+-/
+
+section FmNaturality
+
+variable {SI₁ : StrongCatInterpretation I} {J₁ : LogInterpretation I sigB}
+  {D₁ : DomInterpretation I J₁ sigG} {K₁ : KleisliInterpretation I SI₁ J₁ D₁}
+  {SI₂ : StrongCatInterpretation (I.withMonad M₂)}
+  {J₂ : LogInterpretation (I.withMonad M₂) sigB}
+  {D₂ : DomInterpretation (I.withMonad M₂) J₂ sigG}
+  {K₂ : KleisliInterpretation (I.withMonad M₂) SI₂ J₂ D₂}
+
+/-- Companion of `lem:kleisli-formula-natural`: `ctxMor_ctxAppendIso` read
+in the other direction, the form the substitution clause needs. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the
+-- inverse half of ctxMor against the concatenation associator
+theorem ctxMor_ctxAppendIso_inv (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂)
+    (l1 l2 : List sigG.Var) :
+    (ctxAppendIso D₁ l1 l2).inv ≫ Φ.ctxMor (l1 ++ l2)
+      = (Φ.ctxMor l1 ⊗ₘ Φ.ctxMor l2) ≫
+        (ctxAppendIso (I := I.withMonad M₂) (J := J₂) D₂ l1 l2).inv := by
+  rw [Iso.inv_comp_eq, ← Category.assoc, ← ctxMor_ctxAppendIso Φ l1 l2, Category.assoc,
+    Iso.hom_inv_id, Category.comp_id]
+
+/-- Companion of `lem:kleisli-formula-natural`: the induced morphism on a
+one-slot `Id`-marked list is its own component, padded by the tensor
+unit. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: msMor on
+-- a one-slot Id-marked list
+theorem msMor_singleton_id (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (S : sigG.Dom) :
+    Φ.msMor [(MonSym.id, S)] = Φ.domMor S ⊗ₘ 𝟙 (𝟙_ I.cd.C) := rfl
+
+/-- Companion of `lem:kleisli-formula-natural`: binding a continuation
+commutes with a morphism of interpretations as soon as the continuation
+does. The proof is the monad morphism's own multiplication law, then
+naturality of the target multiplication, then naturality of the monad
+morphism three times. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: bind
+-- against a morphism of interpretations
+theorem bind_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) {X₁ X₂ Y₁ Y₂ : I.cd.C}
+    (gX : X₁ ⟶ X₂) (gY : Y₁ ⟶ Y₂) (k₁ : X₁ ⟶ I.monad.obj Y₁) (k₂ : X₂ ⟶ M₂.obj Y₂)
+    (hk : k₁ ≫ Φ.monadMor.app Y₁ ≫ M₂.map gY = gX ≫ k₂) :
+    SI₁.bind k₁ ≫ Φ.monadMor.app Y₁ ≫ M₂.map gY
+      = (Φ.monadMor.app X₁ ≫ M₂.map gX) ≫ SI₂.bind k₂ := by
+  have mu_transport : I.monad.μ.app Y₁ ≫ Φ.monadMor.app Y₁ ≫ M₂.map gY
+      = I.monad.map (Φ.monadMor.app Y₁ ≫ M₂.map gY) ≫
+        Φ.monadMor.app (M₂.obj Y₂) ≫ M₂.μ.app Y₂ := by
+    rw (config := { transparency := .default })
+      [Φ.monadMor.app_μ_assoc, ← M₂.mu_naturality,
+        ← Φ.monadMor.toNatTrans.naturality_assoc, ← CategoryTheory.Functor.map_comp_assoc]
+  rw [StrongCatInterpretation.bind, StrongCatInterpretation.bind]
+  simp only [Category.assoc]
+  rw (config := { transparency := .default })
+    [mu_transport, ← CategoryTheory.Functor.map_comp_assoc, hk,
+      CategoryTheory.Functor.map_comp_assoc, Φ.monadMor.toNatTrans.naturality_assoc,
+      Φ.monadMor.toNatTrans.naturality_assoc]
+
+/-- Companion of `lem:kleisli-formula-natural`: a composition in the right
+factor of a tensor splits off as a whiskering. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: a
+-- composition in a tensor's right factor
+theorem tensorHom_comp_right {C : Type u} [Category.{v} C] [MonoidalCategory C]
+    {W X Y Z V : C} (f : W ⟶ X) (g : Y ⟶ Z) (h : Z ⟶ V) :
+    f ⊗ₘ (g ≫ h) = (f ⊗ₘ g) ≫ (𝟙 X ⊗ₘ h) := by
+  rw [tensorHom_comp_tensorHom, Category.comp_id]
+
+/-- Companion of `lem:kleisli-formula-natural`: `relMorK_compat` written
+through the named accessor `msMor`. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural:
+-- relMorK_compat at msMor
+theorem relMorK_comp_msMor (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (R : sigG.Rel) :
+    K₁.relMorK R ≫ Φ.omegaMor = Φ.msMor (sigG.rari R) ≫ K₂.relMorK R :=
+  Φ.relMorK_compat R
+
+variable [DecidableEq sigG.Var]
+
+/-- Companion of `lem:kleisli-formula-natural`: the atomic clause. The
+dedup'd context is carried by `ctxCopy_compat`, the argument list by the
+term half, and the relation symbol by `relMorK_compat`. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the
+-- atomic clause of the formula induction
+theorem Fm.rel_natural (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (R : sigG.Rel)
+    (args : List (Tm sigG sigB)) (ht : (Fm.rel R args : Fm sigG sigB).KTyped)
+    (he : (args.map Tm.kcod).flatten = sigG.rari R) (hargs : ∀ a ∈ args, a.KTyped) :
+    Fm.sem K₁ (.rel R args) ht ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+      = Φ.ctxMor (Fm.rel R args : Fm sigG sigB).on ≫ Fm.sem K₂ (.rel R args) ht := by
+  have list_natural := TmList.sem_natural Φ args hargs
+  have copy_natural := ctxCopy_compat Φ (firstDedup (args.map Tm.inn).flatten)
+    (firstDedup_nodup _) (args.map Tm.inn).flatten (fun _ hy => mem_firstDedup hy)
+  rw (config := { transparency := .default })
+    [Fm.sem_rel_eq K₁ R args ht he hargs, Fm.sem_rel_eq K₂ R args ht he hargs,
+      Category.assoc, Category.assoc, Category.assoc,
+      Φ.monadMor.toNatTrans.naturality_assoc, ← CategoryTheory.Functor.map_comp,
+      Category.assoc, relMorK_comp_msMor Φ R, msMor_eqToHom_assoc Φ he,
+      CategoryTheory.Functor.map_comp, reassoc_of% list_natural,
+      reassoc_of% copy_natural, ctxMor_eqToHom_assoc Φ (Fm.on_rel R args)]
+
+/-- Companion of `lem:kleisli-formula-natural`: the compound clause. The
+dedup'd context is carried by `ctxCopy_compat`, the argument list by its own
+induction hypothesis, and the connective by `connMorAt_compat`, with
+`fmListMor_map_const` translating between the list's own codomain and the
+tensor power the connective consumes. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the
+-- compound clause of the formula induction
+theorem Fm.conn_natural (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (c : sigB.Conn)
+    (args : List (Fm sigG sigB)) (ht : (Fm.conn c args : Fm sigG sigB).KTyped)
+    (harity : sigB.connArity c = args.length) (hargs : ∀ a ∈ args, a.KTyped)
+    (list_natural : FmList.sem K₁ args hargs ≫ Φ.fmListMor args
+      = Φ.ctxMor (args.map Fm.on).flatten ≫ FmList.sem K₂ args hargs) :
+    Fm.sem K₁ (.conn c args) ht ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+      = Φ.ctxMor (Fm.conn c args : Fm sigG sigB).on ≫ Fm.sem K₂ (.conn c args) ht := by
+  have copy_natural := ctxCopy_compat Φ (firstDedup (args.map Fm.on).flatten)
+    (firstDedup_nodup _) (args.map Fm.on).flatten (fun _ hy => mem_firstDedup hy)
+  have conn_bridge : Φ.fmListMor args ≫
+        eqToHom (congrArg tensorList (List.map_const' (l := args) (b := M₂.obj J₂.Ω))) ≫
+          connMorAt SI₂ J₂ c args.length harity
+      = eqToHom (congrArg tensorList (List.map_const' (l := args) (b := I.monad.obj J₁.Ω))) ≫
+        interpretPowMor Φ.monadMor.toNatTrans Φ.omegaMor MonSym.mon args.length ≫
+          connMorAt SI₂ J₂ c args.length harity := by
+    rw (config := { transparency := .default })
+      [← Category.assoc, fmListMor_map_const Φ args, Category.assoc]
+    rfl
+  rw (config := { transparency := .default })
+    [Fm.sem_conn_eq K₁ c args ht harity hargs, Fm.sem_conn_eq K₂ c args ht harity hargs,
+      Category.assoc, Category.assoc, Category.assoc, Category.assoc,
+      connMorAt_compat Φ c args.length harity, ← conn_bridge, reassoc_of% list_natural,
+      reassoc_of% copy_natural, ctxMor_eqToHom_assoc Φ (Fm.on_conn c args)]
+
+/-- Companion of `lem:kleisli-formula-natural`: the quantified clause. The
+per-state insertion is carried by `quantState_compat` against the body's
+induction hypothesis, and the whole copy-read-quantify composite by
+`quantSum_compat`, which is where the two readings' arities are
+identified. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the
+-- quantified clause of the formula induction
+theorem Fm.quant_natural (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (Q : sigB.Quan)
+    (xs : List sigG.Var) (body : Fm sigG sigB)
+    (ht : (Fm.quant Q xs body : Fm sigG sigB).KTyped) (hbody : body.KTyped)
+    (body_natural : Fm.sem K₁ body hbody ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+      = Φ.ctxMor body.on ≫ Fm.sem K₂ body hbody) :
+    Fm.sem K₁ (.quant Q xs body) ht ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+      = Φ.ctxMor (Fm.quant Q xs body : Fm sigG sigB).on ≫ Fm.sem K₂ (.quant Q xs body) ht := by
+  have states : ∀ (i : Fin (listCard K₁ (body.on.filter (fun v => decide (v ∈ xs)))))
+      (j : Fin (listCard K₂ (body.on.filter (fun v => decide (v ∈ xs))))), (i : ℕ) = (j : ℕ) →
+      (((ρ_ (ctxObj D₁ (body.on.filter (fun v => !decide (v ∈ xs))))).inv ≫
+            (𝟙 (ctxObj D₁ (body.on.filter (fun v => !decide (v ∈ xs)))) ⊗ₘ
+              listPt K₁ (body.on.filter (fun v => decide (v ∈ xs))) i) ≫
+            ctxMerge D₁ (fun v => decide (v ∈ xs)) body.on) ≫ Fm.sem K₁ body hbody) ≫
+          Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+        = Φ.ctxMor (body.on.filter (fun v => !decide (v ∈ xs))) ≫
+          (((ρ_ (ctxObj (I := I.withMonad M₂) (J := J₂) D₂
+                  (body.on.filter (fun v => !decide (v ∈ xs))))).inv ≫
+              (𝟙 (ctxObj (I := I.withMonad M₂) (J := J₂) D₂
+                  (body.on.filter (fun v => !decide (v ∈ xs)))) ⊗ₘ
+                listPt K₂ (body.on.filter (fun v => decide (v ∈ xs))) j) ≫
+              ctxMerge (I := I.withMonad M₂) (J := J₂) D₂ (fun v => decide (v ∈ xs)) body.on) ≫
+            Fm.sem K₂ body hbody) := by
+    intro i j hij
+    rw (config := { transparency := .default })
+      [Category.assoc, body_natural, ← Category.assoc,
+        quantState_compat Φ (fun v => decide (v ∈ xs)) body.on i j hij, Category.assoc]
+  rw (config := { transparency := .default })
+    [Fm.sem_quant_eq K₁ Q xs body ht hbody, Fm.sem_quant_eq K₂ Q xs body ht hbody,
+      Category.assoc, Category.assoc, Category.assoc,
+      quantSum_compat Φ Q (Φ.ctxMor (body.on.filter (fun v => !decide (v ∈ xs))))
+        (ctxMor_comul Φ _) (ctxMor_counit Φ _) _ _ (listCard_compat Φ _) _ _ states,
+      ctxMor_eqToHom_assoc Φ (Fm.on_quant Q xs body)]
+
+/-- Companion of `lem:kleisli-formula-natural`: the substituted clause. The
+term slot is the term half, squeezed by the unitor onto the substituted
+variable's own object; the two strengths are carried by `strength_compat`
+and `leftStrength_compat` and are natural in the target; the positional
+reassembly is `ctxMor_ctxAppendIso_inv`; and the join is `bind_compat`
+against the body's induction hypothesis. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the
+-- substituted clause of the formula induction
+theorem Fm.subst_natural (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (body : Fm sigG sigB)
+    (x : sigG.Var) (t : Tm sigG sigB) (ht : (Fm.subst body x t : Fm sigG sigB).KTyped)
+    (hkcod : Tm.kcod t = [(MonSym.id, sigG.varOver x)]) (hocc : x ∈ body.on)
+    (hbody : body.KTyped) (htt : t.KTyped)
+    (body_natural : Fm.sem K₁ body hbody ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+      = Φ.ctxMor body.on ≫ Fm.sem K₂ body hbody) :
+    Fm.sem K₁ (.subst body x t) ht ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+      = Φ.ctxMor (Fm.subst body x t : Fm sigG sigB).on ≫ Fm.sem K₂ (.subst body x t) ht := by
+  have term_natural := Tm.sem_natural Φ t htt
+  have term_slot : Tm.sem K₁ t htt ≫
+        I.monad.map (eqToHom (congrArg (interpretMS I D₁.domObj) hkcod) ≫
+          (ρ_ (D₁.domObj (sigG.varOver x))).hom) ≫
+        Φ.monadMor.app (D₁.domObj (sigG.varOver x)) ≫ M₂.map (Φ.domMor (sigG.varOver x))
+      = Φ.ctxMor t.inn ≫ Tm.sem K₂ t htt ≫
+        M₂.map (eqToHom (congrArg (interpretMS (I.withMonad M₂) D₂.domObj) hkcod) ≫
+          (ρ_ (D₂.domObj (sigG.varOver x))).hom) := by
+    rw (config := { transparency := .default })
+      [Φ.monadMor.toNatTrans.naturality_assoc, ← CategoryTheory.Functor.map_comp,
+        Category.assoc, ← MonoidalCategory.rightUnitor_naturality, ← tensorHom_id,
+        ← msMor_singleton_id Φ (sigG.varOver x), msMor_eqToHom_assoc Φ hkcod,
+        CategoryTheory.Functor.map_comp, reassoc_of% term_natural]
+  have left_slot : ((Tm.sem K₁ t htt ≫
+          I.monad.map (eqToHom (congrArg (interpretMS I D₁.domObj) hkcod) ≫
+            (ρ_ (D₁.domObj (sigG.varOver x))).hom)) ⊗ₘ
+        𝟙 (ctxObj D₁ (body.on.dropWhile (fun v => decide (v ≠ x))).tail)) ≫
+        SI₁.leftStrength ≫
+        Φ.monadMor.app (ctxObj D₁ (x :: (body.on.dropWhile (fun v => decide (v ≠ x))).tail)) ≫
+          M₂.map (Φ.ctxMor (x :: (body.on.dropWhile (fun v => decide (v ≠ x))).tail))
+      = (Φ.ctxMor t.inn ⊗ₘ
+          Φ.ctxMor (body.on.dropWhile (fun v => decide (v ≠ x))).tail) ≫
+        ((Tm.sem K₂ t htt ≫
+            M₂.map (eqToHom (congrArg (interpretMS (I.withMonad M₂) D₂.domObj) hkcod) ≫
+              (ρ_ (D₂.domObj (sigG.varOver x))).hom)) ⊗ₘ
+          𝟙 (ctxObj (I := I.withMonad M₂) (J := J₂) D₂
+            (body.on.dropWhile (fun v => decide (v ≠ x))).tail)) ≫
+        SI₂.leftStrength := by
+    rw (config := { transparency := .default })
+      [ctxMor_cons, reassoc_of% Φ.leftStrength_compat,
+        ← SI₂.leftStrength_natural Φ.strength_natural (Φ.domMor (sigG.varOver x))
+          (Φ.ctxMor (body.on.dropWhile (fun v => decide (v ≠ x))).tail),
+        tensorHom_comp_tensorHom_assoc, tensorHom_comp_tensorHom_assoc, Category.id_comp,
+        Category.id_comp, Category.assoc, Category.assoc, term_slot,
+        tensorHom_comp_tensorHom_assoc, Category.comp_id]
+    rfl
+  rw (config := { transparency := .default })
+    [Fm.sem_subst_eq K₁ body x t ht hkcod hocc hbody htt,
+      Fm.sem_subst_eq K₂ body x t ht hkcod hocc hbody htt]
+  simp only [Category.assoc]
+  rw (config := { transparency := .default })
+    [tensorHom_comp_tensorHom_assoc, Category.id_comp,
+      bind_compat Φ (Φ.ctxMor body.on) Φ.omegaMor (Fm.sem K₁ body hbody)
+        (Fm.sem K₂ body hbody) body_natural,
+      Category.assoc, Φ.monadMor.toNatTrans.naturality_assoc,
+      ← CategoryTheory.Functor.map_comp_assoc, Category.assoc,
+      ctxMor_eqToHom Φ (list_split_pre_post hocc),
+      ← Category.assoc ((ctxAppendIso D₁ (body.on.takeWhile (fun v => decide (v ≠ x)))
+        (x :: (body.on.dropWhile (fun v => decide (v ≠ x))).tail)).inv),
+      ctxMor_ctxAppendIso_inv Φ (body.on.takeWhile (fun v => decide (v ≠ x)))
+        (x :: (body.on.dropWhile (fun v => decide (v ≠ x))).tail),
+      Category.assoc, CategoryTheory.Functor.map_comp_assoc,
+      reassoc_of% Φ.strength_compat,
+      ← reassoc_of% (Φ.strength_natural (Φ.ctxMor (body.on.takeWhile (fun v => decide (v ≠ x))))
+        (Φ.ctxMor (x :: (body.on.dropWhile (fun v => decide (v ≠ x))).tail))),
+      ← Category.assoc (𝟙 (ctxObj D₁ (body.on.takeWhile (fun v => decide (v ≠ x)))) ⊗ₘ
+        Φ.monadMor.app (ctxObj D₁ (x :: (body.on.dropWhile (fun v => decide (v ≠ x))).tail))),
+      tensorHom_comp_tensorHom, Category.id_comp,
+      tensorHom_comp_tensorHom_assoc, Category.id_comp,
+      tensorHom_comp_tensorHom_assoc, Category.id_comp,
+      Category.assoc, Category.assoc, left_slot,
+      ← Category.assoc ((ctxAppendIso D₁ t.inn
+        (body.on.dropWhile (fun v => decide (v ≠ x))).tail).hom),
+      ← ctxMor_ctxAppendIso Φ t.inn (body.on.dropWhile (fun v => decide (v ≠ x))).tail,
+      Category.assoc, tensorHom_comp_right, Category.assoc,
+      ← Category.assoc ((ctxAppendIso D₁ (body.on.takeWhile (fun v => decide (v ≠ x)))
+          (t.inn ++ (body.on.dropWhile (fun v => decide (v ≠ x))).tail)).hom)
+        (Φ.ctxMor (body.on.takeWhile (fun v => decide (v ≠ x))) ⊗ₘ
+          Φ.ctxMor (t.inn ++ (body.on.dropWhile (fun v => decide (v ≠ x))).tail)),
+      ← ctxMor_ctxAppendIso Φ (body.on.takeWhile (fun v => decide (v ≠ x)))
+        (t.inn ++ (body.on.dropWhile (fun v => decide (v ≠ x))).tail),
+      Category.assoc, ctxMor_eqToHom_assoc Φ (Fm.on_subst body x t),
+      tensorHom_comp_tensorHom_assoc, Category.id_comp,
+      tensorHom_comp_tensorHom_assoc, Category.id_comp, Category.assoc]
+  rfl
+
+mutual
+
+/-- Companion of `lem:kleisli-formula-natural`, the list half: a morphism of
+interpretations carries the tensored semantics `⟦φ⃗⟧` of a formula list to
+the other reading's. The empty list is the identity of the tensor unit; the
+cons step splits the concatenated context along `ctxAppendIso` and takes the
+two induction hypotheses. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the
+-- formula-list half of the mutual induction
+theorem FmList.sem_natural (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    ∀ (fs : List (Fm sigG sigB)) (hfs : ∀ a ∈ fs, a.KTyped),
+      FmList.sem K₁ fs hfs ≫ Φ.fmListMor fs
+        = Φ.ctxMor (fs.map Fm.on).flatten ≫ FmList.sem K₂ fs hfs
+  | [], _ => by
+      change 𝟙 (𝟙_ I.cd.C) ≫ 𝟙 (𝟙_ I.cd.C) = 𝟙 (𝟙_ I.cd.C) ≫ 𝟙 (𝟙_ I.cd.C)
+      rfl
+  | f :: fs, hfs => by
+      have head_natural := Fm.sem_natural Φ f (hfs f List.mem_cons_self)
+      have tail_natural := FmList.sem_natural Φ fs (fun a ha => hfs a (List.mem_cons_of_mem f ha))
+      change ((ctxAppendIso D₁ f.on (fs.map Fm.on).flatten).hom ≫
+          (Fm.sem K₁ f (hfs f List.mem_cons_self) ⊗ₘ
+            FmList.sem K₁ fs (fun a ha => hfs a (List.mem_cons_of_mem f ha)))) ≫
+          (markerMor Φ.monadMor.toNatTrans MonSym.mon Φ.omegaMor ⊗ₘ Φ.fmListMor fs)
+        = Φ.ctxMor (f.on ++ (fs.map Fm.on).flatten) ≫
+          (ctxAppendIso (I := I.withMonad M₂) (J := J₂) D₂ f.on (fs.map Fm.on).flatten).hom ≫
+          (Fm.sem K₂ f (hfs f List.mem_cons_self) ⊗ₘ
+            FmList.sem K₂ fs (fun a ha => hfs a (List.mem_cons_of_mem f ha)))
+      rw (config := { transparency := .default })
+        [Category.assoc, tensorHom_comp_tensorHom, markerMor_mon, head_natural, tail_natural,
+          ← tensorHom_comp_tensorHom, ← Category.assoc,
+          ← ctxMor_ctxAppendIso Φ f.on (fs.map Fm.on).flatten, Category.assoc]
+      rfl
+
+/-- Blueprint `lem:kleisli-formula-natural` (Formula semantics is natural),
+the env's one cited principal declaration: a morphism of interpretations
+(`def:interpretation-morphism`) carries the formula semantics of
+`def:kleisli-interpretation` to the target reading's, for every formula of
+`def:grammatical-signature`'s grammar. By structural induction over
+formulas, mutually with `FmList.sem_natural` over argument lists: the four
+clauses are `Fm.rel_natural`, `Fm.conn_natural`, `Fm.quant_natural` and
+`Fm.subst_natural`, each taking the induction hypotheses it needs. -/
+theorem Fm.sem_natural (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    ∀ (φ : Fm sigG sigB) (h : φ.KTyped),
+      Fm.sem K₁ φ h ≫ Φ.monadMor.app J₁.Ω ≫ M₂.map Φ.omegaMor
+        = Φ.ctxMor φ.on ≫ Fm.sem K₂ φ h
+  | .rel R args, ht => by
+      obtain ⟨he, hargs⟩ := Fm.ktyped_rel ht
+      exact Fm.rel_natural Φ R args ht he hargs
+  | .conn c args, ht => by
+      obtain ⟨harity, hargs⟩ := Fm.ktyped_conn ht
+      exact Fm.conn_natural Φ c args ht harity hargs (FmList.sem_natural Φ args hargs)
+  | .quant Q xs body, ht => by
+      have hbody := Fm.ktyped_quant ht
+      exact Fm.quant_natural Φ Q xs body ht hbody (Fm.sem_natural Φ body hbody)
+  | .subst body x t, ht => by
+      obtain ⟨hkcod, hocc, hbody, htt⟩ := Fm.ktyped_subst ht
+      exact Fm.subst_natural Φ body x t ht hkcod hocc hbody htt (Fm.sem_natural Φ body hbody)
+
+end
+
+end FmNaturality
+
 -- (completeness census, same pattern as `Tm.KTyped.eq_def` in
 -- `NeSyCat/GrammaticalLayer/Kleisli.lean`: equation-lemma and congruence
 -- byproducts of `Tm.sem`/`TmList.sem`, generated in this module by the
@@ -1799,5 +2146,6 @@ attribute [blueprint_internal] Tm.sem.eq_def TmList.sem.eq_def Tm.sem.congr_simp
 -- They are blueprint-internal in the plain sense of the word: generated
 -- plumbing of these two proofs, cited by nothing.)
 attribute [blueprint_internal] Tm.sem_natural._f TmList.sem_natural._f
+  Fm.sem_natural._f FmList.sem_natural._f
 
 end NeSyCat

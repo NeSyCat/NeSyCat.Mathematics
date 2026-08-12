@@ -12,8 +12,8 @@
 % by item rather than turning the whole document red at once; each later
 % phase appends to this line. SENTINEL: the counts, asserted every run, so
 % a display quietly losing its tag stops the build.
-% LEAN-STEP-PHASE: thm:semiring-monad-laws, lem:tilt, thm:pullout, thm:chain-bound-sandwich, thm:chain-bound, lem:kleisli-term-natural
-% LEAN-STEP-SENTINEL: envs=6 displays=18 tags=18 names=63
+% LEAN-STEP-PHASE: thm:semiring-monad-laws, lem:tilt, thm:pullout, thm:chain-bound-sandwich, thm:chain-bound, lem:kleisli-term-natural, lem:kleisli-formula-natural
+% LEAN-STEP-SENTINEL: envs=7 displays=23 tags=23 names=82
 
 \section{Introduction}  % lean-dir: -
 
@@ -2977,6 +2977,94 @@ strength is natural in both slots.
 The head and the tail then take the two induction hypotheses.
 \end{proof}
 
+The formula half is the same induction one rule further out. Each of its
+four clauses spends the compatibilities its own grammar rule uses, and
+nothing else. Write $\omega$ for the map of truth objects.
+
+\begin{lemma}[Formula semantics is natural]
+\label{lem:kleisli-formula-natural}
+\lean{NeSyCat.Fm.sem_natural}
+\leanok
+Let $\Phi$ be a morphism of interpretations
+(Definition~\ref{def:interpretation-morphism}), with monad morphism
+$\theta$ and truth map $\omega$. Then
+\[
+  \sem\varphi^1 \seq \theta_{\Omega_1} \seq \mathcal M_2\omega
+  = \Phi_{[\varphi]} \seq \sem\varphi^2
+\]
+for every formula $\varphi$ satisfying the typing side condition of
+Definition~\ref{def:kleisli-interpretation}.
+\uses{def:interpretation-morphism, def:kleisli-interpretation, lem:kleisli-term-natural}
+\end{lemma}
+
+\begin{proof}
+\leanok
+Induction on the grammar of formulas
+(Definition~\ref{def:grammatical-signature}), mutually with the same
+statement for formula lists.
+
+An atomic formula routes its deduplicated context to the argument list and
+then through $\mathcal I(R)$. Its clause is therefore the copy machinery,
+the term half (Lemma~\ref{lem:kleisli-term-natural}), and compatibility at
+$R$:
+% lean-step: Fm.rel_natural, ctxCopy_compat, TmList.sem_natural, relMorK_comp_msMor
+\begin{align*}
+  \sem{R(\vec\xi)}^1 \seq \theta \seq \mathcal M_2\omega
+  &= \mathsf{copy}_1 \seq \sem{\vec\xi}^1 \seq \theta \seq
+     \mathcal M_2\bigl(\Phi_{\mathrm{ar}(R)} \seq \mathcal I_2(R)\bigr) \\
+  &= \mathsf{copy}_1 \seq \Phi_{\inn(\vec\xi)} \seq \sem{\vec\xi}^2
+     \seq \mathcal M_2\mathcal I_2(R) \\
+  &= \Phi_{[R(\vec\xi)]} \seq \sem{R(\vec\xi)}^2 .
+\end{align*}
+A compound formula reads the same context through the formula list and then
+through $\mathcal I(*)$, at whichever marker the connective carries. Its
+clause is the copy machinery again, the list's own induction hypothesis, and
+compatibility at $*$; the constant-map identity
+$\vec\varphi \mapsto \mathcal M_1\Omega_1$ is what turns the list's codomain
+into the tensor power $\mathcal I(*)$ consumes:
+% lean-step: Fm.conn_natural, connMorAt_compat, fmListMor_map_const, ctxCopy_compat
+\begin{align*}
+  \sem{*(\vec\varphi)}^1 \seq \theta \seq \mathcal M_2\omega
+  &= \mathsf{copy}_1 \seq \sem{\vec\varphi}^1 \seq \Phi_{\vec\varphi}
+     \seq \mathcal I_2(*) \\
+  &= \Phi_{[*(\vec\varphi)]} \seq \sem{*(\vec\varphi)}^2 .
+\end{align*}
+A quantified formula copies the surviving context once per product state,
+inserts one state into each copy, and reads the body at every copy. Two
+identities carry that, one for the copy and one for a single state, and the
+second is where the body's induction hypothesis enters:
+% lean-step: Fm.quant_natural, comulN_compat, quantState_compat, quantSum_compat
+\begin{gather*}
+  \Phi_{[\varphi]\setminus[\vec x]} \seq \mathsf{copy}_2^{(N)}
+    = \mathsf{copy}_1^{(N)} \seq \Phi^{\boxtimes N}, \\
+  \mathcal I_1([\vec x])_i^{(\vec p)} \seq \Phi_{[\varphi]}
+    = \Phi_{[\varphi]\setminus[\vec x]} \seq \mathcal I_2([\vec x])_j^{(\vec p)}
+    \qquad (i = j).
+\end{gather*}
+The two readings enumerate the product state space to the same length, so
+$i$ and $j$ range over one arity and the two clauses can be compared at
+all. A substituted formula tensors the term's semantics in at the
+substituted variable's own position and binds the result into the body. Its
+clause is the term half at that position, the two strengths carried along
+$\theta$, and the join:
+% lean-step: Fm.subst_natural, bind_compat, ctxMor_ctxAppendIso_inv, leftStrength_compat
+\begin{align*}
+  \sigma^1 \seq \theta_{X \boxtimes Y}
+  &= (\mathrm{id}_X \boxtimes \theta_Y) \seq \sigma^2, \\
+  \bind^1(k_1) \seq \theta \seq \mathcal M_2 g
+  &= (\theta \seq \mathcal M_2 g) \seq \bind^2(k_2).
+\end{align*}
+The list induction has the two shapes of the term half. An empty list is the
+identity of the tensor unit. A cons splits the concatenated context along
+the isomorphism $\iota$ and takes the head's and the tail's induction
+hypotheses:
+% lean-step: ctxMor_ctxAppendIso, markerMor_mon, tensorHom_comp_tensorHom
+\[
+  \Phi_{[\varphi] + [\vec\varphi]} \seq \iota_2
+    = \iota_1 \seq (\Phi_{[\varphi]} \boxtimes \Phi_{[\vec\varphi]}).
+\]
+\end{proof}
+
 % ============================================================
 % RESERVED: Inferential layer (proof theory <-> model theory), between
 % the Grammatical layer above and the Statistical layer below. No
@@ -3260,7 +3348,7 @@ against each other.
 % counts or the computed structural names differ from it. Both numbers
 % quoted in the prose and the table below must be kept equal to it by
 % hand; the gate catches the drift, it does not repair it.
-% CLASSIFY-SENTINEL: total=62 structural=5 arithmetic=57 names=NeSyCat.batchTransformer,NeSyCat.batch_layer_exact,NeSyCat.ev_isMonadMorphism,NeSyCat.ev_strength_natural,NeSyCat.typeStrength_naturality_left
+% CLASSIFY-SENTINEL: total=63 structural=5 arithmetic=58 names=NeSyCat.batchTransformer,NeSyCat.batch_layer_exact,NeSyCat.ev_isMonadMorphism,NeSyCat.ev_strength_natural,NeSyCat.typeStrength_naturality_left
 \textbf{Which laws hold for any carrier.} Two kinds of statement have
 been proved above, and an implementation stands in a different relation
 to each. A statement of the first kind constrains its value carrier
@@ -3289,7 +3377,7 @@ formalized statements themselves rather than assigned by hand.
   {\raggedright\textbf{What the hypotheses demand of the carrier}\par} &
   {\raggedright\textbf{What an implementation gets}\par} \\
 \hline
-{\raggedright carrier-agnostic ($5$ of $62$)\par} &
+{\raggedright carrier-agnostic ($5$ of $63$)\par} &
   {\raggedright nothing at all: the value types are bare types, and of
    the ambient monad anywhere from no law at all to full lawfulness,
    depending on the identity\par} &
@@ -3298,7 +3386,7 @@ formalized statements themselves rather than assigned by hand.
    implementation's monad satisfies the one law each identity itself
    asks for, if any; five of Theorem~\ref{thm:batch-exactness}'s six
    identities do not need even the left unit law\par} \\
-{\raggedright carrier-algebraic ($57$ of $62$)\par} &
+{\raggedright carrier-algebraic ($58$ of $63$)\par} &
   {\raggedright a semiring, a lattice or an order, a monoidal or
    braided category, or a fixed carrier ($\MassS$, $\MassSInf$,
    $\LogS$, $\mathbb Q_{\ge 0}$, $[0,1]$, matrices)\par} &
