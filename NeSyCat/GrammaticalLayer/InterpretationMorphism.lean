@@ -1335,6 +1335,86 @@ theorem quanMorAt_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (Q 
 
 end MarkerCompat
 
+/-!
+## The formula list's own induced morphism
+
+`FmList.sem` lands in `tensorList (φ⃗.map fun _ => 𝓜Ω)`, one `𝓜Ω` factor
+per formula of the list. `fmListMor` is the induced morphism on that
+object: every factor is a `𝓜Ω`, so every slot takes the `○`-marked
+per-slot rule. `Fm.sem`'s compound clause reads the same object as a
+tensor power instead, through the constant-map identity
+`map (fun _ => 𝓜Ω) φ⃗ = replicate |φ⃗| 𝓜Ω`, and `connMorAt` consumes it in
+that form. `fmListMor_map_const` is the bridge between the two readings,
+proved by induction on the list out of `eqToHom_tensorList_cons`, which
+splits a list transport over a `tensorList` cons.
+-/
+
+section FmListMor
+
+variable {SI₁ : StrongCatInterpretation I} {J₁ : LogInterpretation I sigB}
+  {D₁ : DomInterpretation I J₁ sigG} {K₁ : KleisliInterpretation I SI₁ J₁ D₁}
+  {SI₂ : StrongCatInterpretation (I.withMonad M₂)}
+  {J₂ : LogInterpretation (I.withMonad M₂) sigB}
+  {D₂ : DomInterpretation (I.withMonad M₂) J₂ sigG}
+  {K₂ : KleisliInterpretation (I.withMonad M₂) SI₂ J₂ D₂}
+
+/-- Companion of `lem:kleisli-formula-natural`: a transport of a list of
+objects splits over a `tensorList` cons, leaving the head slot alone. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: a list
+-- transport across a tensorList cons
+theorem eqToHom_tensorList_cons {C : Type u} [Category.{v} C] [MonoidalCategory C]
+    (X : C) {l l' : List C} (h : l = l') (h' : (X :: l : List C) = X :: l') :
+    eqToHom (congrArg tensorList h') = 𝟙 X ⊗ₘ eqToHom (congrArg tensorList h) := by
+  cases h
+  rw [eqToHom_refl, eqToHom_refl, tensorHom_id, id_whiskerRight]
+  rfl
+
+/-- Companion of `lem:kleisli-formula-natural`: the morphism induced on a
+formula list's tensored codomain. Every factor of that codomain is a
+`𝓜Ω`, so every slot takes the `○`-marked per-slot rule `markerMor`. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural: the
+-- induced morphism on a formula list's tensored codomain
+def InterpretationMorphism.fmListMor (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    (fs : List (Fm sigG sigB)) →
+      (tensorList (fs.map fun _ => I.monad.obj J₁.Ω) ⟶
+        tensorList (fs.map fun _ => M₂.obj J₂.Ω))
+  | [] => 𝟙 (𝟙_ I.cd.C)
+  | _ :: fs => markerMor Φ.monadMor.toNatTrans MonSym.mon Φ.omegaMor ⊗ₘ Φ.fmListMor fs
+
+/-- Companion of `lem:kleisli-formula-natural`: the induced morphism on a
+formula list's codomain is the `○`-marked tensor power, once the
+constant-map identity is spent on both sides. This is the form `Fm.sem`'s
+compound clause consumes, since `connMorAt` reads its domain as a tensor
+power. -/
+@[blueprint_internal] -- companion of lem:kleisli-formula-natural:
+-- fmListMor against the constant-map transport
+theorem fmListMor_map_const (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    ∀ fs : List (Fm sigG sigB),
+      Φ.fmListMor fs ≫
+          eqToHom (congrArg tensorList (List.map_const' (l := fs) (b := M₂.obj J₂.Ω)))
+        = eqToHom (congrArg tensorList (List.map_const' (l := fs) (b := I.monad.obj J₁.Ω))) ≫
+          interpretPowMor Φ.monadMor.toNatTrans Φ.omegaMor MonSym.mon fs.length
+  | [] => rfl
+  | f :: fs => by
+      have tail_bridge := fmListMor_map_const Φ fs
+      change (markerMor Φ.monadMor.toNatTrans MonSym.mon Φ.omegaMor ⊗ₘ Φ.fmListMor fs) ≫
+          eqToHom (congrArg tensorList (List.map_const' (l := f :: fs) (b := M₂.obj J₂.Ω)))
+        = eqToHom (congrArg tensorList (List.map_const' (l := f :: fs) (b := I.monad.obj J₁.Ω))) ≫
+          (markerMor Φ.monadMor.toNatTrans MonSym.mon Φ.omegaMor ⊗ₘ
+            interpretPowMor Φ.monadMor.toNatTrans Φ.omegaMor MonSym.mon fs.length)
+      rw (config := { transparency := .default })
+        [eqToHom_tensorList_cons (M₂.obj J₂.Ω) (List.map_const' (l := fs) (b := M₂.obj J₂.Ω)),
+          eqToHom_tensorList_cons (I.monad.obj J₁.Ω)
+            (List.map_const' (l := fs) (b := I.monad.obj J₁.Ω)),
+          tensorHom_comp_tensorHom, tensorHom_comp_tensorHom, Category.comp_id, Category.id_comp,
+          tail_bridge]
+      all_goals first
+        | rfl
+        | exact congrArg (List.cons (I.monad.obj J₁.Ω)) List.map_const'
+        | exact congrArg (List.cons (M₂.obj J₂.Ω)) List.map_const'
+
+end FmListMor
+
 -- (completeness census, same pattern as `Tm.KTyped.eq_def` in
 -- `NeSyCat/GrammaticalLayer/Kleisli.lean`: equation-lemma and congruence
 -- byproducts of `Tm.sem`/`TmList.sem`, generated in this module by the
