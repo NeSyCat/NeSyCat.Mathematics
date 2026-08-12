@@ -290,4 +290,302 @@ theorem dst_compat {X Y : I.cd.C} :
 
 end InterpretationMorphism
 
+/-!
+## The term half of the naturality induction
+
+`Tm.sem_natural` below, with its list companion `TmList.sem_natural`, is
+the term half: a morphism of interpretations carries `Tm.sem`'s reading of
+a term to the other reading's, one grammar rule at a time. Two clauses do
+the work. A variable term reads as the monad's unit, so its clause is the
+monad morphism's own unit law together with naturality of the target
+unit. A functional term reads as its argument list's semantics followed
+by `𝓘(f)`, so its clause is `funMorK_compat` together with the induction
+hypothesis on the list; the list's cons clause is where the two strengths
+meet, through `dst_compat` and the target strength's naturality.
+
+**Transports.** `Tm.sem` computes its clauses through `Tm.inn` and
+`Tm.KTyped`, and both of those are compiled by recursion over a nested
+inductive, so their clauses hold propositionally and not definitionally.
+`Tm.sem`'s own equations therefore carry casts. The lemmas below turn each
+cast into an `eqToHom` composite once and for all: `eqRec_cod` for the
+codomain transport of the functional-term clause, `Tm.sem_var_eq` and
+`Tm.sem_app_eq` for the two clauses themselves, `msMor_eqToHom` and
+`ctxMor_eqToHom` for moving an `eqToHom` past an induced morphism.
+-/
+
+section TermNaturality
+
+variable {J : LogInterpretation I sigB} {D : DomInterpretation I J sigG}
+  {SI : StrongCatInterpretation I}
+
+/-- Companion of `lem:kleisli-term-natural`: a transport in a morphism's
+codomain is a composite with `eqToHom`. Stated for an arbitrary family
+`F : α → C` of objects, which is all the proof uses; the induction below
+meets it at `F := fun l => 𝓜𝓘(l)`, where `Tm.sem`'s functional-term clause
+transports along the value-match witness of `Tm.KTyped`. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural: the
+-- codomain-transport lemma the functional-term clause needs
+theorem eqRec_cod {C : Type*} [Category C] {α : Sort*} (F : α → C) {X : C} {a b : α}
+    (g : X ⟶ F a) (h : a = b) :
+    @Eq.rec α a (fun y _ => X ⟶ F y) g b h = g ≫ eqToHom (congrArg F h) := by
+  cases h; simp
+
+/-- Companion of `lem:kleisli-term-natural`: `inn(x) = [x]`, the variable
+clause of `Tm.inn` (`def:grammatical-signature`) as a rewrite. `Tm.inn`
+recurses over a nested inductive, so its clauses are propositional. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural: Tm.inn's
+-- variable clause as a rewrite
+theorem Tm.inn_var (x : sigG.Var) : (Tm.var x : Tm sigG sigB).inn = [x] := by
+  simp [Tm.inn]
+
+/-- Companion of `lem:kleisli-term-natural`: `inn(f(ξ⃗))` is the
+concatenation of the arguments' own contexts, the functional clause of
+`Tm.inn` as a rewrite. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural: Tm.inn's
+-- functional clause as a rewrite
+theorem Tm.inn_app (f : sigG.Fun) (args : List (Tm sigG sigB)) :
+    (Tm.app f args : Tm sigG sigB).inn = (args.map Tm.inn).flatten := by
+  simp [Tm.inn]
+
+/-- Companion of `lem:kleisli-term-natural`: the two conjuncts of
+`Tm.KTyped` at a functional term, the value-match witness and the
+arguments' own typing. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural:
+-- Tm.KTyped's functional clause, read off
+theorem Tm.ktyped_app {f : sigG.Fun} {args : List (Tm sigG sigB)}
+    (ht : (Tm.app f args : Tm sigG sigB).KTyped) :
+    (args.map Tm.kcod).flatten = sigG.fdom f ∧ ∀ a ∈ args, a.KTyped := by
+  simpa [Tm.KTyped] using ht
+
+/-- Companion of `lem:kleisli-term-natural`: `⟦x⟧` is the monad's unit at
+`𝓘([x])`, up to the transport along `inn(x) = [x]`. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural: Tm.sem's
+-- variable clause, cast-free
+theorem Tm.sem_var_eq (K : KleisliInterpretation I SI J D) (x : sigG.Var)
+    (h : (Tm.var x : Tm sigG sigB).KTyped) :
+    Tm.sem K (.var x) h
+      = eqToHom (congrArg (ctxObj D) (Tm.inn_var x)) ≫ I.monad.η.app (ctxObj D [x]) := by
+  have hh : Tm.sem K (Tm.var x) h ≍ I.monad.η.app (ctxObj D [x]) := by
+    rw [Tm.sem.eq_1]
+    simp only [eq_mpr_eq_cast]
+    exact cast_heq _ _
+  exact eq_of_heq (hh.trans (eqToHom_comp_heq _ _).symm)
+
+/-- Companion of `lem:kleisli-term-natural`: `⟦f(ξ⃗)⟧` is the argument
+list's semantics followed by `𝓘(f)`, up to the transport along
+`inn(f(ξ⃗)) = inn(ξ⃗)` and the value-match witness `he`. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural: Tm.sem's
+-- functional clause, cast-free
+theorem Tm.sem_app_eq (K : KleisliInterpretation I SI J D) (f : sigG.Fun)
+    (args : List (Tm sigG sigB)) (ht : (Tm.app f args : Tm sigG sigB).KTyped)
+    (he : (args.map Tm.kcod).flatten = sigG.fdom f) (hargs : ∀ a ∈ args, a.KTyped) :
+    Tm.sem K (.app f args) ht
+      = eqToHom (congrArg (ctxObj D) (Tm.inn_app f args)) ≫ TmList.sem K args hargs ≫
+          I.monad.map (eqToHom (congrArg (interpretMS I D.domObj) he) ≫ K.funMorK f) := by
+  have hh : Tm.sem K (Tm.app f args) ht
+      ≍ TmList.sem K args hargs ≫
+          I.monad.map (eqToHom (congrArg (interpretMS I D.domObj) he) ≫ K.funMorK f) := by
+    rw [Tm.sem.eq_2]
+    simp only [eq_mpr_eq_cast]
+    refine (cast_heq _ _).trans ?_
+    rw [eqRec_cod (fun l => I.monad.obj (interpretMS I D.domObj l))]
+    simp [eqToHom_map]
+  exact eq_of_heq (hh.trans (eqToHom_comp_heq _ _).symm)
+
+end TermNaturality
+
+section TermNaturalityMor
+
+variable {SI₁ : StrongCatInterpretation I} {J₁ : LogInterpretation I sigB}
+  {D₁ : DomInterpretation I J₁ sigG} {K₁ : KleisliInterpretation I SI₁ J₁ D₁}
+  {SI₂ : StrongCatInterpretation (I.withMonad M₂)}
+  {J₂ : LogInterpretation (I.withMonad M₂) sigB}
+  {D₂ : DomInterpretation (I.withMonad M₂) J₂ sigG}
+  {K₂ : KleisliInterpretation (I.withMonad M₂) SI₂ J₂ D₂}
+
+/-- Companion of `lem:kleisli-term-natural`: the induced morphism on a
+marked-symbol list's tensor commutes with a transport of the list. -/
+@[blueprint_internal, reassoc (attr := blueprint_internal)]
+-- companion of lem:kleisli-term-natural: msMor against a list transport
+theorem msMor_eqToHom (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂)
+    {l l' : List (MonSym × sigG.Dom)} (h : l = l') :
+    eqToHom (congrArg (interpretMS I D₁.domObj) h) ≫ Φ.msMor l'
+      = Φ.msMor l ≫ eqToHom (congrArg (interpretMS (I.withMonad M₂) D₂.domObj) h) := by
+  cases h; simp
+
+/-- Companion of `lem:kleisli-term-natural`: the induced morphism on a
+context's tensor commutes with a transport of the context. -/
+@[blueprint_internal, reassoc (attr := blueprint_internal)]
+-- companion of lem:kleisli-term-natural: ctxMor against a context transport
+theorem ctxMor_eqToHom (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂)
+    {l l' : List sigG.Var} (h : l = l') :
+    eqToHom (congrArg (ctxObj D₁) h) ≫ Φ.ctxMor l'
+      = Φ.ctxMor l ≫ eqToHom (congrArg (ctxObj (I := I.withMonad M₂) (J := J₂) D₂) h) := by
+  cases h; simp
+
+/-- Companion of `lem:kleisli-term-natural`: `funMorK_compat` written
+through the named accessor `msMor`. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural:
+-- funMorK_compat at msMor
+theorem funMorK_comp_msMor (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (f : sigG.Fun) :
+    K₁.funMorK f ≫ Φ.msMor (sigG.fcod f) = Φ.msMor (sigG.fdom f) ≫ K₂.funMorK f :=
+  Φ.funMorK_compat f
+
+/-- Companion of `lem:kleisli-term-natural`: the induced morphism on a
+concatenated marked-symbol list splits along `kcodAppendIso`, by induction
+on the first list. The unit case is naturality of the left unitor; the
+step case is naturality of the associator. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural: msMor
+-- against the concatenation associator
+theorem msMor_kcodAppendIso (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    ∀ l1 l2 : List (MonSym × sigG.Dom),
+      Φ.msMor (l1 ++ l2) ≫ (kcodAppendIso D₂ l1 l2).hom
+        = (kcodAppendIso D₁ l1 l2).hom ≫ (Φ.msMor l1 ⊗ₘ Φ.msMor l2)
+  | [], l2 => by
+      change Φ.msMor l2 ≫ (λ_ (interpretMS (I.withMonad M₂) D₂.domObj l2)).inv
+          = (λ_ (interpretMS I D₁.domObj l2)).inv ≫ (𝟙 (𝟙_ I.cd.C) ⊗ₘ Φ.msMor l2)
+      rw [id_tensorHom]
+      exact MonoidalCategory.leftUnitor_inv_naturality _
+  | p :: l1', l2 => by
+      have ih := msMor_kcodAppendIso Φ l1' l2
+      change (markerMor Φ.monadMor.toNatTrans p.1 (Φ.domMor p.2) ⊗ₘ Φ.msMor (l1' ++ l2)) ≫
+          (((I.withMonad M₂).interpretMon p.1).obj (D₂.domObj p.2) ◁
+              (kcodAppendIso D₂ l1' l2).hom ≫ (α_ _ _ _).inv)
+        = (((I.interpretMon p.1).obj (D₁.domObj p.2) ◁ (kcodAppendIso D₁ l1' l2).hom ≫
+            (α_ _ _ _).inv)) ≫
+          ((markerMor Φ.monadMor.toNatTrans p.1 (Φ.domMor p.2) ⊗ₘ Φ.msMor l1') ⊗ₘ Φ.msMor l2)
+      rw (config := { transparency := .default })
+        [← id_tensorHom, ← Category.assoc, tensorHom_comp_tensorHom, Category.comp_id, ih,
+          Category.assoc, ← associator_inv_naturality, ← id_tensorHom, ← Category.assoc,
+          tensorHom_comp_tensorHom, Category.id_comp]
+
+/-- Companion of `lem:kleisli-term-natural`: `msMor_kcodAppendIso` read in
+the other direction, the form `TmList.sem`'s cons clause needs. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural: the
+-- inverse half of msMor against the concatenation associator
+theorem msMor_kcodAppendIso_inv (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂)
+    (l1 l2 : List (MonSym × sigG.Dom)) :
+    (kcodAppendIso D₁ l1 l2).inv ≫ Φ.msMor (l1 ++ l2)
+      = (Φ.msMor l1 ⊗ₘ Φ.msMor l2) ≫ (kcodAppendIso D₂ l1 l2).inv := by
+  rw [Iso.inv_comp_eq, ← Category.assoc, ← msMor_kcodAppendIso Φ l1 l2, Category.assoc,
+    Iso.hom_inv_id, Category.comp_id]
+
+/-- Companion of `lem:kleisli-term-natural`: the induced morphism on a
+concatenated context splits along `ctxAppendIso`, the context twin of
+`msMor_kcodAppendIso` and proved the same way. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural: ctxMor
+-- against the concatenation associator
+theorem ctxMor_ctxAppendIso (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    ∀ l1 l2 : List sigG.Var,
+      Φ.ctxMor (l1 ++ l2) ≫ (ctxAppendIso D₂ l1 l2).hom
+        = (ctxAppendIso D₁ l1 l2).hom ≫ (Φ.ctxMor l1 ⊗ₘ Φ.ctxMor l2)
+  | [], l2 => by
+      change Φ.ctxMor l2 ≫ (λ_ (ctxObj (I := I.withMonad M₂) (J := J₂) D₂ l2)).inv
+          = (λ_ (ctxObj D₁ l2)).inv ≫ (𝟙 (𝟙_ I.cd.C) ⊗ₘ Φ.ctxMor l2)
+      rw [id_tensorHom]
+      exact MonoidalCategory.leftUnitor_inv_naturality _
+  | x :: l1', l2 => by
+      have ih := ctxMor_ctxAppendIso Φ l1' l2
+      change (Φ.domMor (sigG.varOver x) ⊗ₘ Φ.ctxMor (l1' ++ l2)) ≫
+          (D₂.domObj (sigG.varOver x) ◁ (ctxAppendIso D₂ l1' l2).hom ≫ (α_ _ _ _).inv)
+        = (D₁.domObj (sigG.varOver x) ◁ (ctxAppendIso D₁ l1' l2).hom ≫ (α_ _ _ _).inv) ≫
+          ((Φ.domMor (sigG.varOver x) ⊗ₘ Φ.ctxMor l1') ⊗ₘ Φ.ctxMor l2)
+      rw (config := { transparency := .default })
+        [← id_tensorHom, ← Category.assoc, tensorHom_comp_tensorHom, Category.comp_id, ih,
+          Category.assoc, ← associator_inv_naturality, ← id_tensorHom, ← Category.assoc,
+          tensorHom_comp_tensorHom, Category.id_comp]
+
+mutual
+
+/-- Companion of `lem:kleisli-term-natural`, the list half: a morphism of
+interpretations carries the tensored semantics `⟦ξ⃗⟧` of a term list to the
+other reading's. The empty list is the monad morphism's unit law; the cons
+step is `dst_compat` and the target strength's naturality, against the two
+induction hypotheses. -/
+@[blueprint_internal] -- companion of lem:kleisli-term-natural: the
+-- term-list half of the mutual induction
+theorem TmList.sem_natural (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    ∀ (ts : List (Tm sigG sigB)) (hts : ∀ a ∈ ts, a.KTyped),
+      TmList.sem K₁ ts hts ≫ Φ.monadMor.app (interpretMS I D₁.domObj (ts.map Tm.kcod).flatten) ≫
+          M₂.map (Φ.msMor (ts.map Tm.kcod).flatten)
+        = Φ.ctxMor (ts.map Tm.inn).flatten ≫ TmList.sem K₂ ts hts
+  | [], _ => by
+      change I.monad.η.app (𝟙_ I.cd.C) ≫ Φ.monadMor.app (𝟙_ I.cd.C) ≫ M₂.map (𝟙 (𝟙_ I.cd.C))
+          = 𝟙 (𝟙_ I.cd.C) ≫ M₂.η.app (𝟙_ I.cd.C)
+      rw [CategoryTheory.Functor.map_id, Category.comp_id, Category.id_comp]
+      exact Φ.monadMor.app_η _
+  | t :: ts, hts => by
+      have head_natural := Tm.sem_natural Φ t (hts t List.mem_cons_self)
+      have tail_natural :=
+        TmList.sem_natural Φ ts (fun a ha => hts a (List.mem_cons_of_mem t ha))
+      simp only [TmList.sem, Category.assoc]
+      rw (config := { transparency := .default })
+        [Φ.monadMor.toNatTrans.naturality_assoc, reassoc_of% Φ.dst_compat,
+          ← CategoryTheory.Functor.map_comp, msMor_kcodAppendIso_inv,
+          CategoryTheory.Functor.map_comp,
+          ← reassoc_of% (StrongCatInterpretation.dst_natural SI₂ Φ.strength_natural
+            (Φ.msMor t.kcod) (Φ.msMor (ts.map Tm.kcod).flatten)),
+          ← Category.assoc (Tm.sem K₁ t _ ⊗ₘ TmList.sem K₁ ts _), tensorHom_comp_tensorHom]
+      simp only [← Category.assoc, tensorHom_comp_tensorHom]
+      simp only [Category.assoc]
+      rw (config := { transparency := .default })
+        [head_natural, tail_natural, ← tensorHom_comp_tensorHom]
+      simp only [← Category.assoc]
+      rw (config := { transparency := .default })
+        [← ctxMor_ctxAppendIso Φ t.inn (ts.map Tm.inn).flatten]
+      rfl
+
+/-- Blueprint `lem:kleisli-term-natural` (Term semantics is natural), the
+env's one cited principal declaration: a morphism of interpretations
+(`def:interpretation-morphism`) carries the term semantics of
+`def:kleisli-interpretation` to the target reading's, for every term of
+`def:grammatical-signature`'s grammar. By structural induction over terms,
+mutually with `TmList.sem_natural` over argument lists: a variable term is
+the monad morphism's unit law with naturality of the target unit, and a
+functional term is `funMorK_compat` with the list's induction hypothesis. -/
+theorem Tm.sem_natural (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    ∀ (ξ : Tm sigG sigB) (h : ξ.KTyped),
+      Tm.sem K₁ ξ h ≫ Φ.monadMor.app (interpretMS I D₁.domObj ξ.kcod) ≫
+          M₂.map (Φ.msMor ξ.kcod)
+        = Φ.ctxMor ξ.inn ≫ Tm.sem K₂ ξ h
+  | .var x, h => by
+      rw (config := { transparency := .default })
+        [Tm.sem_var_eq K₁ x h, Tm.sem_var_eq K₂ x h, Category.assoc,
+          ← Category.assoc (I.monad.η.app _), Φ.monadMor.app_η, ← M₂.η.naturality,
+          ← Category.assoc, ctxMor_eqToHom Φ (Tm.inn_var x), Category.assoc]
+      rfl
+  | .app f args, ht => by
+      obtain ⟨he, hargs⟩ := Tm.ktyped_app ht
+      have list_natural := TmList.sem_natural Φ args hargs
+      rw (config := { transparency := .default })
+        [Tm.sem_app_eq K₁ f args ht he hargs, Tm.sem_app_eq K₂ f args ht he hargs,
+          Category.assoc, Category.assoc,
+          Φ.monadMor.toNatTrans.naturality_assoc, ← CategoryTheory.Functor.map_comp,
+          Category.assoc, funMorK_comp_msMor Φ f, msMor_eqToHom_assoc Φ he,
+          CategoryTheory.Functor.map_comp, reassoc_of% list_natural,
+          ctxMor_eqToHom_assoc Φ (Tm.inn_app f args)]
+      rfl
+
+end
+
+end TermNaturalityMor
+
+-- (completeness census, same pattern as `Tm.KTyped.eq_def` in
+-- `NeSyCat/GrammaticalLayer/Kleisli.lean`: equation-lemma and congruence
+-- byproducts of `Tm.sem`/`TmList.sem`, generated in this module by the
+-- clause lemmas above and by the cons step's `simp only [TmList.sem]`,
+-- with no attribute site of their own, tagged post-hoc -- not
+-- blueprint-cited, plumbing of the two semantics functions)
+attribute [blueprint_internal] Tm.sem.eq_def TmList.sem.eq_def Tm.sem.congr_simp
+  TmList.sem.congr_simp
+
+-- (step correspondence, C3-ISAR: a mutual block compiles each of its two
+-- theorems to a proof term that mentions only the compiler's own bundle
+-- `<name>._f`, so `scripts/blueprint.sh`'s step scan, which closes over
+-- used constants through `@[blueprint_internal]` companions, sees no
+-- lemma of the actual proof until the bundles carry the tag themselves.
+-- They are blueprint-internal in the plain sense of the word: generated
+-- plumbing of these two proofs, cited by nothing.)
+attribute [blueprint_internal] Tm.sem_natural._f TmList.sem_natural._f
+
 end NeSyCat

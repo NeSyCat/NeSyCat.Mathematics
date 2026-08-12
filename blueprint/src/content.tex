@@ -12,8 +12,8 @@
 % by item rather than turning the whole document red at once; each later
 % phase appends to this line. SENTINEL: the counts, asserted every run, so
 % a display quietly losing its tag stops the build.
-% LEAN-STEP-PHASE: thm:semiring-monad-laws, lem:tilt, thm:pullout, thm:chain-bound-sandwich, thm:chain-bound
-% LEAN-STEP-SENTINEL: envs=5 displays=15 tags=15 names=55
+% LEAN-STEP-PHASE: thm:semiring-monad-laws, lem:tilt, thm:pullout, thm:chain-bound-sandwich, thm:chain-bound, lem:kleisli-term-natural
+% LEAN-STEP-SENTINEL: envs=6 displays=18 tags=18 names=63
 
 \section{Introduction}  % lean-dir: -
 
@@ -2856,6 +2856,82 @@ Definition~\ref{def:categorical-interpretation} bundles the strength as
 data without it, and because carrying it as a hypothesis leaves every
 already-formalized item untouched.
 
+Two pieces of notation carry such a morphism through the grammar. Its
+family on domain symbols induces a morphism on every list of marked
+symbols, slot by slot: an $\mathrm{Id}$-marked slot takes the family's own
+component, and a $\bigcirc$-marked slot takes the monad morphism followed by
+$\mathcal M_2$ of that component. Write $\Phi_l$ for that induced morphism
+on a list $l$, so that $\Phi_{[\vec x]}$ on a context is the case where
+every slot is $\mathrm{Id}$-marked. Write $\mathrm{val}(\xi)$ for a term's
+value list, which is $[x]$ for a variable term $x$ and $\mathrm{cod}(f)$
+for a functional term $f(\vec\xi)$, and write $\sem\cdot^1$, $\sem\cdot^2$
+for the two readings' Kleisli interpretations.
+
+\begin{lemma}[Term semantics is natural]
+\label{lem:kleisli-term-natural}
+\lean{NeSyCat.Tm.sem_natural}
+\leanok
+Let $\Phi$ be a morphism of interpretations
+(Definition~\ref{def:interpretation-morphism}), with monad morphism
+$\theta$. Then
+\[
+  \sem\xi^1 \seq \theta_{\mathcal I_1(\mathrm{val}(\xi))} \seq
+  \mathcal M_2\Phi_{\mathrm{val}(\xi)} = \Phi_{\inn(\xi)} \seq \sem\xi^2
+\]
+for every term $\xi$ satisfying the typing side condition of
+Definition~\ref{def:kleisli-interpretation}.
+\uses{def:interpretation-morphism, def:kleisli-interpretation}
+\end{lemma}
+
+\begin{proof}
+\leanok
+Induction on the grammar of terms
+(Definition~\ref{def:grammatical-signature}), mutually with the same
+statement for argument lists.
+
+A variable term reads as the unit, so its clause is the monad morphism's
+own unit law and then naturality of $\eta^2$:
+% lean-step: Tm.sem_var_eq, CategoryTheory.MonadHom.app_η
+\[
+  \eta^1_{\mathcal I_1([x])} \seq \theta_{\mathcal I_1([x])} \seq
+  \mathcal M_2\Phi_{[x]}
+  = \eta^2_{\mathcal I_1([x])} \seq \mathcal M_2\Phi_{[x]}
+  = \Phi_{[x]} \seq \eta^2_{\mathcal I_2([x])}.
+\]
+A functional term reads as its argument list followed by $\mathcal I(f)$,
+so its clause is naturality of $\theta$, then compatibility at $f$, then
+the list's own induction hypothesis:
+% lean-step: Tm.sem_app_eq, funMorK_comp_msMor, list_natural
+\begin{align*}
+  \sem{f(\vec\xi)}^1 \seq \theta \seq \mathcal M_2\Phi_{\mathrm{cod}(f)}
+  &= \sem{\vec\xi}^1 \seq \mathcal M_1\mathcal I_1(f) \seq \theta \seq
+     \mathcal M_2\Phi_{\mathrm{cod}(f)} \\
+  &= \sem{\vec\xi}^1 \seq \theta \seq
+     \mathcal M_2\bigl(\mathcal I_1(f) \seq \Phi_{\mathrm{cod}(f)}\bigr) \\
+  &= \sem{\vec\xi}^1 \seq \theta \seq
+     \mathcal M_2\bigl(\Phi_{\mathrm{dom}(f)} \seq \mathcal I_2(f)\bigr) \\
+  &= \Phi_{\inn(\vec\xi)} \seq \sem{\vec\xi}^2 \seq \mathcal M_2\mathcal I_2(f)
+   = \Phi_{\inn(f(\vec\xi))} \seq \sem{f(\vec\xi)}^2 .
+\end{align*}
+The list induction has the same two shapes. An empty list reads as the
+unit at the tensor unit, which is the unit law again. A cons splits into
+its head and its tail, and three identities carry that splitting across
+the two readings: the two double strengths agree along $\theta$, the
+induced morphism splits along the isomorphism $\iota$ that breaks a
+concatenated list's tensor into its two parts, and the target double
+strength is natural in both slots.
+% lean-step: NeSyCat.InterpretationMorphism.dst_compat, msMor_kcodAppendIso_inv, StrongCatInterpretation.dst_natural
+\begin{gather*}
+  \mathrm{dst}^1 \seq \theta_{X \boxtimes Y}
+    = (\theta_X \boxtimes \theta_Y) \seq \mathrm{dst}^2, \\
+  \iota_1^{-1} \seq \Phi_{l_1 + l_2}
+    = (\Phi_{l_1} \boxtimes \Phi_{l_2}) \seq \iota_2^{-1}, \\
+  (\mathcal M_2 a \boxtimes \mathcal M_2 b) \seq \mathrm{dst}^2
+    = \mathrm{dst}^2 \seq \mathcal M_2(a \boxtimes b).
+\end{gather*}
+The head and the tail then take the two induction hypotheses.
+\end{proof}
+
 % ============================================================
 % RESERVED: Inferential layer (proof theory <-> model theory), between
 % the Grammatical layer above and the Statistical layer below. No
@@ -3139,7 +3215,7 @@ against each other.
 % counts or the computed structural names differ from it. Both numbers
 % quoted in the prose and the table below must be kept equal to it by
 % hand; the gate catches the drift, it does not repair it.
-% CLASSIFY-SENTINEL: total=61 structural=5 arithmetic=56 names=NeSyCat.batchTransformer,NeSyCat.batch_layer_exact,NeSyCat.ev_isMonadMorphism,NeSyCat.ev_strength_natural,NeSyCat.typeStrength_naturality_left
+% CLASSIFY-SENTINEL: total=62 structural=5 arithmetic=57 names=NeSyCat.batchTransformer,NeSyCat.batch_layer_exact,NeSyCat.ev_isMonadMorphism,NeSyCat.ev_strength_natural,NeSyCat.typeStrength_naturality_left
 \textbf{Which laws hold for any carrier.} Two kinds of statement have
 been proved above, and an implementation stands in a different relation
 to each. A statement of the first kind constrains its value carrier
@@ -3168,7 +3244,7 @@ formalized statements themselves rather than assigned by hand.
   {\raggedright\textbf{What the hypotheses demand of the carrier}\par} &
   {\raggedright\textbf{What an implementation gets}\par} \\
 \hline
-{\raggedright carrier-agnostic ($5$ of $61$)\par} &
+{\raggedright carrier-agnostic ($5$ of $62$)\par} &
   {\raggedright nothing at all: the value types are bare types, and of
    the ambient monad anywhere from no law at all to full lawfulness,
    depending on the identity\par} &
@@ -3177,7 +3253,7 @@ formalized statements themselves rather than assigned by hand.
    implementation's monad satisfies the one law each identity itself
    asks for, if any; five of Theorem~\ref{thm:batch-exactness}'s six
    identities do not need even the left unit law\par} \\
-{\raggedright carrier-algebraic ($56$ of $61$)\par} &
+{\raggedright carrier-algebraic ($57$ of $62$)\par} &
   {\raggedright a semiring, a lattice or an order, a monoidal or
    braided category, or a fixed carrier ($\MassS$, $\MassSInf$,
    $\LogS$, $\mathbb Q_{\ge 0}$, $[0,1]$, matrices)\par} &
