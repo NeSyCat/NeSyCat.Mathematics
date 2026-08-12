@@ -2825,9 +2825,15 @@ exactly that, and collects it as hypotheses rather than as fields of
 Definition~\ref{def:kleisli-interpretation}, so no existing
 interpretation acquires an obligation it did not already carry. The
 batched reading of Theorem~\ref{thm:pointwise-eval-kleisli} is the
-instance that motivates it: there the object map projects a batch to
-its $i$-th component, the truth objects coincide, and the monad
-morphism is $\mathrm{ev}_i$.
+instance that motivates it, and it is worth saying where the batch turns
+out to live. Not in the objects: there the object family is the
+identity, the truth objects coincide, and the whole batch sits in the
+monad morphism $\mathrm{ev}_i$. The other reading, batching a domain
+symbol's object and projecting at $i$, was tried and is unsatisfiable:
+with any relation symbol and $|\Bidx| \ge 2$ it forces one truth value
+to equal every slice of a batch at once. The object family is carried
+because a morphism of interpretations should not presume the answer, not
+because this instance needs it.
 
 \begin{definition}[Morphism of interpretations]
 \label{def:interpretation-morphism}
@@ -3462,7 +3468,7 @@ Evaluation $\mathrm{ev}_i$ (Theorem~\ref{thm:pointwise-eval}) commutes
 with the Kleisli interpretation of feed-forward composites (grammar
 interpretation, Definition~\ref{def:kleisli-interpretation}) under
 this hypothesis.
-\uses{thm:pointwise-eval, def:kleisli-interpretation, lem:kleisli-formula-natural, def:interpretation-morphism}
+\uses{thm:pointwise-eval, def:kleisli-interpretation, lem:kleisli-formula-natural, def:interpretation-morphism, def:type-cd-category, def:type-strength, lem:type-strength-laws, def:type-cat-interpretation, def:ev-monad-hom, lem:ev-strength-natural}
 \lean{NeSyCat.pointwise_eval_kleisli}
 \leanok
 \end{theorem}
@@ -3524,11 +3530,8 @@ narrower than Theorem~\ref{thm:batch-exactness}'s own
 $\mathsf{Type} \to \mathsf{Type}\,u$, because $\Bidx$ itself lives in
 the bottom universe and the categorical bridge below needs the whole
 composite $\Bmon\mathcal M$ back in $\mathsf{Type} \to \mathsf{Type}$
-too. It is not Theorem~\ref{thm:pointwise-eval-kleisli}'s proof: the
-theorem's own induction over the six clauses of
-Definition~\ref{def:kleisli-interpretation}, instantiating the
-interpretation at $\mathcal M$ compatibly with $\Bmon\mathcal M$, is
-left for a further ticket.
+too. It is not Theorem~\ref{thm:pointwise-eval-kleisli}'s proof by itself; it
+is the substrate that proof is built on.
 
 This substrate covers a monad $\mathcal M$ that carries a Lean
 \texttt{Monad}/\texttt{LawfulMonad} instance. $\mathrm{Identity}$
@@ -3538,10 +3541,8 @@ qualifies too: its $\Ret$ and $\bind$ are now registered against Lean's
 \texttt{Monad} and \texttt{LawfulMonad} classes (the paragraph
 following Theorem~\ref{thm:semiring-monad-laws} above), so
 \texttt{ofTypeMonad}$(\MS{S})$ typechecks. Registering the instance
-closes only this substrate gap. Theorem~\ref{thm:pointwise-eval-kleisli}
-itself stays unproved: the induction it needs over the six clauses of
-Definition~\ref{def:kleisli-interpretation} is still the further ticket
-named above.
+closed the substrate gap, and Theorem~\ref{thm:pointwise-eval-kleisli} is
+now proved over it.
 
 \begin{definition}[$\mathbf{Set}$ as a CD category]
 \label{def:type-cd-category}
