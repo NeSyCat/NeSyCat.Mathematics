@@ -2816,6 +2816,46 @@ $\tfrac16\cdot\tfrac12=\tfrac1{12}$. The substituted formula copies the
 \emph{value}. The repeated term runs the \emph{computation} again.
 
 
+Two readings of the same grammar need not be unrelated. Where one
+carries to the other, the carrying is data: a map on the objects the
+domain symbols denote, a map of truth objects, a morphism of the two
+monads, together with the demand that every symbol be interpreted
+compatibly. Definition~\ref{def:interpretation-morphism} collects
+exactly that, and collects it as hypotheses rather than as fields of
+Definition~\ref{def:kleisli-interpretation}, so no existing
+interpretation acquires an obligation it did not already carry. The
+batched reading of Theorem~\ref{thm:pointwise-eval-kleisli} is the
+instance that motivates it: there the object map projects a batch to
+its $i$-th component, the truth objects coincide, and the monad
+morphism is $\mathrm{ev}_i$.
+
+\begin{definition}[Morphism of interpretations]
+\label{def:interpretation-morphism}
+\lean{NeSyCat.InterpretationMorphism}
+\leanok
+Fix a CD category and a categorical interpretation
+(Definition~\ref{def:categorical-interpretation}) with strong monad
+$\mathcal M_1$, and a second strong monad $\mathcal M_2$ over the same
+CD category, each with its own logical
+(Definition~\ref{def:logical-interpretation}), domain
+(Definition~\ref{def:domain-interpretation}) and Kleisli
+(Definition~\ref{def:kleisli-interpretation}) interpretations. A
+\textbf{morphism of interpretations} between them consists of a family
+$\mathcal I_1(S) \to \mathcal I_2(S)$ on domain symbols, a map
+$\Omega_1 \to \Omega_2$ of truth objects, and a monad morphism
+$\mathcal M_1 \to \mathcal M_2$, subject to: the two strengths agree
+along the monad morphism; the target strength is natural; and every
+function, relation, connective and quantifier symbol is interpreted
+compatibly with the family.
+\uses{def:kleisli-interpretation, def:logical-interpretation, def:domain-interpretation, def:categorical-interpretation}
+\end{definition}
+
+Naturality of the target strength is a law about that interpretation
+alone, not a relation between the two. It sits here because
+Definition~\ref{def:categorical-interpretation} bundles the strength as
+data without it, and because carrying it as a hypothesis leaves every
+already-formalized item untouched.
+
 % ============================================================
 % RESERVED: Inferential layer (proof theory <-> model theory), between
 % the Grammatical layer above and the Statistical layer below. No

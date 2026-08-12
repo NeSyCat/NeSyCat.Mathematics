@@ -45,6 +45,7 @@ import NeSyCat.GrammaticalLayer.WireAdapters
 import NeSyCat.GrammaticalLayer.Kleisli
 import NeSyCat.GrammaticalLayer.QuantifierNestable
 import NeSyCat.GrammaticalLayer.QuantifierColumns
+import NeSyCat.GrammaticalLayer.InterpretationMorphism
 
 -- Statistical layer (blueprint §6)
 import NeSyCat.StatisticalLayer.StatisticalLayer
