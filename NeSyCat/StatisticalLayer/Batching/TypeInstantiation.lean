@@ -16,9 +16,9 @@ Scaffolding toward `thm:pointwise-eval-kleisli`
 `def:cd-category`/`def:categorical-interpretation` instantiated
 concretely at `Set`, plus the canonical strength on a lawful `Type`-monad
 and the categorical-monad-morphism reading of `ev_i`. NOT the theorem
-itself: `thm:pointwise-eval-kleisli` needs a further mutual-induction
-argument over `Fm.sem`/`Tm.sem`'s six clauses (see
-`PointwiseKleisli.lean`'s module doc) that this file does not attempt.
+itself: `thm:pointwise-eval-kleisli` is proved in `PointwiseKleisli.lean`,
+on top of this substrate, by instantiating `lem:kleisli-formula-natural`
+at `ev i` (see that file's module doc).
 
 **Universe restriction (disclosed).** `CategoryTheory.ofTypeMonad`
 (`Mathlib.CategoryTheory.Monad.Types`) converts a lawful Lean `Monad m`

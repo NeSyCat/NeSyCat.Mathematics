@@ -40,15 +40,13 @@ monad-changing map `Id ⟶ M`) — `liftBmon` and its two morphism laws
 `ev`/`ev_isMonadMorphism` below is `thm:pointwise-eval`'s PART 1 ONLY
 (`ev_i` is a monad morphism, unconditional). Part 2 (commutation with
 the Kleisli interpretation of `def:kleisli-interpretation`, under the
-batch-naturality hypothesis) is NOT formalized here: it needs a
-generic account of the Kleisli interpretation over an ARBITRARY strong
-monad `M` (so it can be instantiated at both `M` and `Bmon M`), which
-does not exist yet in `NeSyCat/GrammaticalLayer/Kleisli.lean` (built
-there only for the library's own concrete interpretations). Split
-honestly per the ticket spec: `content.tex`'s `thm:pointwise-eval-kleisli`
-env states part 2 with its own (informal) proof, carries no `\lean`/
-`\leanok` mark, and is left for a rider ticket after that generic
-account lands.
+batch-naturality hypothesis) is not formalized HERE, but it IS proved:
+`pointwise_eval_kleisli` in `PointwiseKleisli.lean`, cited by
+`thm:pointwise-eval-kleisli`, which carries `\lean`/`\leanok` as of
+C4-T3. The route was not the one this doc once predicted: rather than a
+generic Kleisli interpretation over an arbitrary strong monad, it goes
+through `def:interpretation-morphism` and `lem:kleisli-formula-natural`,
+instantiated at `ev i`.
 -/
 
 namespace NeSyCat

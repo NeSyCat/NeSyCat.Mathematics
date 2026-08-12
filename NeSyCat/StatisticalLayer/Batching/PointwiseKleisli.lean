@@ -74,10 +74,15 @@ then means what the env writes: run the batched reading on the batch's
 
 **Why the object family is not batched (a corrected expectation).** The
 alternative reading, in which a domain symbol is sent to `Bidx → 𝓘(S)`
-while the truth object stays shared, makes the hypothesis UNSATISFIABLE
-whenever the signature has a relation symbol and `B ≥ 2`: `𝓘(R)` lands in
-`Ω`, so `relMorK_compat` would demand one truth value equal to the
-unbatched reading of every slice of the batch at once, and slices differ.
+while the truth object stays shared, DEGENERATES whenever the signature
+has a relation symbol and `B ≥ 2`: `𝓘(R)` lands in `Ω`, so
+`relMorK_compat` fixes one truth value against the unbatched reading of
+every slice at once, and since slices vary independently the relation is
+forced to ignore its argument. NOT unsatisfiable, which this doc claimed
+until a blind verifier compiled a counterexample: a constant `relMorK`
+satisfies the law at every `B` and every `i`, with no axioms. What is
+true is that ONLY constant relations satisfy it, so no relation that
+reads its argument survives.
 Batching the truth object too repairs satisfiability but changes the
 env's display, which then needs a second read at `i`. The reading used
 here is the only one of the three that keeps both the env's hypothesis

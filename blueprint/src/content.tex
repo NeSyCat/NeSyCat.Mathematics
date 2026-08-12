@@ -2829,9 +2829,12 @@ instance that motivates it, and it is worth saying where the batch turns
 out to live. Not in the objects: there the object family is the
 identity, the truth objects coincide, and the whole batch sits in the
 monad morphism $\mathrm{ev}_i$. The other reading, batching a domain
-symbol's object and projecting at $i$, was tried and is unsatisfiable:
-with any relation symbol and $|\Bidx| \ge 2$ it forces one truth value
-to equal every slice of a batch at once. The object family is carried
+symbol's object and projecting at $i$, was tried and degenerates: with
+any relation symbol and $|\Bidx| \ge 2$ its compatibility law fixes one
+truth value against every slice at once, which forces the relation to
+ignore its argument. Such readings do exist, and every one of them
+interprets each relation by a constant, so nothing that reads what it is
+given survives. The object family is carried
 because a morphism of interpretations should not presume the answer, not
 because this instance needs it.
 
@@ -3468,7 +3471,7 @@ Evaluation $\mathrm{ev}_i$ (Theorem~\ref{thm:pointwise-eval}) commutes
 with the Kleisli interpretation of feed-forward composites (grammar
 interpretation, Definition~\ref{def:kleisli-interpretation}) under
 this hypothesis.
-\uses{thm:pointwise-eval, def:kleisli-interpretation, lem:kleisli-formula-natural, def:interpretation-morphism, def:type-cd-category, def:type-strength, lem:type-strength-laws, def:type-cat-interpretation, def:ev-monad-hom, lem:ev-strength-natural}
+\uses{thm:pointwise-eval, def:kleisli-interpretation, lem:kleisli-formula-natural, def:interpretation-morphism, def:type-cd-category, def:type-strength, def:type-cat-interpretation, def:ev-monad-hom, lem:ev-strength-natural}
 \lean{NeSyCat.pointwise_eval_kleisli}
 \leanok
 \end{theorem}
@@ -3477,9 +3480,9 @@ this hypothesis.
 \leanok
 The batch-naturality hypothesis is exactly what makes $\mathrm{ev}_i$ a
 morphism of interpretations (Definition~\ref{def:interpretation-morphism})
-from the batched reading to the plain one. Its object part is the
-projection of a batch to its $i$-th component, its truth objects agree,
-and its monad part is $\mathrm{ev}_i$ read as a monad morphism
+from the batched reading to the plain one. Its object part is the identity, since the batch lives in
+the monad and not in the objects, its truth objects agree, and its monad
+part is $\mathrm{ev}_i$ read as a monad morphism
 (Theorem~\ref{thm:pointwise-eval}). The four naturality laws of that
 morphism are the hypothesis itself, one per symbol kind. Strength
 compatibility is not assumed: at $\mathbf{Set}$ it is a theorem about the
