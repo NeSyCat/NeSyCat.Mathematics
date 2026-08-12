@@ -572,6 +572,20 @@ Definition~\ref{def:semiring-monad} against the matrix-product formula
 $(fK)(y) = \bigoplus_x f(x)\otimes K(x,y)$ at $K(x,y) := k(x)(y)$.
 \end{proof}
 
+% Connection note (Law 2, visible attribution). Scope: the shared fact is
+% multilinearity of the computation, nothing more. No claim is made that
+% the two settings prove the same thing, and no interpretability result
+% is imported. Source read: the paper's abstract and the author's own
+% description of the tensor-model programme; the decomposition
+% algorithms themselves were not checked against this library.
+The same multilinearity is the design principle behind the \emph{tensor
+models} used in interpretability.
+\citet{doomsCompositionalityUnlocksDeep24} build deep networks out of
+tensor-network layers in place of elementwise nonlinearities, so that the
+weights can be decomposed without reference to any input distribution.
+Their subject is a network that has already been trained. Here the
+property holds by construction, for every semiring.
+
 % Declared blueprint split (C1-T2, updated C2-E3 when remarks were
 % abolished): the source clause "with algebras the $S$-semimodules" is
 % split out of the theorem statement below into surrounding prose
@@ -4437,6 +4451,7 @@ transporting $\mathrm{QRow}$'s own arithmetic directly.
 \bibitem[Girard(1987)]{girardLinearLogic1987} Jean-Yves Girard. Linear logic. \textit{Theoretical Computer Science}, 50(1), pages 1 to 101, 1987.
 \bibitem[Coumans and Jacobs(2013)]{coumansJacobsScalars2013} Dion Coumans and Bart Jacobs. Scalars, monads, and categories. In Chris Heunen, Mehrnoosh Sadrzadeh, and Edward Grefenstette, editors, \textit{Quantum Physics and Linguistics: A Compositional, Diagrammatic Discourse}. Oxford University Press, 2013. arXiv:1003.0585.
 \bibitem[Maene et~al.(2025)]{maeneKLay2025} Jaron Maene, Vincent Derkinderen, and Pedro Zuidberg Dos Martires. KLay: accelerating arithmetic circuits for neurosymbolic AI. In \textit{International Conference on Learning Representations (ICLR)}, 2025. arXiv:2410.11415.
+\bibitem[Dooms et~al.(2024)]{doomsCompositionalityUnlocksDeep24} Thomas Dooms, Ward Gauderis, Geraint Wiggins, and Jose Antonio Oramas Mogrovejo. Compositionality unlocks deep interpretable models. In \textit{Connecting Low-Rank Representations in AI, at the 39th AAAI Conference on Artificial Intelligence}, 2024.
 \bibitem[Eisner(2002)]{eisnerExpectationSemiring2002} Jason Eisner. Parameter estimation for probabilistic finite-state transducers. In \textit{Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics (ACL)}, pages 1 to 8, 2002.
 \bibitem[Hájek(1998)]{hajekMetamathematicsFuzzyLogic1998} Petr Hájek. \textit{Metamathematics of Fuzzy Logic}. Trends in Logic. Springer Netherlands, Dordrecht, 1998.
 \end{thebibliography}
