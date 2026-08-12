@@ -101,6 +101,21 @@ HARD BANS (no exceptions):
 - Deleting a hard item instead of finishing it. Leave it as a `sorry`
   with notes instead.
 
+**REFUTABILITY OF LAW FIELDS.** A law field of a structure or class must
+be *falsifiable*: some instance must be able to fail it. A field whose two
+sides are definitionally equal states nothing, and no gate here would
+notice, because every other check in this repo asks whether a PROOF is
+honest and none asks whether a STATEMENT says anything. A non-trivial
+proof of a vacuous statement passes all of them. This is not hypothetical:
+`def:cd-category`'s two tensor compatibilities elaborated to reflexivity
+from the day they were written, passed every gate, and passed a blind
+verification that explicitly confirmed their consumer "genuinely
+discharges" them, checking that the proof did work and never asking
+whether the goal said anything. `scripts/blueprint.sh`'s vacuity gate now
+telescopes every `Eq`-shaped law field under the `NeSyCat` prefix and goes
+RED if its two sides are defeq. When writing a law field, check it by hand
+too: if `rfl` closes it, it is not a law.
+
 **DO-SUGAR BAN.** `MS S` is registered against Lean's `Monad` and
 `LawfulMonad` classes (`instMonadMS`/`instLawfulMonadMS`, over the
 library's own `Ret`/`bind`), so do-notation is writable — but only its

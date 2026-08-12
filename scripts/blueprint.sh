@@ -204,6 +204,8 @@ CORR_PY="$SCRATCH_DIR/correspondence.py"
 GROUPS_JSONL="$SCRATCH_DIR/groups.jsonl"
 KIND_LEAN="$SCRATCH_DIR/kindcheck.lean"
 KIND_OUT="$SCRATCH_DIR/kindcheck.out"
+VACUITY_LEAN="$SCRATCH_DIR/vacuity.lean"
+VACUITY_LEAN_OUT="$SCRATCH_DIR/vacuity.out"
 CENSUS_LEAN="$SCRATCH_DIR/census.lean"
 CENSUS_LEAN_OUT="$SCRATCH_DIR/census.out"
 
@@ -820,6 +822,63 @@ def cmd_emit_census_lean():
     print("          let tagged := blueprintInternalAttr.hasTag env name")
     print("          IO.println "
           "s!\"CENSUS\\t{name}\\t{tagged}\\t{isThm}\\t{modName}\"")
+
+
+def cmd_emit_vacuity_lean():
+    """Emit a Lean fold that hunts VACUOUS LAW FIELDS (C4-ERR, 2026-08-12).
+
+    Every other gate in this repo checks that PROOFS are honest. None of
+    them asks whether a STATEMENT says anything, and a non-trivial proof of
+    a vacuous statement passes all of them. That is not hypothetical: the
+    two tensor-compatibility fields of `def:cd-category` elaborated to
+    reflexivity from the day they were written, survived every gate, and
+    survived a blind verification that explicitly checked the consumer
+    "genuinely discharges" them -- confirming the proof did work while
+    never asking whether the goal said anything.
+
+    This fold telescopes every structure/class field under the NeSyCat
+    module prefix, keeps the Prop-valued `Eq`-shaped ones (the law fields),
+    and reports whether the two sides are definitionally equal. If they
+    are, the field is unfalsifiable: no instance could fail it and none
+    could use it. Validated against the historical bug before landing --
+    reconstructing the pre-repair `CDCategory` flags both fields, and a
+    control structure carrying one vacuous and one genuine law flags
+    exactly the vacuous one."""
+    print("import NeSyCat")
+    print("import Mathlib")
+    print()
+    print("open Lean Meta")
+    print()
+    print("/-- `some true` = Eq-shaped law field whose sides are defeq")
+    print("    (vacuous); `some false` = Eq-shaped with content; `none` =")
+    print("    not an Eq-shaped law field. -/")
+    print("def nesycatFieldVacuity (t : Expr) : MetaM (Option Bool) :=")
+    print("  forallTelescopeReducing t fun _ body => do")
+    print("    if !(<- Meta.isProp body) then return none")
+    print("    match body.eq? with")
+    print("    | some (_, lhs, rhs) => return some (<- Meta.isDefEq lhs rhs)")
+    print("    | none => return none")
+    print()
+    print("#eval show MetaM Unit from do")
+    print("  let env <- getEnv")
+    print("  for (name, _info) in env.constants.toList do")
+    print("    match env.getModuleIdxFor? name with")
+    print("    | none => pure ()")
+    print("    | some idx =>")
+    print("      let modName := env.header.moduleNames[idx]!")
+    print("      if modName.getRoot == `NeSyCat && isStructure env name then")
+    print("        for field in getStructureFields env name do")
+    print("          match env.find? (name ++ field) with")
+    print("          | none => pure ()")
+    print("          | some info =>")
+    print("            let r <- (try nesycatFieldVacuity info.type "
+          "catch _ => pure none)")
+    print("            match r with")
+    print("            | some true =>")
+    print("              IO.println s!\"VACUITY\\t{name}.{field}\\tVACUOUS\"")
+    print("            | some false =>")
+    print("              IO.println s!\"VACUITY\\t{name}.{field}\\tok\"")
+    print("            | none => pure ()")
 
 
 def strip_lean_comments(src):
@@ -1512,7 +1571,7 @@ def cmd_structure_mirror(content_tex_path, nesycat_root):
 def main():
     if len(sys.argv) < 2:
         print("usage: correspondence.py "
-              "<structure|emit-lean|check-kinds|emit-census-lean|"
+              "<structure|emit-lean|check-kinds|emit-census-lean|emit-vacuity-lean|"
               "census-classify|structure-mirror> ...",
               file=sys.stderr)
         return 2
@@ -1530,6 +1589,9 @@ def main():
         return cmd_axiom_check(sys.argv[2])
     if mode == "emit-census-lean":
         cmd_emit_census_lean()
+        return 0
+    if mode == "emit-vacuity-lean":
+        cmd_emit_vacuity_lean()
         return 0
     if mode == "census-classify":
         return cmd_census_classify(sys.argv[2], sys.argv[3], sys.argv[4])
@@ -1644,6 +1706,31 @@ fi
 # cited theorem/lemma folding candidates, never a gate violation.
 printf '%s\n' "$CENSUS_OUT" | grep "^ADVISORY-SUMMARY${TAB}" | sed -E "s/^ADVISORY-SUMMARY${TAB}/reuse-advisory: /"
 printf '%s\n' "$CENSUS_OUT" | grep "^ADVISORY${TAB}" | sed -E "s/^ADVISORY${TAB}/  - /"
+
+# VACUOUS LAW FIELDS (C4-ERR). Every other gate here checks that PROOFS are
+# honest; none asks whether a STATEMENT says anything, and a non-trivial
+# proof of a vacuous statement passes all of them. def:cd-category's two
+# tensor compatibilities elaborated to reflexivity from the day they were
+# written and survived every gate plus a blind verification. This fold
+# telescopes each structure/class law field under the NeSyCat prefix and
+# asks whether its two sides are definitionally equal -- if they are, no
+# instance could fail it and none could use it.
+echo "==> vacuous law fields (C4-ERR, refutability of Eq-shaped law fields)"
+python3 "$CORR_PY" emit-vacuity-lean > "$VACUITY_LEAN"
+if ! lake env lean "$VACUITY_LEAN" > "$VACUITY_LEAN_OUT" 2>&1; then
+  echo "vacuity: Lean elaboration failed:"
+  cat "$VACUITY_LEAN_OUT"
+  fail 1
+fi
+VAC_TOTAL="$(grep -c "^VACUITY${TAB}" "$VACUITY_LEAN_OUT" || true)"
+VAC_BAD="$(grep "^VACUITY${TAB}" "$VACUITY_LEAN_OUT" | grep -c "${TAB}VACUOUS$" || true)"
+if [ "$VAC_BAD" -ne 0 ]; then
+  echo "vacuity violations (law field proved by reflexivity -- unfalsifiable):"
+  grep "^VACUITY${TAB}" "$VACUITY_LEAN_OUT" | grep "${TAB}VACUOUS$" \
+    | sed -E "s/^VACUITY${TAB}/  - /; s/${TAB}VACUOUS$/ : both sides are defeq, so no instance can fail it and none can use it/"
+  fail 1
+fi
+echo "vacuity: OK ($VAC_TOTAL Eq-shaped law field(s) scanned, 0 vacuous)"
 
 echo "==> structural/arithmetic classification (C3-EXEC item 2, mechanical fold)"
 if [ "${#DECL_NAMES[@]}" -eq 0 ]; then
