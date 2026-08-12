@@ -2862,29 +2862,40 @@ data without its naturality, and because carrying a law as a hypothesis
 leaves every already-formalized item untouched.
 
 The tensor compatibilities need a further word, because
-Definition~\ref{def:cd-category} already asks for them. Its formal
-counterpart states them in a shape no choice of comonoids can fail: the
-chosen family is itself visible to the elaborator as a way of building a
-comonoid on any object, so both sides of each compatibility equation
-resolve to the chosen comonoid on $X \boxtimes Y$ and the equation
-becomes reflexivity. A morphism of interpretations therefore states the
-two equations again, with the right-hand side written out from the
-factors so that it cannot resolve back. Restating them where
-Definition~\ref{def:cd-category} itself intends them is separate work,
-and until it is done the CD category's tensor compatibility is carried
-by every consumer that needs it rather than by the category.
-% ERRATUM (C4-T2b, 2026-08-12): CDCategory.copy_tensor / CDCategory.del_tensor
-% elaborate to reflexivity. Inside the structure declaration the field
-% `comon : ∀ X : C, ComonObj X` is itself a local instance, so the
-% `ComonObj.comul (X := X ⊗ Y)` on the right-hand side of each field
-% synthesizes `comon (X ⊗ Y)` rather than Mathlib's induced
-% `Comon.instComonObjTensorObj`. Verified by `#check @CDCategory.del_tensor`
-% under `pp.explicit`, and by the negative control
-% `example (cd : CDCategory) (X Y : cd.C) :
-%    (cd.comon (X ⊗ Y)).counit = (cd.comon (X ⊗ Y)).counit := cd.del_tensor X Y`,
-% which typechecks. Repairing the two fields means editing a pre-existing
-% record, which C4-T2b's write set forbids; the laws travel on
-% InterpretationMorphism as comul_tensor / counit_tensor instead.
+Definition~\ref{def:cd-category} asks for them and, for a time, did not
+get them. Its formal counterpart stated each compatibility with the
+induced side left to the elaborator. The chosen family is itself visible
+there as a way of building a comonoid on any object, so both sides
+resolved to the chosen comonoid on $X \boxtimes Y$. Each equation
+became reflexivity: a law no choice of comonoids could fail, and none
+could use. The two fields now write the induced side out from the
+factors, so no resolution can send it back. A morphism of interpretations
+still carries its own copies of the two equations, stated for the shared
+CD category; since the category now supplies them, those copies are
+redundant rather than load-bearing, and folding them back is left as
+tidying.
+% ERRATUM, RAISED AND REPAIRED (C4-T2b raised it, C4-ERR repaired it,
+% 2026-08-12). CDCategory.copy_tensor / CDCategory.del_tensor elaborated to
+% reflexivity: inside the structure declaration `comon : ∀ X : C, ComonObj X`
+% is itself in scope as an instance, so the `ComonObj.comul (X := X ⊗ Y)` on
+% each right-hand side re-synthesized `comon (X ⊗ Y)` -- the CHOSEN comonoid
+% on the tensor -- instead of Mathlib's induced one. Negative control, which
+% typechecked before the repair:
+%   example (cd : CDCategory) (X Y : cd.C) :
+%     (cd.comon (X ⊗ Y)).counit = (cd.comon (X ⊗ Y)).counit := cd.del_tensor X Y
+% The fields now name Mathlib's own Comon_.tensorObj_comul / tensorObj_counit
+% formulas explicitly. Refutability was checked before landing: `rfl` no
+% longer closes either field for an arbitrary `comon` family, where before
+% the field WAS reflexivity. typeCD needed no change -- its proof already
+% went through Mathlib's genuine CopyDiscardCategory laws, so it now
+% discharges a real obligation where it had discharged an empty one.
+% WHAT THIS COST US TO FIND: every gate in this repo passed the vacuous
+% version, and a blind verification explicitly checked that typeCD
+% "genuinely discharges copy_tensor/del_tensor, not sidestepped" and passed
+% it too. That check confirmed the PROOF did work and never asked whether the
+% GOAL said anything. A non-trivial proof of a vacuous statement is still a
+% non-trivial proof. Law fields should be checked for REFUTABILITY -- try
+% closing them with `rfl` -- not only for being proved.
 
 Two pieces of notation carry such a morphism through the grammar. Its
 family on domain symbols induces a morphism on every list of marked

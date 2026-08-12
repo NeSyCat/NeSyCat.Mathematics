@@ -106,13 +106,30 @@ structure CDCategory where
   /-- Commutativity of the chosen comonoid on every object. -/
   comm : ∀ X : C, letI := comon X; IsCommComonObj X
   /-- `copy` is compatible with `⊠_𝒞`: the chosen comultiplication on
-  `X ⊠_𝒞 Y` agrees with the one induced from `X`'s and `Y`'s. -/
-  copy_tensor : ∀ X Y : C, letI := comon X; letI := comon Y;
-    (comon (X ⊗ Y)).comul = ComonObj.comul (X := X ⊗ Y)
+  `X ⊠_𝒞 Y` agrees with the one induced from `X`'s and `Y`'s.
+
+  ERRATUM REPAIR (C4-ERR, 2026-08-12). This field and `del_tensor` below
+  were previously written with the induced side as `ComonObj.comul
+  (X := X ⊗ Y)` under `letI := comon X; letI := comon Y`. That is VACUOUS:
+  `comon` is itself in scope as an instance inside this declaration, so the
+  right-hand side re-synthesized `comon (X ⊗ Y)` -- the CHOSEN comonoid on
+  the tensor -- rather than Mathlib's INDUCED one, and each field elaborated
+  to reflexivity. `cd.del_tensor X Y` was a proof of `x = x`, and every gate
+  in this repo passed it, because a non-trivial proof of a vacuous statement
+  is still a non-trivial proof. The induced side is now written out
+  explicitly via Mathlib's own `Comon_.tensorObj_comul`/`tensorObj_counit`
+  formulas, which no instance search can redirect. Refutability checked
+  before landing: `rfl` no longer closes either field for an arbitrary
+  `comon` family. -/
+  copy_tensor : ∀ X Y : C,
+    (comon (X ⊗ Y)).comul
+      = ((comon X).comul ⊗ₘ (comon Y).comul) ≫ tensorμ X X Y Y
   /-- `del` is compatible with `⊠_𝒞`: the chosen counit on `X ⊠_𝒞 Y` agrees
-  with the one induced from `X`'s and `Y`'s. -/
-  del_tensor : ∀ X Y : C, letI := comon X; letI := comon Y;
-    (comon (X ⊗ Y)).counit = ComonObj.counit (X := X ⊗ Y)
+  with the one induced from `X`'s and `Y`'s. See `copy_tensor`'s erratum
+  note. -/
+  del_tensor : ∀ X Y : C,
+    (comon (X ⊗ Y)).counit
+      = ((comon X).counit ⊗ₘ (comon Y).counit) ≫ (λ_ _).hom
 
 /-- Blueprint `def:categorical-interpretation` (Categorical interpretation):
 a categorical interpretation `𝓘_α` of a categorical signature `Σ_α` is
