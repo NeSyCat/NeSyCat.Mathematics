@@ -564,4 +564,143 @@ theorem pointwise_eval_kleisli [DecidableEq sigG.Var]
 
 end BatchInstantiation
 
+/-! ### A witness that batch-naturality is satisfiable
+
+`thm:pointwise-eval-kleisli` is an implication, so it is worth nothing if
+nothing satisfies its hypothesis. The declarations below exhibit a
+signature, a pair of readings satisfying all four batch-naturality laws,
+and a formula of the grammar, at every batch size: one domain symbol
+interpreted by `Bool`, one relation symbol reading its single pure
+argument, one nullary `○`-marked connective returning the batch-constant
+`true`, and one variable over a two-point domain. -/
+
+section Witness
+
+open CategoryTheory MonoidalCategory
+
+/-- Witness for `thm:pointwise-eval-kleisli`: the categorical signature. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+def witCat : CatSignature where
+  catSymbol := "C"
+  actorSymbol := "A"
+  monadSymbol := "o"
+
+/-- Witness for `thm:pointwise-eval-kleisli`: the logical signature, one
+nullary connective carrying the monad marker and no quantifiers. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+def witLog : LogSignature where
+  tauSymbol := "tau"
+  Conn := Unit
+  connArity := fun _ => 0
+  connMonad := fun _ => MonSym.mon
+  Quan := Empty
+  quanMonad := fun Q => Q.elim
+
+/-- Witness for `thm:pointwise-eval-kleisli`: the domain signature, one
+domain symbol, one variable over it, one relation symbol of pure arity
+one, and no function symbols. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+def witDom : DomSignature where
+  Dom := Unit
+  Spc := Empty
+  Fun := Empty
+  Rel := Unit
+  Var := Unit
+  Par := Empty
+  fdom := fun f => f.elim
+  fcod := fun f => f.elim
+  fpar := fun f => f.elim
+  rari := fun _ => [(MonSym.id, ())]
+  rpar := fun _ => []
+  varOver := fun _ => ()
+  parOver := fun p => p.elim
+
+/-- Witness for `thm:pointwise-eval-kleisli`: decidable equality on the
+one variable symbol. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+instance witVarDecEq : DecidableEq witDom.Var := fun _ _ => isTrue rfl
+
+/-- Witness for `thm:pointwise-eval-kleisli`: the unbatched logical
+interpretation, truth object `Bool`, the connective returning `true`. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+noncomputable def witLogItp : LogInterpretation (typeCatInterpretation witCat Id) witLog where
+  Ω := Bool
+  connMor := fun _ => ↾ fun _ : PUnit => (true : Id Bool)
+  quanMor := fun Q _ => Q.elim
+
+/-- Witness for `thm:pointwise-eval-kleisli`: the unbatched domain
+interpretation, the one domain symbol interpreted by `Bool`. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+noncomputable def witDomItp :
+    DomInterpretation (typeCatInterpretation witCat Id) witLogItp witDom where
+  domObj := fun _ => Bool
+  spcObj := fun s => s.elim
+  funMor := fun f => f.elim
+  relMor := fun _ => ↾ fun p : PUnit × (Bool × PUnit) => p.2.1
+
+/-- Witness for `thm:pointwise-eval-kleisli`: the unbatched Kleisli
+interpretation, the relation reading its argument and the variable
+enumerated over the two Booleans. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+noncomputable def witKleisli :
+    KleisliInterpretation (typeCatInterpretation witCat Id) (typeStrongCat witCat Id)
+      witLogItp witDomItp where
+  decEqVar := witVarDecEq
+  funMorK := fun f => f.elim
+  relMorK := fun _ => ↾ fun p : Bool × PUnit => p.1
+  varCard := fun _ => 2
+  varPt := fun _ j => ↾ fun _ : PUnit => decide (j.val = 1)
+
+/-- Witness for `thm:pointwise-eval-kleisli`: the batched reading over the
+unbatched one, at every batch size. The connective's batched reading is
+the batch-constant lift of its unbatched one, the relation's is the
+unbatched one itself since its arity is pure, and all four
+batch-naturality laws hold by computation. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+noncomputable def witReading (B : ℕ) : BatchNaturalReading witCat witLog witDom B Id where
+  J := witLogItp
+  D := witDomItp
+  K := witKleisli
+  connMorB := fun _ => ↾ fun _ : PUnit => (liftM (true : Id Bool) : BmonT B Id Bool)
+  quanMorB := fun Q _ => Q.elim
+  funMorB := fun f => f.elim
+  relMorB := fun _ => ↾ fun p : PUnit × (Bool × PUnit) => p.2.1
+  funMorKB := fun f => f.elim
+  relMorKB := fun _ => ↾ fun p : Bool × PUnit => p.1
+  funMorK_batchNatural := fun _ f => f.elim
+  relMorK_batchNatural := fun _ _ => rfl
+  connMor_batchNatural := fun _ _ => rfl
+  quanMor_batchNatural := fun _ Q _ => Q.elim
+
+/-- Witness for `thm:pointwise-eval-kleisli`: the atomic formula `R(x)`. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+def witFormula : Fm witDom witLog := Fm.rel () [Tm.var ()]
+
+/-- Witness for `thm:pointwise-eval-kleisli`: `R(x)` is well typed. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+theorem witFormula_ktyped : witFormula.KTyped := by
+  -- `Fm.KTyped` is a `def` matching on the formula, not a structure, so the
+  -- anonymous constructor cannot see the conjunction until the match on
+  -- `witFormula`'s own `.rel` head is reduced.
+  unfold witFormula Fm.KTyped
+  refine ⟨rfl, fun a ha => ?_⟩
+  rw [List.mem_singleton.mp ha]
+  -- `Tm.KTyped` recurses over a nested inductive, so its variable clause is
+  -- propositional rather than definitional: `trivial` and `exact True.intro`
+  -- both fail to see that it is `True`. Same idiom as `Tm.inn_var`.
+  simp [Tm.KTyped]
+
+/-- Witness for `thm:pointwise-eval-kleisli`: the theorem applies, at every
+batch size, to a genuine formula of a genuine signature. Its hypothesis is
+therefore satisfiable, not merely unrefuted. -/
+@[blueprint_internal] -- non-vacuity witness for thm:pointwise-eval-kleisli
+theorem pointwise_eval_kleisli_witness (B : ℕ) (i : Fin B)
+    (s : Fin B → ctxObj (witReading B).domB witFormula.on) :
+    (witReading B).semBatchOn witFormula witFormula_ktyped s i
+      = (witReading B).semPlain witFormula witFormula_ktyped
+          ((witReading B).ctxAt i witFormula.on (s i)) :=
+  pointwise_eval_kleisli (witReading B) i witFormula witFormula_ktyped s
+
+end Witness
+
 end NeSyCat

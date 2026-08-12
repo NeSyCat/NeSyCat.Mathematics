@@ -3348,7 +3348,7 @@ against each other.
 % counts or the computed structural names differ from it. Both numbers
 % quoted in the prose and the table below must be kept equal to it by
 % hand; the gate catches the drift, it does not repair it.
-% CLASSIFY-SENTINEL: total=63 structural=5 arithmetic=58 names=NeSyCat.batchTransformer,NeSyCat.batch_layer_exact,NeSyCat.ev_isMonadMorphism,NeSyCat.ev_strength_natural,NeSyCat.typeStrength_naturality_left
+% CLASSIFY-SENTINEL: total=64 structural=6 arithmetic=58 names=NeSyCat.batchTransformer,NeSyCat.batch_layer_exact,NeSyCat.ev_isMonadMorphism,NeSyCat.ev_strength_natural,NeSyCat.pointwise_eval_kleisli,NeSyCat.typeStrength_naturality_left
 \textbf{Which laws hold for any carrier.} Two kinds of statement have
 been proved above, and an implementation stands in a different relation
 to each. A statement of the first kind constrains its value carrier
@@ -3377,7 +3377,7 @@ formalized statements themselves rather than assigned by hand.
   {\raggedright\textbf{What the hypotheses demand of the carrier}\par} &
   {\raggedright\textbf{What an implementation gets}\par} \\
 \hline
-{\raggedright carrier-agnostic ($5$ of $63$)\par} &
+{\raggedright carrier-agnostic ($6$ of $64$)\par} &
   {\raggedright nothing at all: the value types are bare types, and of
    the ambient monad anywhere from no law at all to full lawfulness,
    depending on the identity\par} &
@@ -3386,7 +3386,7 @@ formalized statements themselves rather than assigned by hand.
    implementation's monad satisfies the one law each identity itself
    asks for, if any; five of Theorem~\ref{thm:batch-exactness}'s six
    identities do not need even the left unit law\par} \\
-{\raggedright carrier-algebraic ($58$ of $63$)\par} &
+{\raggedright carrier-algebraic ($58$ of $64$)\par} &
   {\raggedright a semiring, a lattice or an order, a monoidal or
    braided category, or a fixed carrier ($\MassS$, $\MassSInf$,
    $\LogS$, $\mathbb Q_{\ge 0}$, $[0,1]$, matrices)\par} &
@@ -3404,7 +3404,11 @@ the concrete substrate built toward
 Theorem~\ref{thm:pointwise-eval-kleisli}: Lemma~\ref{lem:type-strength-laws}'s
 strength laws, which need the ambient monad fully lawful, and
 Lemma~\ref{lem:ev-strength-natural}'s commutation of $\mathrm{ev}_i$
-with strength, which needs no law of it at all. Every other cited
+with strength, which needs no law of it at all. Theorem~\ref{thm:pointwise-eval-kleisli}
+itself joins that side, and is the strongest member of it: batching is
+transparent whatever the weights are, since its statement asks the value
+carrier for no algebra, no order and no coherence, only the ambient monad
+for its laws. Every other cited
 statement of this document is carrier-algebraic,
 Lemma~\ref{lem:quantifier-nestable} included: its hypotheses give the
 ambient category a monoidal and a
@@ -3458,17 +3462,48 @@ Evaluation $\mathrm{ev}_i$ (Theorem~\ref{thm:pointwise-eval}) commutes
 with the Kleisli interpretation of feed-forward composites (grammar
 interpretation, Definition~\ref{def:kleisli-interpretation}) under
 this hypothesis.
-\uses{thm:pointwise-eval, def:kleisli-interpretation}
+\uses{thm:pointwise-eval, def:kleisli-interpretation, lem:kleisli-formula-natural, def:interpretation-morphism}
+\lean{NeSyCat.pointwise_eval_kleisli}
+\leanok
 \end{theorem}
 
 \begin{proof}
-Induction on the grammar of
-Definition~\ref{def:grammatical-signature}. Theorem~\ref{thm:pointwise-eval}
-gives the base case: $\mathrm{ev}_i$ commutes with $\Ret$ and $\bind$
-unconditionally. The batch-naturality hypothesis extends this through
-every symbol clause of Definition~\ref{def:kleisli-interpretation}, one
-grammar rule at a time.
+\leanok
+The batch-naturality hypothesis is exactly what makes $\mathrm{ev}_i$ a
+morphism of interpretations (Definition~\ref{def:interpretation-morphism})
+from the batched reading to the plain one. Its object part is the
+projection of a batch to its $i$-th component, its truth objects agree,
+and its monad part is $\mathrm{ev}_i$ read as a monad morphism
+(Theorem~\ref{thm:pointwise-eval}). The four naturality laws of that
+morphism are the hypothesis itself, one per symbol kind. Strength
+compatibility is not assumed: at $\mathbf{Set}$ it is a theorem about the
+canonical strength. Lemma~\ref{lem:kleisli-formula-natural} applied to
+that morphism commutes the whole grammar past it,
+\[
+  \sem{\varphi}^{\Bmon\mathcal M} \seq \mathrm{ev}_i
+    \;=\; \mathrm{ev}_i \seq \sem{\varphi}^{\mathcal M},
+\]
+an equality of morphisms out of the batched context. Reading both sides
+at the batch $s$ evaluates the left to
+$\sem{\varphi}^{\Bmon\mathcal M}(s)(i)$ and the right to
+$\sem{\varphi}^{\mathcal M}(s_i)$, which is the display.
 \end{proof}
+
+The enumeration of a quantified variable's domain is taken to be the same
+in both readings, and the batched reading's points to be the constant
+embeddings of the plain reading's. This is a modelling choice and is
+stated as one. Batching runs $\Bidx$ independent copies of one formula, so
+a quantifier ranges over a domain the signature fixes; were the
+enumeration to vary with the batch index, a quantified formula would range
+over tuples and batching would change what the formula means, which is the
+negation of the theorem above.
+
+The theorem is an implication, so it is worth nothing unless something
+satisfies its hypothesis. A witness is formalized alongside it: one domain
+symbol read as $\mathbb B$, one relation symbol reading its single pure
+argument, one nullary $\bigcirc$-marked connective returning the
+batch-constant $\mathrm{true}$, and one variable over a two-point domain,
+at every batch size.
 
 Theorem~\ref{thm:pointwise-eval-kleisli} really needs the
 batch-naturality hypothesis. Without it, only
