@@ -48,9 +48,52 @@ induction — `thm:pointwise-eval` (`ev_isMonadMorphism`) gives the
 one clause shape at a time, exactly the env's own proof sketch — and
 `BatchProgram.runBatch_apply` derives the env's display equation
 `⟦φ⟧^{Bmon M}(s)(i) = ⟦φ⟧^{M}(s_i)` for a batch `s : Fin B → X` of
-inputs. The env carries NO `\lean`/`\leanok` mark: this model is
-faithful to the clause structure but is not literally `Fm.sem`, and
-marking over less than the env states is not an option.
+inputs. That model carried no blueprint mark, since it is faithful to
+the clause structure but is not literally `Fm.sem`.
+
+## The theorem itself (C4-T3)
+
+`pointwise_eval_kleisli` below IS `thm:pointwise-eval-kleisli`, over
+`Fm.sem` itself. `BatchNaturalReading` bundles an unbatched Kleisli
+interpretation at `def:type-cat-interpretation`'s realization of `𝓜`
+together with a batched one at `Bmon 𝓜`, and the four batch-naturality
+laws relating their symbol data; `evMorphism` turns that bundle into a
+morphism of interpretations (`def:interpretation-morphism`) at `ev i`,
+and `lem:kleisli-formula-natural` (`Fm.sem_natural`) does the induction.
+
+**Where the batch lives (disclosed modelling choice).** The two readings
+assign the SAME object to a domain symbol, the same truth object, the
+same variable enumeration and the same parameter spaces; only the monad
+differs. This is what makes the env's own hypothesis formula
+`𝓘^{Bmon 𝓜}(f) = 𝓘^{𝓜}(f) ⨟ lift_{𝓜}` typecheck: `lift_M` embeds an
+`𝓜`-effect into a `Bmon 𝓜`-effect and leaves the value object alone. The
+batch of inputs enters at the top, index by index (`semBatchOn`), exactly
+as `BatchProgram.runBatch` above already does, and `⟦φ⟧^{Bmon 𝓜}(s)(i)`
+then means what the env writes: run the batched reading on the batch's
+`i`-th input and read the result at index `i`.
+
+**Why the object family is not batched (a corrected expectation).** The
+alternative reading, in which a domain symbol is sent to `Bidx → 𝓘(S)`
+while the truth object stays shared, makes the hypothesis UNSATISFIABLE
+whenever the signature has a relation symbol and `B ≥ 2`: `𝓘(R)` lands in
+`Ω`, so `relMorK_compat` would demand one truth value equal to the
+unbatched reading of every slice of the batch at once, and slices differ.
+Batching the truth object too repairs satisfiability but changes the
+env's display, which then needs a second read at `i`. The reading used
+here is the only one of the three that keeps both the env's hypothesis
+formula and the env's display equation.
+
+**Scope disclosure.** Batch-naturality is satisfiable symbol by symbol
+whenever a symbol's domain and codomain carry the same monad marker, or
+its domain is pure and its codomain effectful: at a `○`-marked codomain
+the batch-constant lift `𝓘(f) ⨟ lift_M` works, and at matching markers
+the index-by-index application works. It is NOT satisfiable for `B ≥ 2`
+at a symbol that consumes an effect and returns a pure value, that is, a
+relation symbol with a `○`-marked argument, or a function symbol with a
+`○`-marked argument and an `Id`-marked result: reading the argument at
+index `i` and producing one shared pure value forces that value to be
+independent of `i`. Such a symbol has no batch-natural batched reading,
+and this theorem says nothing about a signature that uses one.
 -/
 
 namespace NeSyCat
@@ -196,42 +239,17 @@ interpretation, `def:type-cat-interpretation` at the batch transform
 noncomputable abbrev batchCat (sigA : CatSignature) (B : ℕ) (M : Type → Type)
     [Monad M] [LawfulMonad M] : CatInterpretation sigA :=
   typeCatInterpretation sigA (BmonT B M)
-
-/-- Toward `thm:pointwise-eval-kleisli`: the batched reading of a domain
-interpretation's objects, `S ↦ (Bidx → 𝓘(S))`. The batched reading
-consumes a batch of inputs, so its object family is batched too. -/
-@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: the batched
--- object family on domain symbols
-def batchObj {sigG : DomSignature} (B : ℕ) (dom : sigG.Dom → Type) :
-    sigG.Dom → Type := fun S => Fin B → dom S
-
-/-- Toward `thm:pointwise-eval-kleisli`: the batch-constant embedding
-`X → (Bidx → X)`, the same value at every index. -/
-@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: the
--- batch-constant embedding
-def constBatch (B : ℕ) (X : Type) : X ⟶ (Fin B → X) := ↾ fun v _ => v
-
-/-- Toward `thm:pointwise-eval-kleisli`: `ev_i` on a domain symbol's
-batched object, the projection `(Bidx → 𝓘(S)) → 𝓘(S)` at slot `i`. -/
-@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: the object-level
--- half of ev_i
-def evDom {sigG : DomSignature} {dom : sigG.Dom → Type} (i : Fin B) (S : sigG.Dom) :
-    batchObj B dom S ⟶ dom S :=
-  ↾ fun g : Fin B → dom S => g i
-
-/-- Toward `thm:pointwise-eval-kleisli`: `ev_i` at one marked slot. An
-`Id`-marked slot carries a batch, read at index `i`. A `○`-marked slot
-carries a batched computation of a batched value: the computation is run
-at index `i`, and its value read at index `i` too. -/
+/-- Toward `thm:pointwise-eval-kleisli`: `ev_i` at one marked slot. Both
+readings assign the same object to a domain symbol, so an `Id`-marked slot
+is carried by the identity; a `○`-marked slot carries a batched
+computation, read at index `i`. -/
 @[blueprint_internal] -- toward thm:pointwise-eval-kleisli: ev_i at one
 -- marked slot
-noncomputable def evMarker {sigG : DomSignature} (i : Fin B) (dom : sigG.Dom → Type) :
-    (m : MonSym) → (S : sigG.Dom) →
-      ((batchCat sigA B M).interpretMon m).obj (batchObj B dom S) ⟶
-        ((typeCatInterpretation sigA M).interpretMon m).obj (dom S)
-  | .id, S => evDom i S
-  | .mon, S => ↾ fun c : BmonT B M (Fin B → dom S) =>
-      (((fun g => g i) <$> ev i c : M (dom S)))
+noncomputable def evAt (i : Fin B) (X : Type) :
+    (m : MonSym) → ((batchCat sigA B M).interpretMon m).obj X ⟶
+      ((typeCatInterpretation sigA M).interpretMon m).obj X
+  | .id => 𝟙 X
+  | .mon => ↾ fun c : BmonT B M X => ev i c
 
 /-- Toward `thm:pointwise-eval-kleisli`: `ev_i` on a marked-symbol list's
 tensor, slot by slot. -/
@@ -239,51 +257,40 @@ tensor, slot by slot. -/
 -- marked-symbol list's tensor
 noncomputable def evMS {sigG : DomSignature} (i : Fin B) (dom : sigG.Dom → Type) :
     (l : List (MonSym × sigG.Dom)) →
-      interpretMS (batchCat sigA B M) (batchObj B dom) l ⟶
+      interpretMS (batchCat sigA B M) dom l ⟶
         interpretMS (typeCatInterpretation sigA M) dom l
   | [] => 𝟙 (𝟙_ (batchCat sigA B M).cd.C)
-  | p :: l => evMarker i dom p.1 p.2 ⊗ₘ evMS i dom l
-
-/-- Toward `thm:pointwise-eval-kleisli`: `ev_i` at one marked slot of the
-truth object. Both readings share one truth object, so an `Id`-marked slot
-is carried by the identity and a `○`-marked one by `ev_i`. -/
-@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: ev_i at one
--- marked slot of the shared truth object
-noncomputable def evOmega (i : Fin B) (Om : Type) :
-    (m : MonSym) → ((batchCat sigA B M).interpretMon m).obj Om ⟶
-      ((typeCatInterpretation sigA M).interpretMon m).obj Om
-  | .id => 𝟙 Om
-  | .mon => ↾ fun c : BmonT B M Om => ev i c
+  | p :: l => evAt i (dom p.2) p.1 ⊗ₘ evMS i dom l
 
 /-- Toward `thm:pointwise-eval-kleisli`: `ev_i` on a tensor power of the
 truth object, slot by slot. -/
 @[blueprint_internal] -- toward thm:pointwise-eval-kleisli: ev_i on a
--- tensor power of the shared truth object
+-- tensor power of the truth object
 noncomputable def evPow (i : Fin B) (Om : Type) (m : MonSym) :
     (n : ℕ) → interpretPow (batchCat sigA B M) Om m n ⟶
       interpretPow (typeCatInterpretation sigA M) Om m n
   | 0 => 𝟙 (𝟙_ (batchCat sigA B M).cd.C)
-  | n + 1 => evOmega i Om m ⊗ₘ evPow i Om m n
+  | n + 1 => evAt i Om m ⊗ₘ evPow i Om m n
 
 /-- Toward `thm:pointwise-eval-kleisli`: the per-slot transport of
-`def:interpretation-morphism` at the shared truth object is `ev_i` there. -/
-@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: markerMor at the
--- shared truth object
-theorem markerMor_omega (i : Fin B) (Om : Type) (m : MonSym) :
+`def:interpretation-morphism` at `ev_i`'s data is `ev_i` at that slot. -/
+@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: markerMor at
+-- ev_i's data
+theorem markerMor_ev (i : Fin B) (X : Type) (m : MonSym) :
     markerMor (I := batchCat sigA B M) (M₂ := CategoryTheory.ofTypeMonad M)
-        (evMonadHom i).toNatTrans m (𝟙 Om) = evOmega i Om m := by
+        (evMonadHom i).toNatTrans m (𝟙 X) = evAt i X m := by
   cases m with
   | id => rfl
   | mon =>
     rw [markerMor_mon,
-      CategoryTheory.Functor.map_id (self := (CategoryTheory.ofTypeMonad M).toFunctor) (X := Om)]
+      CategoryTheory.Functor.map_id (self := (CategoryTheory.ofTypeMonad M).toFunctor) (X := X)]
     exact Category.comp_id _
 
 /-- Toward `thm:pointwise-eval-kleisli`: the induced morphism on a tensor
-power of the shared truth object is `ev_i` slot by slot. -/
+power of the truth object is `ev_i` slot by slot. -/
 @[blueprint_internal] -- toward thm:pointwise-eval-kleisli: interpretPowMor
 -- at ev_i's data
-theorem interpretPowMor_omega (i : Fin B) (Om : Type) (m : MonSym) :
+theorem interpretPowMor_ev (i : Fin B) (Om : Type) (m : MonSym) :
     ∀ n : ℕ,
       interpretPowMor (I := batchCat sigA B M) (M₂ := CategoryTheory.ofTypeMonad M)
           (evMonadHom i).toNatTrans (𝟙 Om) m n = evPow i Om m n
@@ -292,24 +299,22 @@ theorem interpretPowMor_omega (i : Fin B) (Om : Type) (m : MonSym) :
     change markerMor _ m (𝟙 Om) ⊗ₘ
         interpretPowMor (I := batchCat sigA B M) (M₂ := CategoryTheory.ofTypeMonad M)
           (evMonadHom i).toNatTrans (𝟙 Om) m n
-      = evOmega i Om m ⊗ₘ evPow i Om m n
-    rw [markerMor_omega i Om m, interpretPowMor_omega i Om m n]
+      = evAt i Om m ⊗ₘ evPow i Om m n
+    rw [markerMor_ev i Om m, interpretPowMor_ev i Om m n]
     rfl
 
 /-- Toward `thm:pointwise-eval-kleisli`: an unbatched reading of a grammar
 together with a batched one that is BATCH-NATURAL over it. The unbatched
 reading is a Kleisli interpretation (`def:kleisli-interpretation`) at
 `def:type-cat-interpretation`'s realization of `𝓜`. The batched reading is
-the same interpretation with `Bmon 𝓜` in place of `𝓜`, the batched object
-family `S ↦ (Bidx → 𝓘(S))` in place of `𝓘(S)`, one shared truth object, and
-its own symbol data; batch-naturality is the four laws below, each saying
-that the batched interpretation of a symbol, read at index `i`, is the
-unbatched one read at index `i` first.
-
-The variable enumeration is not batched: a quantifier ranges over a domain
-fixed by the signature, so the two readings enumerate the same points and
-the batched enumeration is the batch-constant embedding of the unbatched
-one (`kleisliB` below). Parameter spaces are not batched either. -/
+the same interpretation with `Bmon 𝓜` in place of `𝓜`: the objects, the
+truth object, the variable enumeration and the parameter spaces are shared,
+only the monad changes, and the batched reading has its own symbol data.
+Batch-naturality is the four laws below, each saying that the batched
+interpretation of a symbol, read at index `i`, is the unbatched one. At a
+symbol whose codomain is `○`-marked and whose domain is not, the canonical
+solution is the env's own formula, the batch-constant lift
+`𝓘^{Bmon 𝓜}(f) = 𝓘^{𝓜}(f) ⨟ lift_{𝓜}`. -/
 @[blueprint_internal] -- toward thm:pointwise-eval-kleisli: the two readings
 -- and the batch-naturality hypothesis, bundled
 structure BatchNaturalReading (sigA : CatSignature) (sigB : LogSignature)
@@ -333,39 +338,38 @@ structure BatchNaturalReading (sigA : CatSignature) (sigB : LogSignature)
   no clause of the formula semantics reads it. -/
   funMorB : ∀ f : sigG.Fun,
     (batchCat sigA B M).act (interpretSpc (batchCat sigA B M) D.spcObj (sigG.fpar f))
-        (interpretMS (batchCat sigA B M) (batchObj B D.domObj) (sigG.fdom f)) ⟶
-      interpretMS (batchCat sigA B M) (batchObj B D.domObj) (sigG.fcod f)
+        (interpretMS (batchCat sigA B M) D.domObj (sigG.fdom f)) ⟶
+      interpretMS (batchCat sigA B M) D.domObj (sigG.fcod f)
   /-- The batched parameter-threaded morphism of each relation symbol,
   unconstrained for the same reason. -/
   relMorB : ∀ R : sigG.Rel,
     (batchCat sigA B M).act (interpretSpc (batchCat sigA B M) D.spcObj (sigG.rpar R))
-        (interpretMS (batchCat sigA B M) (batchObj B D.domObj) (sigG.rari R)) ⟶ J.Ω
+        (interpretMS (batchCat sigA B M) D.domObj (sigG.rari R)) ⟶ J.Ω
   /-- The batched interpretation of each function symbol at its
   parameter-free instance. -/
   funMorKB : ∀ f : sigG.Fun,
-    interpretMS (batchCat sigA B M) (batchObj B D.domObj) (sigG.fdom f) ⟶
-      interpretMS (batchCat sigA B M) (batchObj B D.domObj) (sigG.fcod f)
+    interpretMS (batchCat sigA B M) D.domObj (sigG.fdom f) ⟶
+      interpretMS (batchCat sigA B M) D.domObj (sigG.fcod f)
   /-- The batched interpretation of each relation symbol at its
   parameter-free instance. -/
   relMorKB : ∀ R : sigG.Rel,
-    interpretMS (batchCat sigA B M) (batchObj B D.domObj) (sigG.rari R) ⟶ J.Ω
+    interpretMS (batchCat sigA B M) D.domObj (sigG.rari R) ⟶ J.Ω
   /-- Batch-naturality at every function symbol: applying the batched
   interpretation and then reading index `i` is reading index `i` and then
   applying the unbatched interpretation. -/
   funMorK_batchNatural : ∀ (i : Fin B) (f : sigG.Fun),
     funMorKB f ≫ evMS i D.domObj (sigG.fcod f)
       = evMS i D.domObj (sigG.fdom f) ≫ K.funMorK f
-  /-- Batch-naturality at every relation symbol. The truth object is shared,
-  so no reading of the value side is needed on the left. -/
+  /-- Batch-naturality at every relation symbol. -/
   relMorK_batchNatural : ∀ (i : Fin B) (R : sigG.Rel),
     relMorKB R = evMS i D.domObj (sigG.rari R) ≫ K.relMorK R
   /-- Batch-naturality at every connective symbol. -/
   connMor_batchNatural : ∀ (i : Fin B) (c : sigB.Conn),
-    connMorB c ≫ evOmega i J.Ω (sigB.connMonad c)
+    connMorB c ≫ evAt i J.Ω (sigB.connMonad c)
       = evPow i J.Ω (sigB.connMonad c) (sigB.connArity c) ≫ J.connMor c
   /-- Batch-naturality at every quantifier symbol, at every arity. -/
   quanMor_batchNatural : ∀ (i : Fin B) (Q : sigB.Quan) (n : ℕ),
-    quanMorB Q n ≫ evOmega i J.Ω (sigB.quanMonad Q)
+    quanMorB Q n ≫ evAt i J.Ω (sigB.quanMonad Q)
       = evPow i J.Ω (sigB.quanMonad Q) n ≫ J.quanMor Q n
 
 namespace BatchNaturalReading
@@ -382,20 +386,19 @@ noncomputable def logB : LogInterpretation (batchCat sigA B M) sigB where
   quanMor := P.quanMorB
 
 /-- Toward `thm:pointwise-eval-kleisli`: the batched domain interpretation.
-Its object family is batched, `S ↦ (Bidx → 𝓘(S))`; parameter spaces are
-not. -/
+Both readings assign the same object to a domain symbol and the same object
+to a parameter space; the batch lives in the monad. -/
 @[blueprint_internal] -- toward thm:pointwise-eval-kleisli: the batched
 -- domain interpretation
 noncomputable def domB : DomInterpretation (batchCat sigA B M) P.logB sigG where
-  domObj := batchObj B P.D.domObj
+  domObj := P.D.domObj
   spcObj := P.D.spcObj
   funMor := P.funMorB
   relMor := P.relMorB
 
-/-- Toward `thm:pointwise-eval-kleisli`: the batched Kleisli
-interpretation. Its variable enumeration is the batch-constant embedding
-of the unbatched one: a quantifier ranges over a domain fixed by the
-signature, the same domain at every index. -/
+/-- Toward `thm:pointwise-eval-kleisli`: the batched Kleisli interpretation.
+Its variable enumeration is the unbatched one: a quantifier ranges over a
+domain fixed by the signature, the same domain at every index. -/
 @[blueprint_internal] -- toward thm:pointwise-eval-kleisli: the batched
 -- Kleisli interpretation
 noncomputable def kleisliB :
@@ -405,45 +408,28 @@ noncomputable def kleisliB :
   funMorK := P.funMorKB
   relMorK := P.relMorKB
   varCard := P.K.varCard
-  varPt := fun x j => P.K.varPt x j ≫ constBatch B (P.D.domObj (sigG.varOver x))
-
-/-- Toward `thm:pointwise-eval-kleisli`: the per-slot transport of
-`def:interpretation-morphism` at `ev_i`'s data is `ev_i` at that slot. -/
-@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: markerMor at
--- ev_i's data
-theorem markerMor_evDom (i : Fin B) (m : MonSym) (S : sigG.Dom) :
-    markerMor (I := batchCat sigA B M) (M₂ := CategoryTheory.ofTypeMonad M)
-        (evMonadHom i).toNatTrans m (evDom (dom := P.D.domObj) i S)
-      = evMarker i P.D.domObj m S := by
-  cases m with
-  | id => rfl
-  | mon => rfl
+  varPt := P.K.varPt
 
 /-- Toward `thm:pointwise-eval-kleisli`: the induced morphism on a
 marked-symbol list's tensor is `ev_i` slot by slot. -/
 @[blueprint_internal] -- toward thm:pointwise-eval-kleisli: interpretMSMor
 -- at ev_i's data
-theorem interpretMSMor_evDom (i : Fin B) :
+theorem interpretMSMor_ev (i : Fin B) :
     ∀ l : List (MonSym × sigG.Dom),
-      interpretMSMor P.domB P.D (evMonadHom i).toNatTrans (fun S => evDom i S) l
+      interpretMSMor P.domB P.D (evMonadHom i).toNatTrans (fun S => 𝟙 (P.D.domObj S)) l
         = evMS i P.D.domObj l
   | [] => rfl
   | p :: l => by
-    change markerMor _ p.1 (evDom i p.2) ⊗ₘ
-        interpretMSMor P.domB P.D (evMonadHom i).toNatTrans (fun S => evDom i S) l
-      = evMarker i P.D.domObj p.1 p.2 ⊗ₘ evMS i P.D.domObj l
-    rw [markerMor_evDom P i p.1 p.2, interpretMSMor_evDom i l]
+    change interpretMSMor P.domB P.D (evMonadHom i).toNatTrans
+          (fun S => 𝟙 (P.D.domObj S)) (p :: l)
+      = evAt (sigA := sigA) (M := M) i (P.D.domObj p.2) p.1 ⊗ₘ evMS i P.D.domObj l
+    rw [← markerMor_ev (sigA := sigA) (M := M) i (P.D.domObj p.2) p.1,
+      ← interpretMSMor_ev i l]
     rfl
 
 end BatchNaturalReading
 
-/-- Toward `thm:pointwise-eval-kleisli`: reading a batch-constant family at
-any index returns the value it was built from. -/
-@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: ev_i undoes the
--- batch-constant embedding
-theorem constBatch_evDom {sigG : DomSignature} (i : Fin B) (dom : sigG.Dom → Type)
-    (S : sigG.Dom) : constBatch B (dom S) ≫ evDom (dom := dom) i S = 𝟙 (dom S) := rfl
-
+omit [LawfulMonad M] in
 /-- Toward `thm:pointwise-eval-kleisli`: the two readings' strengths agree
 along `ev_i`, `lem:ev-strength-natural` in morphism form. -/
 @[blueprint_internal] -- toward thm:pointwise-eval-kleisli: strength
@@ -469,14 +455,15 @@ theorem typeStrength_natural_hom {X₁ X₂ Y₁ Y₂ : Type} (a : X₁ ⟶ X₂
 /-- Blueprint `thm:pointwise-eval-kleisli` (the morphism at `ev_i`): under
 batch-naturality, `ev_i` is a morphism of interpretations
 (`def:interpretation-morphism`) from the batched reading to the unbatched
-one. Its object-level family is the projection at slot `i`, its truth-object
-morphism is the identity, and its monad morphism is `def:ev-monad-hom`. -/
+one. Its object-level family and its truth-object morphism are identities,
+both readings assigning the same objects, and its monad morphism is
+`def:ev-monad-hom`. -/
 @[blueprint_internal] -- toward thm:pointwise-eval-kleisli: ev_i as a
 -- morphism of interpretations
 noncomputable def evMorphism (P : BatchNaturalReading sigA sigB sigG B M) (i : Fin B) :
     InterpretationMorphism (M₂ := CategoryTheory.ofTypeMonad M)
       (typeStrongCat sigA (BmonT B M)) P.kleisliB (typeStrongCat sigA M) P.K where
-  domMor := fun S => evDom i S
+  domMor := fun S => 𝟙 (P.D.domObj S)
   omegaMor := 𝟙 P.J.Ω
   domMor_comul := fun _ => rfl
   domMor_counit := fun _ => rfl
@@ -484,24 +471,96 @@ noncomputable def evMorphism (P : BatchNaturalReading sigA sigB sigG B M) (i : F
   strength_compat := fun {X Y} => typeStrength_compat_hom i X Y
   strength_natural := fun a b => typeStrength_natural_hom a b
   funMorK_compat := fun f => by
-    rw [P.interpretMSMor_evDom i (sigG.fcod f), P.interpretMSMor_evDom i (sigG.fdom f)]
+    rw [P.interpretMSMor_ev i (sigG.fcod f), P.interpretMSMor_ev i (sigG.fdom f)]
     exact P.funMorK_batchNatural i f
   relMorK_compat := fun R => by
     have h := P.relMorK_batchNatural i R
-    rw [← P.interpretMSMor_evDom i (sigG.rari R)] at h
+    rw [← P.interpretMSMor_ev i (sigG.rari R)] at h
     exact (Category.comp_id _).trans h
   connMor_compat := fun c => by
     have h := P.connMor_batchNatural i c
-    rw [← markerMor_omega i P.J.Ω (sigB.connMonad c),
-      ← interpretPowMor_omega i P.J.Ω (sigB.connMonad c) (sigB.connArity c)] at h
+    rw [← markerMor_ev i P.J.Ω (sigB.connMonad c),
+      ← interpretPowMor_ev i P.J.Ω (sigB.connMonad c) (sigB.connArity c)] at h
     exact h
   quanMor_compat := fun Q n => by
     have h := P.quanMor_batchNatural i Q n
-    rw [← markerMor_omega i P.J.Ω (sigB.quanMonad Q),
-      ← interpretPowMor_omega i P.J.Ω (sigB.quanMonad Q) n] at h
+    rw [← markerMor_ev i P.J.Ω (sigB.quanMonad Q),
+      ← interpretPowMor_ev i P.J.Ω (sigB.quanMonad Q) n] at h
     exact h
   varCard_compat := fun _ => rfl
   varPt_compat := fun _ _ => rfl
+
+namespace BatchNaturalReading
+
+variable (P : BatchNaturalReading sigA sigB sigG B M) [DecidableEq sigG.Var]
+
+/-- Toward `thm:pointwise-eval-kleisli`: `⟦φ⟧^{Bmon 𝓜}`, the batched reading
+of a formula, as a function of one input. -/
+@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: the batched
+-- reading, as a function
+noncomputable def semBatch (φ : Fm sigG sigB) (h : φ.KTyped) :
+    ctxObj P.domB φ.on → BmonT B M P.J.Ω :=
+  TypeCat.homEquiv (Fm.sem P.kleisliB φ h)
+
+/-- Toward `thm:pointwise-eval-kleisli`: `⟦φ⟧^{𝓜}`, the unbatched reading of
+a formula, as a function. -/
+@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: the unbatched
+-- reading, as a function
+noncomputable def semPlain (φ : Fm sigG sigB) (h : φ.KTyped) :
+    ctxObj (I := typeCatInterpretation sigA M) (J := P.J) P.D φ.on → M P.J.Ω :=
+  TypeCat.homEquiv (Fm.sem P.K φ h)
+
+/-- Toward `thm:pointwise-eval-kleisli`: `s_i`, an input of the batch read
+into the unbatched reading's own context object. Every context slot is
+`Id`-marked, so this map is the identity on values; it exists only because
+the two readings compute the same context object through their own
+interpretations of the identity marker. -/
+@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: an input carried
+-- to the unbatched reading's context object
+noncomputable def ctxAt (i : Fin B) (l : List sigG.Var) :
+    ctxObj P.domB l → ctxObj (I := typeCatInterpretation sigA M) (J := P.J) P.D l :=
+  TypeCat.homEquiv ((evMorphism P i).ctxMor l)
+
+/-- Toward `thm:pointwise-eval-kleisli`: `⟦φ⟧^{Bmon 𝓜}(s)`, the batched
+reading run over a batch `s` of inputs, each index reading its own input. -/
+@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: the batched
+-- reading of a batch of inputs
+noncomputable def semBatchOn (φ : Fm sigG sigB) (h : φ.KTyped)
+    (s : Fin B → ctxObj P.domB φ.on) : BmonT B M P.J.Ω :=
+  fun i => P.semBatch φ h (s i) i
+
+/-- Toward `thm:pointwise-eval-kleisli`: the point-free form of the theorem,
+`lem:kleisli-formula-natural` read at `evMorphism`. The target reading's
+transport of the identity on the truth object collapses, leaving `ev_i`
+alone. -/
+@[blueprint_internal] -- toward thm:pointwise-eval-kleisli: the point-free
+-- commutation, Fm.sem_natural at evMorphism
+theorem sem_ev_comm (i : Fin B) (φ : Fm sigG sigB) (h : φ.KTyped) :
+    Fm.sem P.kleisliB φ h ≫ evAt i P.J.Ω MonSym.mon
+      = (evMorphism P i).ctxMor φ.on ≫ Fm.sem P.K φ h := by
+  have formula_natural := Fm.sem_natural (evMorphism P i) φ h
+  rw [← markerMor_ev i P.J.Ω MonSym.mon]
+  exact formula_natural
+
+end BatchNaturalReading
+
+/-- Blueprint `thm:pointwise-eval-kleisli` (Pointwise evaluation commutes
+with the Kleisli interpretation), the env's one cited principal
+declaration: assume every symbol and quantifier interpretation used in the
+batched reading is batch-natural, that is, defined pointwise across the
+batch (`BatchNaturalReading`). Then for a batch `s` of inputs and every
+formula `φ` of `def:grammatical-signature`'s grammar,
+`⟦φ⟧^{Bmon 𝓜}(s)(i) = ⟦φ⟧^{𝓜}(s_i)` at every index `i`.
+
+The proof is `lem:kleisli-formula-natural` at the morphism of
+interpretations `ev_i` becomes under batch-naturality (`evMorphism`), read
+at the batch's own `i`-th input. -/
+theorem pointwise_eval_kleisli [DecidableEq sigG.Var]
+    (P : BatchNaturalReading sigA sigB sigG B M) (i : Fin B)
+    (φ : Fm sigG sigB) (h : φ.KTyped) (s : Fin B → ctxObj P.domB φ.on) :
+    P.semBatchOn φ h s i = P.semPlain φ h (P.ctxAt i φ.on (s i)) := by
+  have formula_natural := P.sem_ev_comm i φ h
+  exact congrArg (fun t => TypeCat.homEquiv t (s i)) formula_natural
 
 end BatchInstantiation
 
