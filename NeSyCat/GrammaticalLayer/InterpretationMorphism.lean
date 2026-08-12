@@ -198,6 +198,37 @@ structure InterpretationMorphism
   /-- The morphism `Ω₁ ⟶ Ω₂` of truth objects. In the batch reading it is
   the identity: a batched formula is read at one shared truth object. -/
   omegaMor : J₁.Ω ⟶ J₂.Ω
+  /-- The object-level family copies: `domMor S` carries the CD category's
+  chosen comultiplication on `𝓘₁(S)` to the one on `𝓘₂(S)`. The formula
+  half's atomic, compound and quantified clauses all route their context
+  through `copy`, so the family has to respect it. In the batch reading
+  this is the diagonal on a function type read at one index. -/
+  domMor_comul : ∀ S : sigG.Dom,
+    domMor S ≫ (I.cd.comon (D₂.domObj S)).comul
+      = (I.cd.comon (D₁.domObj S)).comul ≫ (domMor S ⊗ₘ domMor S)
+  /-- The object-level family discards: `domMor S` carries the CD
+  category's chosen counit on `𝓘₁(S)` to the one on `𝓘₂(S)`. Together with
+  `domMor_comul` this says every component is a comonoid morphism. -/
+  domMor_counit : ∀ S : sigG.Dom,
+    domMor S ≫ (I.cd.comon (D₂.domObj S)).counit = (I.cd.comon (D₁.domObj S)).counit
+  /-- The chosen comultiplication is compatible with the tensor: on
+  `X ⊠ Y` it is the two factors' comultiplications followed by the shuffle
+  that puts the four factors back in order. This is a law of the CD
+  category alone, like `strength_natural` below, and it travels here for
+  the same reason: this file may not change `CDCategory`. `CDCategory`
+  does declare a field of this name, but as elaborated that field is
+  reflexivity, because the structure's own `comon` field is itself a local
+  instance and so `ComonObj.comul (X := X ⊗ Y)` there resolves to the
+  chosen comonoid rather than to the induced one. -/
+  comul_tensor : ∀ X Y : I.cd.C,
+    (I.cd.comon (X ⊗ Y)).comul
+      = ((I.cd.comon X).comul ⊗ₘ (I.cd.comon Y).comul) ≫ tensorμ X X Y Y
+  /-- The chosen counit is compatible with the tensor: on `X ⊠ Y` it is the
+  two factors' counits into the unit. The discard twin of `comul_tensor`,
+  carried here for the same reason. -/
+  counit_tensor : ∀ X Y : I.cd.C,
+    (I.cd.comon (X ⊗ Y)).counit
+      = ((I.cd.comon X).counit ⊗ₘ (I.cd.comon Y).counit) ≫ (λ_ (𝟙_ I.cd.C)).hom
   /-- The monad morphism `𝓜₁ ⟶ 𝓜₂`. In the batch reading this is `ev i`
   again, now read as a monad morphism `Bmon 𝓜 ⟶ 𝓜` (`evMonadHom`). -/
   monadMor : CategoryTheory.MonadHom I.monad M₂
@@ -891,6 +922,214 @@ theorem Fm.sem_subst_eq (K : KleisliInterpretation I SI J D) (body : Fm sigG sig
 
 end FmClauses
 
+/-!
+## The context machinery is compatible with a morphism of interpretations
+
+The atomic, compound and quantified clauses of `Fm.sem` all route their
+context through `copy` before consuming it, so the formula half needs the
+whole of `def:kleisli-interpretation`'s insertion machinery to commute with
+a morphism of interpretations. `ctxMor_comul` and `ctxMor_counit` are the
+root of that: the induced morphism on a context's tensor is a comonoid
+morphism, because each component is one (`domMor_comul`, `domMor_counit`)
+and the chosen comonoid is compatible with the tensor (`comul_tensor`,
+`counit_tensor`). `ctxProjFilter_compat`, `projTo_compat` and
+`ctxCopy_compat` then carry that up through the three layers of the
+machinery, in the order it is built.
+-/
+
+section ContextCompat
+
+variable {SI₁ : StrongCatInterpretation I} {J₁ : LogInterpretation I sigB}
+  {D₁ : DomInterpretation I J₁ sigG} {K₁ : KleisliInterpretation I SI₁ J₁ D₁}
+  {SI₂ : StrongCatInterpretation (I.withMonad M₂)}
+  {J₂ : LogInterpretation (I.withMonad M₂) sigB}
+  {D₂ : DomInterpretation (I.withMonad M₂) J₂ sigG}
+  {K₂ : KleisliInterpretation (I.withMonad M₂) SI₂ J₂ D₂}
+
+/-- Companion of `def:interpretation-morphism`: the induced morphism on the
+empty context is the identity of the tensor unit. -/
+@[blueprint_internal] -- companion of def:interpretation-morphism: ctxMor's
+-- empty clause
+theorem ctxMor_nil (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) :
+    Φ.ctxMor [] = 𝟙 (𝟙_ I.cd.C) := rfl
+
+/-- Companion of `def:interpretation-morphism`: the induced morphism on a
+context splits off its head slot's own component. -/
+@[blueprint_internal] -- companion of def:interpretation-morphism: ctxMor's
+-- cons clause
+theorem ctxMor_cons (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) (x : sigG.Var)
+    (l : List sigG.Var) :
+    Φ.ctxMor (x :: l) = Φ.domMor (sigG.varOver x) ⊗ₘ Φ.ctxMor l := rfl
+
+/-- Companion of `def:kleisli-interpretation`: the induced morphism on a
+context's tensor discards as the chosen counits do, by induction on the
+context out of `domMor_counit` and `counit_tensor`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: ctxMor
+-- respects the chosen counit
+theorem ctxMor_counit (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) : ∀ l : List sigG.Var,
+    Φ.ctxMor l ≫ (I.cd.comon (ctxObj (I := I.withMonad M₂) (J := J₂) D₂ l)).counit
+      = (I.cd.comon (ctxObj D₁ l)).counit
+  | [] => by
+      change 𝟙 (𝟙_ I.cd.C) ≫ _ = _
+      rw [Category.id_comp]
+      rfl
+  | x :: l' => by
+      have tail_counit := ctxMor_counit Φ l'
+      change (Φ.domMor (sigG.varOver x) ⊗ₘ Φ.ctxMor l') ≫
+          (I.cd.comon (D₂.domObj (sigG.varOver x) ⊗
+            ctxObj (I := I.withMonad M₂) (J := J₂) D₂ l')).counit
+        = (I.cd.comon (D₁.domObj (sigG.varOver x) ⊗ ctxObj D₁ l')).counit
+      rw (config := { transparency := .default })
+        [Φ.counit_tensor, Φ.counit_tensor, ← Category.assoc,
+          tensorHom_comp_tensorHom, Φ.domMor_counit, tail_counit]
+
+/-- Companion of `def:kleisli-interpretation`: the induced morphism on a
+context's tensor copies as the chosen comultiplications do, by induction on
+the context out of `domMor_comul`, `comul_tensor` and naturality of the
+shuffle. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: ctxMor
+-- respects the chosen comultiplication
+theorem ctxMor_comul (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂) : ∀ l : List sigG.Var,
+    Φ.ctxMor l ≫ (I.cd.comon (ctxObj (I := I.withMonad M₂) (J := J₂) D₂ l)).comul
+      = (I.cd.comon (ctxObj D₁ l)).comul ≫ (Φ.ctxMor l ⊗ₘ Φ.ctxMor l)
+  | [] => by
+      change 𝟙 (𝟙_ I.cd.C) ≫ _ = _ ≫ (𝟙 (𝟙_ I.cd.C) ⊗ₘ 𝟙 (𝟙_ I.cd.C))
+      rw [Category.id_comp, tensorHom_id, id_whiskerRight, Category.comp_id]
+      rfl
+  | x :: l' => by
+      have tail_comul := ctxMor_comul Φ l'
+      change (Φ.domMor (sigG.varOver x) ⊗ₘ Φ.ctxMor l') ≫
+          (I.cd.comon (D₂.domObj (sigG.varOver x) ⊗
+            ctxObj (I := I.withMonad M₂) (J := J₂) D₂ l')).comul
+        = (I.cd.comon (D₁.domObj (sigG.varOver x) ⊗ ctxObj D₁ l')).comul ≫
+          ((Φ.domMor (sigG.varOver x) ⊗ₘ Φ.ctxMor l') ⊗ₘ
+            (Φ.domMor (sigG.varOver x) ⊗ₘ Φ.ctxMor l'))
+      rw (config := { transparency := .default })
+        [Φ.comul_tensor, Φ.comul_tensor, ← Category.assoc,
+          tensorHom_comp_tensorHom, Φ.domMor_comul, tail_comul, ← tensorHom_comp_tensorHom,
+          Category.assoc, tensorμ_natural, ← Category.assoc]
+
+/-- Companion of `def:kleisli-interpretation`: the surviving-head clause of
+`ctxProjFilter`, as a rewrite with its list transport made explicit. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- ctxProjFilter's surviving-head clause, cast-free
+theorem ctxProjFilter_cons_pos {J : LogInterpretation I sigB} (D : DomInterpretation I J sigG)
+    (p : sigG.Var → Bool) (y : sigG.Var) (l' : List sigG.Var) (hpy : p y = true) :
+    ctxProjFilter D p (y :: l')
+      = (𝟙 (D.domObj (sigG.varOver y)) ⊗ₘ ctxProjFilter D p l') ≫
+        eqToHom (congrArg (ctxObj D) (List.filter_cons_of_pos hpy).symm) := by
+  have hh : ctxProjFilter D p (y :: l')
+      ≍ (𝟙 (D.domObj (sigG.varOver y)) ⊗ₘ ctxProjFilter D p l') := by
+    rw [ctxProjFilter]
+    split
+    · dsimp only
+      rw (config := { transparency := .default }) [eqRec_cod (ctxObj D)]
+      exact comp_eqToHom_heq _ _
+    · simp_all
+  exact eq_of_heq (hh.trans (comp_eqToHom_heq _ _).symm)
+
+/-- Companion of `def:kleisli-interpretation`: the discarded-head clause of
+`ctxProjFilter`, as a rewrite with its list transport made explicit. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- ctxProjFilter's discarded-head clause, cast-free
+theorem ctxProjFilter_cons_neg {J : LogInterpretation I sigB} (D : DomInterpretation I J sigG)
+    (p : sigG.Var → Bool) (y : sigG.Var) (l' : List sigG.Var) (hpy : p y = false) :
+    ctxProjFilter D p (y :: l')
+      = ((I.cd.comon (D.domObj (sigG.varOver y))).counit ⊗ₘ ctxProjFilter D p l') ≫
+        (λ_ (ctxObj D (l'.filter p))).hom ≫
+        eqToHom (congrArg (ctxObj D)
+          (List.filter_cons_of_neg (by simp [hpy]) : (y :: l').filter p = l'.filter p).symm) := by
+  have hh : ctxProjFilter D p (y :: l')
+      ≍ ((I.cd.comon (D.domObj (sigG.varOver y))).counit ⊗ₘ ctxProjFilter D p l') ≫
+        (λ_ (ctxObj D (l'.filter p))).hom := by
+    rw [ctxProjFilter]
+    split
+    · simp_all
+    · dsimp only
+      rw (config := { transparency := .default }) [eqRec_cod (ctxObj D)]
+      exact comp_eqToHom_heq _ _
+  exact eq_of_heq ((hh.trans (comp_eqToHom_heq _ _).symm).trans
+    (heq_of_eq (Category.assoc _ _ _)))
+
+/-- Companion of `def:kleisli-interpretation`: discarding the variables a
+predicate rejects commutes with a morphism of interpretations, by induction
+on the context. A surviving head is carried by its own component; a
+discarded head is carried by `domMor_counit`. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation:
+-- ctxProjFilter against a morphism of interpretations
+theorem ctxProjFilter_compat (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂)
+    (p : sigG.Var → Bool) : ∀ l : List sigG.Var,
+    Φ.ctxMor l ≫ ctxProjFilter (I := I.withMonad M₂) (J := J₂) D₂ p l
+      = ctxProjFilter D₁ p l ≫ Φ.ctxMor (l.filter p)
+  | [] => by
+      change 𝟙 (𝟙_ I.cd.C) ≫ 𝟙 (𝟙_ I.cd.C) = 𝟙 (𝟙_ I.cd.C) ≫ 𝟙 (𝟙_ I.cd.C)
+      rfl
+  | y :: l' => by
+      have tail_proj := ctxProjFilter_compat Φ p l'
+      cases hpy : p y
+      · rw [ctxProjFilter_cons_neg D₂ p y l' hpy, ctxProjFilter_cons_neg D₁ p y l' hpy,
+          ctxMor_cons]
+        rw (config := { transparency := .default })
+          [Category.assoc, Category.assoc, ctxMor_eqToHom Φ
+            (List.filter_cons_of_neg (by simp [hpy]) : (y :: l').filter p = l'.filter p).symm]
+        conv_rhs => rw [← MonoidalCategory.leftUnitor_naturality_assoc, ← id_tensorHom]
+        rw (config := { transparency := .default })
+          [tensorHom_comp_tensorHom_assoc, tensorHom_comp_tensorHom_assoc, Φ.domMor_counit,
+            tail_proj, Category.comp_id]
+      · rw [ctxProjFilter_cons_pos D₂ p y l' hpy, ctxProjFilter_cons_pos D₁ p y l' hpy,
+          ctxMor_cons]
+        rw (config := { transparency := .default })
+          [Category.assoc, ctxMor_eqToHom Φ (List.filter_cons_of_pos hpy).symm, ctxMor_cons]
+        rw (config := { transparency := .default })
+          [tensorHom_comp_tensorHom_assoc, tensorHom_comp_tensorHom_assoc, tail_proj,
+            Category.comp_id, Category.id_comp]
+        rfl
+
+/-- Companion of `def:kleisli-interpretation`: projecting a context down to
+one of its variables commutes with a morphism of interpretations, by
+`ctxProjFilter_compat` and naturality of the right unitor. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: projTo
+-- against a morphism of interpretations
+theorem projTo_compat [DecidableEq sigG.Var] (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂)
+    (l : List sigG.Var) (hnd : l.Nodup) (x : sigG.Var) (hx : x ∈ l) :
+    Φ.ctxMor l ≫ projTo (I := I.withMonad M₂) (J := J₂) D₂ l hnd x hx
+      = projTo D₁ l hnd x hx ≫ Φ.domMor (sigG.varOver x) := by
+  rw [projTo, projTo]
+  rw (config := { transparency := .default })
+    [← Category.assoc, ctxProjFilter_compat Φ (fun v => decide (v = x)) l, Category.assoc,
+      ← ctxMor_eqToHom_assoc Φ (filter_eq_singleton_of_nodup_mem hnd hx), ctxMor_cons, ctxMor_nil,
+      tensorHom_id, MonoidalCategory.rightUnitor_naturality]
+  simp only [Category.assoc]
+  rfl
+
+/-- Companion of `def:kleisli-interpretation`: routing a deduplicated
+context to every position of a target list commutes with a morphism of
+interpretations, by induction on the target list out of `ctxMor_comul` and
+`projTo_compat`. This is what the atomic and compound clauses of `Fm.sem`
+need, since both prepend `copy` to their argument list's semantics. -/
+@[blueprint_internal] -- companion of def:kleisli-interpretation: ctxCopy
+-- against a morphism of interpretations
+theorem ctxCopy_compat [DecidableEq sigG.Var] (Φ : InterpretationMorphism SI₁ K₁ SI₂ K₂)
+    (Dl : List sigG.Var) (hnd : Dl.Nodup) :
+    ∀ (L : List sigG.Var) (hL : ∀ x ∈ L, x ∈ Dl),
+      ctxCopy D₁ Dl hnd L hL ≫ Φ.ctxMor L
+        = Φ.ctxMor Dl ≫ ctxCopy (I := I.withMonad M₂) (J := J₂) D₂ Dl hnd L hL
+  | [], hL => by
+      rw [ctxCopy, ctxCopy, ctxMor_nil, Category.assoc]
+      rw (config := { transparency := .default })
+        [Category.comp_id, ← Category.assoc, ctxProjFilter_compat Φ (fun _ => false) Dl,
+          Category.assoc, ← ctxMor_eqToHom Φ (by simp : Dl.filter (fun _ => false) = []),
+          ctxMor_nil, Category.comp_id]
+  | x :: L', hL => by
+      have tail_copy := ctxCopy_compat Φ Dl hnd L' (fun y hy => hL y (List.mem_cons_of_mem x hy))
+      rw [ctxCopy, ctxCopy, ctxMor_cons]
+      rw (config := { transparency := .default })
+        [Category.assoc, tensorHom_comp_tensorHom, reassoc_of% (ctxMor_comul Φ Dl),
+          tensorHom_comp_tensorHom, projTo_compat Φ Dl hnd x, ← tail_copy]
+      rfl
+
+end ContextCompat
+
 -- (completeness census, same pattern as `Tm.KTyped.eq_def` in
 -- `NeSyCat/GrammaticalLayer/Kleisli.lean`: equation-lemma and congruence
 -- byproducts of `Tm.sem`/`TmList.sem`, generated in this module by the
@@ -899,7 +1138,8 @@ end FmClauses
 -- blueprint-cited, plumbing of the two semantics functions)
 attribute [blueprint_internal] Tm.sem.eq_def TmList.sem.eq_def Tm.sem.congr_simp
   TmList.sem.congr_simp Fm.sem.eq_def Fm.sem.congr_simp FmList.sem.congr_simp
-  ctxCopy.congr_simp connMorAt.congr_simp
+  ctxCopy.congr_simp connMorAt.congr_simp projTo.congr_simp ctxProjFilter.eq_def
+  ctxCopy.eq_def
 
 -- (step correspondence, C3-ISAR: a mutual block compiles each of its two
 -- theorems to a proof term that mentions only the compiler's own bundle

@@ -2843,18 +2843,48 @@ CD category, each with its own logical
 \textbf{morphism of interpretations} between them consists of a family
 $\mathcal I_1(S) \to \mathcal I_2(S)$ on domain symbols, a map
 $\Omega_1 \to \Omega_2$ of truth objects, and a monad morphism
-$\mathcal M_1 \to \mathcal M_2$, subject to: the two strengths agree
-along the monad morphism; the target strength is natural; and every
-function, relation, connective and quantifier symbol is interpreted
-compatibly with the family.
-\uses{def:kleisli-interpretation, def:logical-interpretation, def:domain-interpretation, def:categorical-interpretation}
+$\mathcal M_1 \to \mathcal M_2$. Every component of the family is a
+comonoid morphism for the CD category's chosen comonoids. The chosen
+comultiplication and counit on $X \boxtimes Y$ are those of $X$ and $Y$
+shuffled back into order. The two strengths agree along the monad
+morphism. Naturality holds for the target strength. Every function,
+relation, connective and quantifier symbol is interpreted compatibly
+with the family.
+\uses{def:kleisli-interpretation, def:logical-interpretation, def:domain-interpretation, def:categorical-interpretation, def:cd-category}
 \end{definition}
 
-Naturality of the target strength is a law about that interpretation
-alone, not a relation between the two. It sits here because
+Three of those laws say nothing about a second reading. Naturality of the
+target strength is a law about that interpretation alone, and the two
+tensor compatibilities are laws about the CD category alone. They sit
+here because
 Definition~\ref{def:categorical-interpretation} bundles the strength as
-data without it, and because carrying it as a hypothesis leaves every
-already-formalized item untouched.
+data without its naturality, and because carrying a law as a hypothesis
+leaves every already-formalized item untouched.
+
+The tensor compatibilities need a further word, because
+Definition~\ref{def:cd-category} already asks for them. Its formal
+counterpart states them in a shape no choice of comonoids can fail: the
+chosen family is itself visible to the elaborator as a way of building a
+comonoid on any object, so both sides of each compatibility equation
+resolve to the chosen comonoid on $X \boxtimes Y$ and the equation
+becomes reflexivity. A morphism of interpretations therefore states the
+two equations again, with the right-hand side written out from the
+factors so that it cannot resolve back. Restating them where
+Definition~\ref{def:cd-category} itself intends them is separate work,
+and until it is done the CD category's tensor compatibility is carried
+by every consumer that needs it rather than by the category.
+% ERRATUM (C4-T2b, 2026-08-12): CDCategory.copy_tensor / CDCategory.del_tensor
+% elaborate to reflexivity. Inside the structure declaration the field
+% `comon : ∀ X : C, ComonObj X` is itself a local instance, so the
+% `ComonObj.comul (X := X ⊗ Y)` on the right-hand side of each field
+% synthesizes `comon (X ⊗ Y)` rather than Mathlib's induced
+% `Comon.instComonObjTensorObj`. Verified by `#check @CDCategory.del_tensor`
+% under `pp.explicit`, and by the negative control
+% `example (cd : CDCategory) (X Y : cd.C) :
+%    (cd.comon (X ⊗ Y)).counit = (cd.comon (X ⊗ Y)).counit := cd.del_tensor X Y`,
+% which typechecks. Repairing the two fields means editing a pre-existing
+% record, which C4-T2b's write set forbids; the laws travel on
+% InterpretationMorphism as comul_tensor / counit_tensor instead.
 
 Two pieces of notation carry such a morphism through the grammar. Its
 family on domain symbols induces a morphism on every list of marked
