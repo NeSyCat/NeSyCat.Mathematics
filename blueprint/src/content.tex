@@ -12,8 +12,8 @@
 % by item rather than turning the whole document red at once; each later
 % phase appends to this line. SENTINEL: the counts, asserted every run, so
 % a display quietly losing its tag stops the build.
-% LEAN-STEP-PHASE: thm:semiring-monad-laws, lem:tilt, thm:pullout, thm:chain-bound-sandwich, thm:chain-bound, lem:kleisli-term-natural, lem:kleisli-formula-natural
-% LEAN-STEP-SENTINEL: envs=7 displays=23 tags=23 names=82
+% LEAN-STEP-PHASE: thm:semiring-monad-laws, lem:tilt, thm:pullout, thm:chain-bound-sandwich, thm:chain-bound, lem:kleisli-term-natural, lem:kleisli-formula-natural, thm:batch-transformer, thm:pointwise-eval
+% LEAN-STEP-SENTINEL: envs=9 displays=28 tags=28 names=92
 
 \section{Introduction}  % lean-dir: -
 
@@ -3177,6 +3177,7 @@ $\mathrm{lift}_{\mathcal M}$'s pair, each an unfolding identity since a
 constant family trivially commutes with diagonal bind:
 % liftM_ret, liftM_bind, BatchTransformer.lean -- both rfl, both stated
 % under `omit [LawfulMonad M]`
+% lean-step: NeSyCat.liftM_ret, NeSyCat.liftM_bind
 \[
   \mathrm{lift}_{\mathcal M}\bigl(\Ret_{\mathcal M}(x)\bigr) = \Ret_{\Bmon\mathcal M}(x),
   \qquad
@@ -3186,6 +3187,7 @@ constant family trivially commutes with diagonal bind:
 $\mathrm{lift}_{\Bmon}$'s unit clause is an unfolding identity too, both
 sides being the constant family $\Ret_{\mathcal M}(x)$:
 % liftBmon_ret, BatchTransformer.lean -- rfl, under `omit [LawfulMonad M]`
+% lean-step: NeSyCat.liftBmon_ret
 \[
   \mathrm{lift}_{\Bmon}\bigl(\Ret_{\Bmon}(x)\bigr) = \Ret_{\Bmon\mathcal M}(x).
 \]
@@ -3197,6 +3199,7 @@ $\mathcal M$-computations
 % exactly these two sides; the left unit law is the theorem's own
 % explicit hypothesis `hleft` after C3-EXEC-FIX2, discharged by
 % pure_bind wherever [LawfulMonad M] is at hand.
+% lean-step: NeSyCat.liftBmon_bind
 \begin{align*}
   \mathrm{lift}_{\Bmon}(m \bind_{\Bmon} f)(b)
     &= \Ret_{\mathcal M}\bigl(f(m(b))(b)\bigr), \\
@@ -3260,13 +3263,21 @@ arbitrary monad, lawful or not.
 % that a displayed chain matches the Lean term. Found downstream, in the
 % NeSy26 paper's copy of this proof, and corrected in both.
 $\Bmon\mathcal M$'s unit is constant at $\Ret_{\mathcal M}(a)$, so
-$\mathrm{ev}_i(\Ret_{\Bmon\mathcal M}(a)) =
-\mathrm{const}(\Ret_{\mathcal M}(a))(i) = \Ret_{\mathcal M}(a)$. Its
-bind is diagonal, and at index $i$ it binds in $\mathcal M$, so
-$\mathrm{ev}_i(m \bind f) = (m \bind f)(i) = m(i) \bind_{\mathcal M}
-(\lambda x.\, f(x)(i)) = \mathrm{ev}_i(m) \bind (f \seq
-\mathrm{ev}_i)$. Each chain is a chain of unfoldings of the encoding, so
-each holds whatever $\bind_{\mathcal M}$ is.
+% lean-step: NeSyCat.ev, ReaderT.instMonad, rfl
+\[
+  \mathrm{ev}_i\bigl(\Ret_{\Bmon\mathcal M}(a)\bigr)
+    = \mathrm{const}\bigl(\Ret_{\mathcal M}(a)\bigr)(i)
+    = \Ret_{\mathcal M}(a).
+\]
+Its bind is diagonal, and at index $i$ it binds in $\mathcal M$, so
+% lean-step: NeSyCat.ev, ReaderT.instMonad, rfl
+\[
+  \mathrm{ev}_i(m \bind f) = (m \bind f)(i)
+    = m(i) \bind_{\mathcal M} (\lambda x.\, f(x)(i))
+    = \mathrm{ev}_i(m) \bind (f \seq \mathrm{ev}_i).
+\]
+Each chain is a chain of unfoldings of the encoding, so each holds
+whatever $\bind_{\mathcal M}$ is.
 \end{proof}
 
 \begin{theorem}[Batching is exact]
