@@ -3244,12 +3244,29 @@ arbitrary monad, lawful or not.
 
 \begin{proof}
 \leanok
-$\mathrm{ev}_i(\Ret_{\Bmon\mathcal M}(a)) = \mathrm{const}(a)(i) = a =
-\Ret_{\mathcal M}(a)$. $\mathrm{ev}_i(m \bind f) = f(m(i))(i) = m(i)
-\bind_{\mathcal M} (\lambda x.\, f(x)(i)) = \mathrm{ev}_i(m) \bind
-(f \seq \mathrm{ev}_i)$, unfolding the diagonal bind of
-Definition~\ref{def:batch-monad}. Each chain is a chain of unfoldings
-of the encoding, so each holds whatever $\bind_{\mathcal M}$ is.
+% ERRATUM (2026-08-13). Both chains below previously used the PURE
+% batch monad's operations where the transformer's were meant. The unit
+% read $\mathrm{const}(a)(i) = a$, which drops the inner
+% $\Ret_{\mathcal M}$ and equates $a : X$ with an element of
+% $\mathcal M X$; $\Ret_{\Bmon\mathcal M}(a)$ is constant at
+% $\Ret_{\mathcal M}(a)$, not at $a$. The bind read $f(m(i))(i)$, which
+% is Definition~\ref{def:batch-monad}'s diagonal bind on $\Bmon X =
+% (\Bidx \to X)$ and is ill-typed at $\Bmon\mathcal M$, where
+% $m(i) : \mathcal M X$ rather than $X$, so $f$ cannot be applied to it.
+% The Lean proof was never affected: both clauses of
+% NeSyCat.ev_isMonadMorphism are `rfl` against ReaderT's own pure and
+% bind. A prose transcription defect that no gate covers, since
+% kind-check verifies that a cited name exists with the right kind, not
+% that a displayed chain matches the Lean term. Found downstream, in the
+% NeSy26 paper's copy of this proof, and corrected in both.
+$\Bmon\mathcal M$'s unit is constant at $\Ret_{\mathcal M}(a)$, so
+$\mathrm{ev}_i(\Ret_{\Bmon\mathcal M}(a)) =
+\mathrm{const}(\Ret_{\mathcal M}(a))(i) = \Ret_{\mathcal M}(a)$. Its
+bind is diagonal, and at index $i$ it binds in $\mathcal M$, so
+$\mathrm{ev}_i(m \bind f) = (m \bind f)(i) = m(i) \bind_{\mathcal M}
+(\lambda x.\, f(x)(i)) = \mathrm{ev}_i(m) \bind (f \seq
+\mathrm{ev}_i)$. Each chain is a chain of unfoldings of the encoding, so
+each holds whatever $\bind_{\mathcal M}$ is.
 \end{proof}
 
 \begin{theorem}[Batching is exact]
