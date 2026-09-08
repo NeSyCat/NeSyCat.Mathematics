@@ -1,9 +1,0 @@
-{
-  "name": "nesycat-lean4-harness",
-  "displayName": "NeSyCat Lean4 Harness",
-  "version": "0.1.0",
-  "description": "Campaign-layer autoformalization harness: rules-file law, progress ledger, grind loop, scope-guard hooks — complements cameronfreer/lean4-skills.",
-  "skills": "./skills/",
-  "agents": "./agents/",
-  "hooks": "./hooks/hooks.json"
-}
