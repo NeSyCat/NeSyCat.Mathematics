@@ -12,8 +12,19 @@
 % by item rather than turning the whole document red at once; each later
 % phase appends to this line. SENTINEL: the counts, asserted every run, so
 % a display quietly losing its tag stops the build.
-% LEAN-STEP-PHASE: thm:semiring-monad-laws, lem:tilt, thm:pullout, thm:chain-bound-sandwich, thm:chain-bound, lem:kleisli-term-natural, lem:kleisli-formula-natural, thm:batch-transformer, thm:pointwise-eval
-% LEAN-STEP-SENTINEL: envs=9 displays=28 tags=28 names=92
+% STEP CORRESPONDENCE COVERAGE (2026-08-13). Coverage is DERIVED, not
+% listed: every theorem-family environment with a \lean name and a \leanok
+% paired proof is checked, so a new proof is enforced the moment it exists
+% and there is nothing to remember to add. This replaces a
+% `% LEAN-STEP-PHASE:` opt-in list, under which an item nobody added was
+% silently unchecked; that is exactly how the wrong-monad chain in
+% thm:pointwise-eval survived every gate until a reader worked the algebra.
+% The line below is the remaining debt, not an opt-in. Its size is asserted
+% by LEAN-STEP-SENTINEL's `exempt=` field, so it cannot grow silently, and
+% the target is zero. Each entry is a proof whose displays are not yet
+% matched to named Lean steps.
+% LEAN-STEP-EXEMPT: lem:dist-closure, lem:prob-not-semiring, lem:support-hom-iff, thm:batch-exactness, thm:chain-lin, thm:embedding-exact, thm:mass-mix-fails, thm:mass-submeet-fails, thm:no-dm-mass-completion, thm:pointwise-eval-kleisli, thm:rational-mass-row-monad, thm:semiring-monad-commutative, thm:square-not-lin, thm:three-layers
+% LEAN-STEP-SENTINEL: envs=50 displays=28 tags=28 names=92 exempt=14
 
 \section{Introduction}  % lean-dir: -
 
@@ -647,8 +658,7 @@ Three components, matching the theorem's own bundling. Left unit
   (\Ret(x) \bind k)(y) = \bigoplus_{x'} \delta_x(x') \otimes k(x')(y)
     = 1 \otimes k(x)(y) = k(x)(y).
 \]
-Right unit, proved inline rather than as its own lemma (single-purpose,
-folded per the calibrated reuse principle):
+Right unit, proved inline rather than as its own lemma:
 % lean-step: right_unit, smul_delta_eq_single, Finsupp.sum_single
 \[
   (f \bind \Ret)(y) = \bigoplus_x f(x) \otimes \delta_x(y) = f(y) \otimes 1 = f(y).
@@ -1053,7 +1063,7 @@ this library does not yet have.
 % Every definition from here through the end of the Grammatical layer
 % (Section~\ref{sec:syntax-semantics}) is due to \emph{NeSyCat Theory
 % v2} (new.tex 1--396).
-From here on, $\otimes$ (rendered $\boxtimes$) always names the
+From here on $\boxtimes$ always names the
 categorical layer's object-level tensor of a CD or monoidal category.
 It never names the logical or semiring round operations used above and
 below. The two families of tensor stay visually distinct throughout.

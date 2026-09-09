@@ -1229,6 +1229,7 @@ def cmd_classify_report(classify_out_path):
 # displays and no tags at all.
 LEAN_STEP_TAG_RE = re.compile(r'%\s*lean-step:\s*(.+?)\s*$')
 LEAN_STEP_PHASE_RE = re.compile(r'^%\s*LEAN-STEP-PHASE:\s*(.*?)\s*$')
+LEAN_STEP_EXEMPT_RE = re.compile(r'^%\s*LEAN-STEP-EXEMPT:\s*(.*?)\s*$')
 DISPLAY_OPEN_RE = re.compile(
     r'^\s*(?:\\\[|\\begin\{(?:align\*?|gather\*?|multline\*?|equation\*?)\})')
 COMMENT_ONLY_RE = re.compile(r'^\s*%')
@@ -1269,16 +1270,19 @@ def cmd_lean_step_scan(tex_path):
 
     violations = []
 
-    phase = None
+    # COVERAGE IS UNIVERSAL AND FAIL-CLOSED (2026-08-13). This used to read a
+    # `% LEAN-STEP-PHASE:` opt-in list, so an item that nobody remembered to add
+    # was silently unchecked -- which is exactly how the wrong-monad chain in
+    # thm:pointwise-eval survived every gate. Coverage is now DERIVED: every
+    # theorem-family env with a \lean name and a \leanok paired proof is
+    # checked. The only escape is the `% LEAN-STEP-EXEMPT:` line, whose size is
+    # asserted by a sentinel below, so it can shrink to zero and never grow.
+    exempt = set()
     for line in raw_lines:
-        m = LEAN_STEP_PHASE_RE.match(line)
+        m = LEAN_STEP_EXEMPT_RE.match(line)
         if m:
-            phase = [x.strip() for x in m.group(1).split(',') if x.strip()]
+            exempt = {x.strip() for x in m.group(1).split(',') if x.strip()}
             break
-    if phase is None:
-        print("VIOL\tlean-step: no '% LEAN-STEP-PHASE:' line in content.tex")
-        print("STEP-SCAN-SUMMARY\t0 envs, 0 displays, 0 tags, 0 names")
-        return 1
 
     # NB: joined with "\n" -- these code_lines have had their newline
     # stripped, and a bare "".join would run `\leanok` into the next line's
@@ -1298,6 +1302,24 @@ def cmd_lean_step_scan(tex_path):
         nxt = envs[pos + 1] if pos + 1 < len(envs) else None
         if nxt and nxt[0] == "proof":
             paired[label_of(s, e)] = ((k, s, e), nxt)
+
+    covered = []
+    for lab, ((k, s_, e_), (_pk, ps_, pe_)) in paired.items():
+        head = body_text(s_, e_)
+        if not LEAN_RE.search(head):
+            continue
+        if not LEANOK_RE.search(body_text(s_, pe_)):
+            continue
+        covered.append(lab)
+    stale = sorted(exempt - set(covered))
+    for lab in stale:
+        violations.append(
+            f"lean-step: '{lab}' is on the LEAN-STEP-EXEMPT line but is not a "
+            "covered item (no \\lean name, no \\leanok proof, or no such "
+            "label); drop it from the exemption line")
+    phase = [lab for lab in sorted(covered) if lab not in exempt]
+    print(f"STEP-COVERAGE\t{len(covered)} covered, {len(exempt)} exempt, "
+          f"{len(phase)} enforced")
 
     n_disp = n_tags = 0
     records = []
@@ -1345,8 +1367,7 @@ def cmd_lean_step_scan(tex_path):
     for v in violations:
         print("VIOL\t" + v)
     n_names = sum(len(t["names"]) for r in records for t in r["tags"])
-    print(f"STEP-SCAN-SUMMARY\t{len(records)} envs, {n_disp} displays, "
-          f"{n_tags} tags, {n_names} names")
+    print(f"STEP-SCAN-SUMMARY\t{len(records)} envs, {n_disp} displays, {n_tags} tags, {sum(len(t['names']) for r in records for t in r['tags'])} names, {len(exempt)} exempt")
     return 1 if violations else 0
 
 
@@ -1854,7 +1875,7 @@ else
   # the build instead of shrinking a number nobody reads.
   STEP_ACTUAL="$(
     printf '%s\n' "$SCAN_OUT" | grep "^STEP-SCAN-SUMMARY${TAB}" \
-      | sed -E "s/^STEP-SCAN-SUMMARY${TAB}([0-9]+) envs, ([0-9]+) displays, ([0-9]+) tags, ([0-9]+) names.*/envs=\\1 displays=\\2 tags=\\3 names=\\4/"
+      | sed -E "s/^STEP-SCAN-SUMMARY${TAB}([0-9]+) envs, ([0-9]+) displays, ([0-9]+) tags, ([0-9]+) names, ([0-9]+) exempt.*/envs=\\1 displays=\\2 tags=\\3 names=\\4 exempt=\\5/"
   )"
 fi
 STEP_SENTINEL_LINE="$(grep -E '^% LEAN-STEP-SENTINEL:' blueprint/src/content.tex || true)"
